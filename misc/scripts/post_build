@@ -5,33 +5,27 @@ if [ -z "${SRCROOT}" ]; then
 	exit 1
 fi
 
-GZDOOM_EXEC_DIR=${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}
+ZDOOM_EXEC_DIR=${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}
 
-if [ ! -e "${GZDOOM_EXEC_DIR}" ]; then
-	mkdir -p "${GZDOOM_EXEC_DIR}"
+if [ ! -e "${ZDOOM_EXEC_DIR}" ]; then
+	mkdir -p "${ZDOOM_EXEC_DIR}"
 fi
 
-rsync -av "${SRCROOT}/thirdparty/FMOD/lib/libfmodex.dylib" "${GZDOOM_EXEC_DIR}"
+rsync -av "${SRCROOT}/thirdparty/FMOD/lib/libfmodex.dylib" "${ZDOOM_EXEC_DIR}"
 
-GZDOOM_EXEC_FILE=${GZDOOM_EXEC_DIR}/${EXECUTABLE_NAME}
+ZDOOM_EXEC_FILE=${ZDOOM_EXEC_DIR}/${EXECUTABLE_NAME}
 
-if [ -e "${GZDOOM_EXEC_FILE}" ]; then
+if [ -e "${ZDOOM_EXEC_FILE}" ]; then
 	FMOD_LIB_NAME=libfmodex.dylib
-	FMOD_NEED_FIX=`otool -L "${GZDOOM_EXEC_FILE}" | fgrep ./${FMOD_LIB_NAME}`
+	FMOD_NEED_FIX=`otool -L "${ZDOOM_EXEC_FILE}" | fgrep ./${FMOD_LIB_NAME}`
 
 	if [ "${FMOD_NEED_FIX}" ]; then
-		install_name_tool -change ./${FMOD_LIB_NAME} @executable_path/${FMOD_LIB_NAME} "${GZDOOM_EXEC_FILE}"
+		install_name_tool -change ./${FMOD_LIB_NAME} @executable_path/${FMOD_LIB_NAME} "${ZDOOM_EXEC_FILE}"
 	fi
 fi
 
 ZIPDIR_EXE=${BUILD_DIR}/${CONFIGURATION}${EFFECTIVE_PLATFORM_NAME}/zipdir
 
 if [ -e "${ZIPDIR_EXE}" ]; then
-	"${ZIPDIR_EXE}" -ud "${GZDOOM_EXEC_DIR}/gzdoom.pk3" "${SRCROOT}/wadsrc/static"
-	"${ZIPDIR_EXE}" -ud "${GZDOOM_EXEC_DIR}/brightmaps.pk3" "${SRCROOT}/wadsrc_bm/static"
-	"${ZIPDIR_EXE}" -ud "${GZDOOM_EXEC_DIR}/lights.pk3" "${SRCROOT}/wadsrc_lights/static"
+	"${ZIPDIR_EXE}" -ud "${ZDOOM_EXEC_DIR}/zdoom.pk3" "${SRCROOT}/wadsrc/static"
 fi
-
-for ITEM in "${SRCROOT}/misc/execs/"*; do
-	rsync -av "${ITEM}" "${GZDOOM_EXEC_DIR}/`basename "${ITEM}"`"
-done
