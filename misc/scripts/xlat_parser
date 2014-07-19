@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ -z "${SRCROOT}" ]; then
+	echo "Error: this script must be run by Xcode"
+	exit 1
+fi
+
+echo "Generating xlat_parser.c and xlat_parser.h..."
+
+cp -f "${SRCROOT}/tools/lemon/lempar.c" "${CONFIGURATION_BUILD_DIR}/lempar.c"
+
+cd "${SRCROOT}/src/xlat"
+"${CONFIGURATION_BUILD_DIR}/lemon" xlat_parser.y

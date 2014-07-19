@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ -z "${SRCROOT}" ]; then
+	echo "Error: this script must be run by Xcode"
+	exit 1
+fi
+
+echo "Generating sc_man_scanner.h..."
+
+cd "${SRCROOT}/src"
+"${CONFIGURATION_BUILD_DIR}/re2c" --no-generation-date -s -o sc_man_scanner.h sc_man_scanner.re

@@ -55,9 +55,11 @@ THIS SOFTWARE.
 #define Intcast (int)(long)
 #define Double_Align
 #define X64_bit_pointers
+#define NO_INFNAN_CHECK /* for better compatibility with MSVC */
 #elif defined(__i386__)
 #define IEEE_8087
 #define Arith_Kind_ASL 1
+#define NO_INFNAN_CHECK /* for better compatibility with MSVC */
 #else
 #define IEEE_MC68k
 #define Arith_Kind_ASL 2

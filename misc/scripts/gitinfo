@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ -z "${SRCROOT}" ]; then
+	echo "Error: this script must be run by Xcode"
+	exit 1
+fi
+
+echo "Generating gitinfo.h..."
+
+cd "${SRCROOT}/src"
+"${CONFIGURATION_BUILD_DIR}/updaterevision" "${SRCROOT}/src/gitinfo.h"
