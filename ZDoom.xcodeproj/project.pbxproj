@@ -120,6 +120,7 @@
 		8A422126150A0478001D28A0 /* IOHIDDevice_.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A422119150A0478001D28A0 /* IOHIDDevice_.c */; };
 		8A422128150A0478001D28A0 /* IOHIDElement_.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A42211B150A0478001D28A0 /* IOHIDElement_.c */; };
 		8A422139150A0578001D28A0 /* iokit_joystick.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A422138150A0578001D28A0 /* iokit_joystick.cpp */; };
+		8A5FDCCB197AA94500694177 /* i_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A5FDCC9197AA92700694177 /* i_cursor.cpp */; };
 		8A74F2A2139235E0001F54B0 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F2A1139235E0001F54B0 /* OpenGL.framework */; };
 		8A74F2BA1392360F001F54B0 /* libfmodex.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F2B91392360F001F54B0 /* libfmodex.dylib */; };
 		8A74F38F13925284001F54B0 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F38E13925284001F54B0 /* IOKit.framework */; };
@@ -137,7 +138,7 @@
 		8A7C310E18F184410001B5A2 /* ulp.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF27CB3139121FA0095D9A0 /* ulp.c */; };
 		8A7C310F18F184430001B5A2 /* sum.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF27CB2139121FA0095D9A0 /* sum.c */; };
 		8A7C81C613BF3C0B000B654E /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = 8AF27F3E139126C00095D9A0 /* SDLMain.m */; };
-		8A7FF48014BB2B220069731E /* cocoa_no_sdl.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8A7FF47F14BB2B220069731E /* cocoa_no_sdl.mm */; };
+		8A7FF48014BB2B220069731E /* cocoa_backend.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8A7FF47F14BB2B220069731E /* cocoa_backend.mm */; };
 		8A8D68B713C84344001D368F /* r_swrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A8D68B313C84344001D368F /* r_swrenderer.cpp */; };
 		8A8D68B813C84344001D368F /* r_utility.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A8D68B513C84344001D368F /* r_utility.cpp */; };
 		8A938D1113B6039F002627DE /* actorptrselect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A938D0F13B6039F002627DE /* actorptrselect.cpp */; };
@@ -1267,6 +1268,7 @@
 		8A42211D150A0478001D28A0 /* IOHIDLib_.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOHIDLib_.h; sourceTree = "<group>"; };
 		8A422138150A0578001D28A0 /* iokit_joystick.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iokit_joystick.cpp; sourceTree = "<group>"; };
 		8A44602813BF0306007FA8E1 /* zdoom.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = zdoom.xcconfig; path = misc/zdoom.xcconfig; sourceTree = "<group>"; };
+		8A5FDCC9197AA92700694177 /* i_cursor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = i_cursor.cpp; sourceTree = "<group>"; };
 		8A74F2A1139235E0001F54B0 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		8A74F2B91392360F001F54B0 /* libfmodex.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfmodex.dylib; path = thirdparty/FMOD/lib/libfmodex.dylib; sourceTree = "<group>"; };
 		8A74F38E13925284001F54B0 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
@@ -1275,7 +1277,7 @@
 		8A7C310218F16B220001B5A2 /* gme_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gme_types.h; sourceTree = "<group>"; };
 		8A7C310318F16B220001B5A2 /* Spc_Filter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Spc_Filter.cpp; sourceTree = "<group>"; };
 		8A7C310418F16B220001B5A2 /* Spc_Filter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Spc_Filter.h; sourceTree = "<group>"; };
-		8A7FF47F14BB2B220069731E /* cocoa_no_sdl.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = cocoa_no_sdl.mm; sourceTree = "<group>"; };
+		8A7FF47F14BB2B220069731E /* cocoa_backend.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = cocoa_backend.mm; sourceTree = "<group>"; };
 		8A80DBE417ABB57000917483 /* strfhelp.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = strfhelp.o; sourceTree = "<group>"; };
 		8A80DBE617ABB57000917483 /* actor.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = actor.txt; sourceTree = "<group>"; };
 		8A80DBE817ABB57000917483 /* chexammo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = chexammo.txt; sourceTree = "<group>"; };
@@ -4894,13 +4896,14 @@
 		8AF27F2C139126C00095D9A0 /* sdl */ = {
 			isa = PBXGroup;
 			children = (
-				8A7FF47F14BB2B220069731E /* cocoa_no_sdl.mm */,
+				8A7FF47F14BB2B220069731E /* cocoa_backend.mm */,
 				8AF27F2D139126C00095D9A0 /* crashcatcher.c */,
 				8AF27F2E139126C00095D9A0 /* critsec.h */,
 				8AF27F2F139126C00095D9A0 /* dikeys.h */,
 				8AF27F30139126C00095D9A0 /* hardware.cpp */,
 				8AF27F31139126C00095D9A0 /* hardware.h */,
 				8AF27F32139126C00095D9A0 /* i_cd.cpp */,
+				8A5FDCC9197AA92700694177 /* i_cursor.cpp */,
 				8AF27F33139126C00095D9A0 /* i_input.cpp */,
 				8AF27F34139126C00095D9A0 /* i_input.h */,
 				8AF27F35139126C00095D9A0 /* i_joystick.cpp */,
@@ -5663,7 +5666,7 @@
 				8A9F540014BB0F2900F3369B /* file_wad.cpp in Sources */,
 				8A9F540114BB0F2900F3369B /* file_zip.cpp in Sources */,
 				8A9F540214BB0F2900F3369B /* resourcefile.cpp in Sources */,
-				8A7FF48014BB2B220069731E /* cocoa_no_sdl.mm in Sources */,
+				8A7FF48014BB2B220069731E /* cocoa_backend.mm in Sources */,
 				8A9F540A14BB0F2900F3369B /* hardware.cpp in Sources */,
 				8A9F540B14BB0F2900F3369B /* i_cd.cpp in Sources */,
 				8A9F540E14BB0F2900F3369B /* i_main.cpp in Sources */,
@@ -6229,6 +6232,7 @@
 				8AF28165139126C10095D9A0 /* resourcefile.cpp in Sources */,
 				8AF2816E139126C10095D9A0 /* hardware.cpp in Sources */,
 				8AF2816F139126C10095D9A0 /* i_cd.cpp in Sources */,
+				8A5FDCCB197AA94500694177 /* i_cursor.cpp in Sources */,
 				8AF28170139126C10095D9A0 /* i_input.cpp in Sources */,
 				8AF28171139126C10095D9A0 /* i_joystick.cpp in Sources */,
 				8AF28172139126C10095D9A0 /* i_main.cpp in Sources */,
