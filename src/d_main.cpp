@@ -2054,6 +2054,9 @@ static void D_DoomInit()
 
 static void AddAutoloadFiles(const char *group, const char *autoname)
 {
+	LumpFilterGroup = group;
+	LumpFilterIWAD = autoname;
+
 	if (!(gameinfo.flags & GI_SHAREWARE) && !Args->CheckParm("-noautoload"))
 	{
 		FString file;
@@ -2502,6 +2505,8 @@ void D_DoomMain (void)
 		// Create replacements for dehacked pickups
 		FinishDehPatch();
 
+		InitActorNumsFromMapinfo();
+		InitSpawnablesFromMapinfo();
 		FActorInfo::StaticSetActorNums ();
 
 		//Added by MC:

@@ -125,6 +125,8 @@
 		8A2C748016C66DA600ABD7C8 /* loadokt2.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A2C747716C66CB600ABD7C8 /* loadokt2.c */; };
 		8A2C748116C66DBA00ABD7C8 /* readokt.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A2C747816C66CB600ABD7C8 /* readokt.c */; };
 		8A2C748216C66DBA00ABD7C8 /* readokt2.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A2C747916C66CB600ABD7C8 /* readokt2.c */; };
+		8A2F674F1AD012C200E377A0 /* g_doomedmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A2F674E1AD0129700E377A0 /* g_doomedmap.cpp */; };
+		8A2F67501AD012C800E377A0 /* g_doomedmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A2F674E1AD0129700E377A0 /* g_doomedmap.cpp */; };
 		8A3ACEF417F833FC002E550F /* m_specialpaths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A3ACEF317F833FC002E550F /* m_specialpaths.cpp */; };
 		8A3ACEF517F833FC002E550F /* m_specialpaths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A3ACEF317F833FC002E550F /* m_specialpaths.cpp */; };
 		8A3DA66D1547DB5100D1302A /* thingdef_function.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A3DA66C1547DB5100D1302A /* thingdef_function.cpp */; };
@@ -1374,6 +1376,18 @@
 		8A2C747716C66CB600ABD7C8 /* loadokt2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = loadokt2.c; sourceTree = "<group>"; };
 		8A2C747816C66CB600ABD7C8 /* readokt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = readokt.c; sourceTree = "<group>"; };
 		8A2C747916C66CB600ABD7C8 /* readokt2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = readokt2.c; sourceTree = "<group>"; };
+		8A2F674E1AD0129700E377A0 /* g_doomedmap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = g_doomedmap.cpp; sourceTree = "<group>"; };
+		8A2F67511AD012E500E377A0 /* a_flies.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = a_flies.cpp; sourceTree = "<group>"; };
+		8A2F67521AD0130D00E377A0 /* flies.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = flies.txt; sourceTree = "<group>"; };
+		8A2F67551AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A2F67571AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A2F67591AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A2F675B1AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A2F675C1AD0136100E377A0 /* doomitems.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = doomitems.txt; sourceTree = "<group>"; };
+		8A2F675D1AD0139000E377A0 /* AFLYA0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AFLYA0.png; sourceTree = "<group>"; };
+		8A2F675E1AD0139000E377A0 /* AFLYB0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AFLYB0.png; sourceTree = "<group>"; };
+		8A2F675F1AD0139000E377A0 /* AFLYC0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AFLYC0.png; sourceTree = "<group>"; };
+		8A2F67601AD0139000E377A0 /* AFLYD0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AFLYD0.png; sourceTree = "<group>"; };
 		8A3ACEF317F833FC002E550F /* m_specialpaths.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = m_specialpaths.cpp; sourceTree = "<group>"; };
 		8A3DA66C1547DB5100D1302A /* thingdef_function.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thingdef_function.cpp; sourceTree = "<group>"; };
 		8A3DA6941547DC2A00D1302A /* gl_builddraw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gl_builddraw.cpp; sourceTree = "<group>"; };
@@ -3743,6 +3757,49 @@
 			path = r_data;
 			sourceTree = "<group>";
 		};
+		8A2F67531AD0133000E377A0 /* filter */ = {
+			isa = PBXGroup;
+			children = (
+				8A2F67541AD0133000E377A0 /* doom */,
+				8A2F67561AD0133000E377A0 /* heretic */,
+				8A2F67581AD0133000E377A0 /* hexen */,
+				8A2F675A1AD0133000E377A0 /* strife */,
+			);
+			path = filter;
+			sourceTree = "<group>";
+		};
+		8A2F67541AD0133000E377A0 /* doom */ = {
+			isa = PBXGroup;
+			children = (
+				8A2F67551AD0133000E377A0 /* sndinfo.txt */,
+			);
+			path = doom;
+			sourceTree = "<group>";
+		};
+		8A2F67561AD0133000E377A0 /* heretic */ = {
+			isa = PBXGroup;
+			children = (
+				8A2F67571AD0133000E377A0 /* sndinfo.txt */,
+			);
+			path = heretic;
+			sourceTree = "<group>";
+		};
+		8A2F67581AD0133000E377A0 /* hexen */ = {
+			isa = PBXGroup;
+			children = (
+				8A2F67591AD0133000E377A0 /* sndinfo.txt */,
+			);
+			path = hexen;
+			sourceTree = "<group>";
+		};
+		8A2F675A1AD0133000E377A0 /* strife */ = {
+			isa = PBXGroup;
+			children = (
+				8A2F675B1AD0133000E377A0 /* sndinfo.txt */,
+			);
+			path = strife;
+			sourceTree = "<group>";
+		};
 		8A651FEE191E69C0009DB9CD /* glew */ = {
 			isa = PBXGroup;
 			children = (
@@ -3784,6 +3841,7 @@
 			children = (
 				8A80DBE317ABB57000917483 /* acs */,
 				8A80DBE517ABB57000917483 /* actors */,
+				8A2F67531AD0133000E377A0 /* filter */,
 				8A80DCA417ABB57000917483 /* glstuff */,
 				8A80DCA917ABB57000917483 /* graphics */,
 				8A80DD1117ABB57000917483 /* maparrows */,
@@ -3968,6 +4026,7 @@
 				8A80DC3517ABB57000917483 /* firedemon.txt */,
 				8A80DC3617ABB57000917483 /* flame.txt */,
 				8A80DC3717ABB57000917483 /* flechette.txt */,
+				8A2F67521AD0130D00E377A0 /* flies.txt */,
 				8A80DC3817ABB57000917483 /* fog.txt */,
 				8A80DC3917ABB57000917483 /* healingradius.txt */,
 				8A80DC3A17ABB57000917483 /* heresiarch.txt */,
@@ -4219,6 +4278,7 @@
 				8A906CB819556CAB0017F0E4 /* doom2_xbox.txt */,
 				8A80DD1E17ABB57000917483 /* doom2bfg.txt */,
 				8A80DD1F17ABB57000917483 /* doomcommon.txt */,
+				8A2F675C1AD0136100E377A0 /* doomitems.txt */,
 				8A80DD2017ABB57000917483 /* hacxharm.txt */,
 				8A80DD2117ABB57000917483 /* heretic.txt */,
 				8A80DD2217ABB57000917483 /* hereticsw.txt */,
@@ -4318,6 +4378,10 @@
 			children = (
 				8A80DDA217ABB57000917483 /* dogs */,
 				8A80DDEE17ABB57000917483 /* plyc */,
+				8A2F675D1AD0139000E377A0 /* AFLYA0.png */,
+				8A2F675E1AD0139000E377A0 /* AFLYB0.png */,
+				8A2F675F1AD0139000E377A0 /* AFLYC0.png */,
+				8A2F67601AD0139000E377A0 /* AFLYD0.png */,
 				8A80DDA117ABB57000917483 /* amrka0.png */,
 				8A41EE9719FB9A900072E317 /* GWANA0.png */,
 				8A80DDDD17ABB57000917483 /* iceca0.png */,
@@ -5721,6 +5785,7 @@
 				8AF27D52139126C00095D9A0 /* farchive.h */,
 				8AF27D53139126C00095D9A0 /* files.cpp */,
 				8AF27D54139126C00095D9A0 /* files.h */,
+				8A2F674E1AD0129700E377A0 /* g_doomedmap.cpp */,
 				8AF27D76139126C00095D9A0 /* g_game.cpp */,
 				8AF27D77139126C00095D9A0 /* g_game.h */,
 				8AF27DA4139126C00095D9A0 /* g_hub.cpp */,
@@ -6041,6 +6106,7 @@
 				8AF27D90139126C00095D9A0 /* a_fighterquietus.cpp */,
 				8AF27D91139126C00095D9A0 /* a_firedemon.cpp */,
 				8AF27D92139126C00095D9A0 /* a_flechette.cpp */,
+				8A2F67511AD012E500E377A0 /* a_flies.cpp */,
 				8AF27D93139126C00095D9A0 /* a_fog.cpp */,
 				8AF27D94139126C00095D9A0 /* a_healingradius.cpp */,
 				8AF27D95139126C00095D9A0 /* a_heresiarch.cpp */,
@@ -7329,6 +7395,7 @@
 				8A9F532614BB0F2900F3369B /* f_wipe.cpp in Sources */,
 				8A9F532714BB0F2900F3369B /* farchive.cpp in Sources */,
 				8A9F532814BB0F2900F3369B /* files.cpp in Sources */,
+				8A2F674F1AD012C200E377A0 /* g_doomedmap.cpp in Sources */,
 				8A9F533414BB0F2900F3369B /* g_game.cpp in Sources */,
 				8A9F533714BB0F2900F3369B /* g_hub.cpp in Sources */,
 				8A9F533814BB0F2900F3369B /* g_level.cpp in Sources */,
@@ -7961,6 +8028,7 @@
 				8AF28035139126C00095D9A0 /* f_wipe.cpp in Sources */,
 				8AF28036139126C00095D9A0 /* farchive.cpp in Sources */,
 				8AF28037139126C00095D9A0 /* files.cpp in Sources */,
+				8A2F67501AD012C800E377A0 /* g_doomedmap.cpp in Sources */,
 				8AF28054139126C00095D9A0 /* g_game.cpp in Sources */,
 				8AF2807E139126C00095D9A0 /* g_hub.cpp in Sources */,
 				8AF2807F139126C00095D9A0 /* g_level.cpp in Sources */,

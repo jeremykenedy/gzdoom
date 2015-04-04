@@ -976,7 +976,7 @@ DEFINE_PROPERTY(translation, L, Actor)
 	if (type == 0)
 	{
 		PROP_INT_PARM(trans, 1);
-		int max = (gameinfo.gametype==GAME_Strife || (info->GameFilter&GAME_Strife)) ? 6:2;
+		int max = 6;// (gameinfo.gametype == GAME_Strife || (info->GameFilter&GAME_Strife)) ? 6 : 2;
 		if (trans < 0 || trans > max)
 		{
 			I_Error ("Translation must be in the range [0,%d]", max);
@@ -1422,7 +1422,7 @@ DEFINE_PROPERTY(stamina, I, Actor)
 DEFINE_PROPERTY(telefogsourcetype, S, Actor)
 {
 	PROP_STRING_PARM(str, 0);
-	if (!stricmp(str, "") || (!stricmp(str, "none")) || (!stricmp(str, "null")) || *str == 0) defaults->TeleFogSourceType = NULL;
+	if (!stricmp(str, "") || !stricmp(str, "none")) defaults->TeleFogSourceType = NULL;
 	else defaults->TeleFogSourceType = FindClassTentative(str,"TeleportFog");
 }
 
@@ -1432,7 +1432,7 @@ DEFINE_PROPERTY(telefogsourcetype, S, Actor)
 DEFINE_PROPERTY(telefogdesttype, S, Actor)
 {
 	PROP_STRING_PARM(str, 0);
-	if (!stricmp(str, "") || (!stricmp(str, "none")) || (!stricmp(str, "null")) || *str == 0) defaults->TeleFogDestType = NULL;
+	if (!stricmp(str, "") || !stricmp(str, "none")) defaults->TeleFogDestType = NULL;
 	else defaults->TeleFogDestType = FindClassTentative(str, "TeleportFog");
 }
 

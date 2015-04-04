@@ -497,7 +497,7 @@ void FChasmBinFile::DumpFiles(const char* const path)
 		FResourceLump* const lump = m_lumps[i];
 
 		char filename[1024] = {};
-		mysnprintf(filename, sizeof filename, "%s/%s", path, lump->FullName);
+		mysnprintf(filename, sizeof filename, "%s/%s", path, lump->FullName.GetChars());
 
 		FILE* const file = fopen(filename, "wb");
 		if (NULL == file)
