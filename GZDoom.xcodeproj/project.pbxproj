@@ -1424,7 +1424,6 @@
 		8A805D1319604887009AF921 /* libogg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libogg.a; path = thirdparty/sndfile/lib/libogg.a; sourceTree = "<group>"; };
 		8A805D1419604887009AF921 /* libvorbis.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbis.a; path = thirdparty/sndfile/lib/libvorbis.a; sourceTree = "<group>"; };
 		8A805D1B196048EB009AF921 /* libvorbisenc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisenc.a; path = thirdparty/sndfile/lib/libvorbisenc.a; sourceTree = "<group>"; };
-		8A80DBE417ABB57000917483 /* strfhelp.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = strfhelp.o; sourceTree = "<group>"; };
 		8A80DBE617ABB57000917483 /* actor.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = actor.txt; sourceTree = "<group>"; };
 		8A80DBE817ABB57000917483 /* chexammo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = chexammo.txt; sourceTree = "<group>"; };
 		8A80DBE917ABB57000917483 /* chexdecorations.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = chexdecorations.txt; sourceTree = "<group>"; };
@@ -2520,6 +2519,11 @@
 		8A906CB719556C370017F0E4 /* main_foglayer.fp */ = {isa = PBXFileReference; lastKnownFileType = text; path = main_foglayer.fp; sourceTree = "<group>"; };
 		8A906CB819556CAB0017F0E4 /* doom2_xbox.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doom2_xbox.txt; sourceTree = "<group>"; };
 		8A906CBA19556CC30017F0E4 /* readyico.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = readyico.png; sourceTree = "<group>"; };
+		8A90D63B1AD117AA00CFDF5C /* strfhelp.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = strfhelp.o; sourceTree = "<group>"; };
+		8A90D63C1AD117AA00CFDF5C /* loadacs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = loadacs.txt; sourceTree = "<group>"; };
+		8A90D63F1AD117C300CFDF5C /* conversationids.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = conversationids.txt; sourceTree = "<group>"; };
+		8A90D6421AD117C300CFDF5C /* conversationids.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = conversationids.txt; sourceTree = "<group>"; };
+		8A90D6431AD117F300CFDF5C /* conversationids.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = conversationids.txt; sourceTree = "<group>"; };
 		8A938D0F13B6039F002627DE /* actorptrselect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = actorptrselect.cpp; sourceTree = "<group>"; };
 		8A938D1013B6039F002627DE /* actorptrselect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = actorptrselect.h; sourceTree = "<group>"; };
 		8A942A3D1553CC25005083CD /* v_blend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = v_blend.cpp; sourceTree = "<group>"; };
@@ -3764,6 +3768,8 @@
 				8A2F67561AD0133000E377A0 /* heretic */,
 				8A2F67581AD0133000E377A0 /* hexen */,
 				8A2F675A1AD0133000E377A0 /* strife */,
+				8A90D63D1AD117C300CFDF5C /* strifeteaser1 */,
+				8A90D6401AD117C300CFDF5C /* strifeteaser2 */,
 			);
 			path = filter;
 			sourceTree = "<group>";
@@ -3795,6 +3801,8 @@
 		8A2F675A1AD0133000E377A0 /* strife */ = {
 			isa = PBXGroup;
 			children = (
+				8A90D63A1AD117AA00CFDF5C /* acs */,
+				8A90D63C1AD117AA00CFDF5C /* loadacs.txt */,
 				8A2F675B1AD0133000E377A0 /* sndinfo.txt */,
 			);
 			path = strife;
@@ -3839,7 +3847,6 @@
 		8A80DBE217ABB57000917483 /* wadsrc */ = {
 			isa = PBXGroup;
 			children = (
-				8A80DBE317ABB57000917483 /* acs */,
 				8A80DBE517ABB57000917483 /* actors */,
 				8A2F67531AD0133000E377A0 /* filter */,
 				8A80DCA417ABB57000917483 /* glstuff */,
@@ -3900,14 +3907,6 @@
 			);
 			name = wadsrc;
 			path = wadsrc/static;
-			sourceTree = "<group>";
-		};
-		8A80DBE317ABB57000917483 /* acs */ = {
-			isa = PBXGroup;
-			children = (
-				8A80DBE417ABB57000917483 /* strfhelp.o */,
-			);
-			path = acs;
 			sourceTree = "<group>";
 		};
 		8A80DBE517ABB57000917483 /* actors */ = {
@@ -4272,6 +4271,7 @@
 				8A80DD1817ABB57000917483 /* chex.txt */,
 				8A80DD1917ABB57000917483 /* chex3.txt */,
 				8A80DD1A17ABB57000917483 /* common.txt */,
+				8A90D6431AD117F300CFDF5C /* conversationids.txt */,
 				8A80DD1B17ABB57000917483 /* doom1.txt */,
 				8A80DD1C17ABB57000917483 /* doom2.txt */,
 				8A80DD1D17ABB57000917483 /* doom2_x360.txt */,
@@ -5205,6 +5205,46 @@
 				8A906CB119556C1D0017F0E4 /* VertexColor.pso */,
 			);
 			path = sm30;
+			sourceTree = "<group>";
+		};
+		8A90D63A1AD117AA00CFDF5C /* acs */ = {
+			isa = PBXGroup;
+			children = (
+				8A90D63B1AD117AA00CFDF5C /* strfhelp.o */,
+			);
+			path = acs;
+			sourceTree = "<group>";
+		};
+		8A90D63D1AD117C300CFDF5C /* strifeteaser1 */ = {
+			isa = PBXGroup;
+			children = (
+				8A90D63E1AD117C300CFDF5C /* mapinfo */,
+			);
+			path = strifeteaser1;
+			sourceTree = "<group>";
+		};
+		8A90D63E1AD117C300CFDF5C /* mapinfo */ = {
+			isa = PBXGroup;
+			children = (
+				8A90D63F1AD117C300CFDF5C /* conversationids.txt */,
+			);
+			path = mapinfo;
+			sourceTree = "<group>";
+		};
+		8A90D6401AD117C300CFDF5C /* strifeteaser2 */ = {
+			isa = PBXGroup;
+			children = (
+				8A90D6411AD117C300CFDF5C /* mapinfo */,
+			);
+			path = strifeteaser2;
+			sourceTree = "<group>";
+		};
+		8A90D6411AD117C300CFDF5C /* mapinfo */ = {
+			isa = PBXGroup;
+			children = (
+				8A90D6421AD117C300CFDF5C /* conversationids.txt */,
+			);
+			path = mapinfo;
 			sourceTree = "<group>";
 		};
 		8AA9A1911660E80A007F75A4 /* dosbox */ = {
