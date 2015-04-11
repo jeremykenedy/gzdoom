@@ -1366,6 +1366,17 @@
 		8A08C7C71A29DAA600371DB4 /* nukedopl3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nukedopl3.h; sourceTree = "<group>"; };
 		8A12DD08177D6379006EE538 /* file_chasm_bin.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = file_chasm_bin.cpp; sourceTree = "<group>"; };
 		8A12DD0E177D638D006EE538 /* celtexture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = celtexture.cpp; sourceTree = "<group>"; };
+		8A14E4C61AD91EBA0034C7CD /* defbinds.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = defbinds.txt; sourceTree = "<group>"; };
+		8A14E4C81AD91EF80034C7CD /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A14E4CA1AD91EF80034C7CD /* defbinds.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = defbinds.txt; sourceTree = "<group>"; };
+		8A14E4CB1AD91EF80034C7CD /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A14E4CD1AD91EF80034C7CD /* defbinds.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = defbinds.txt; sourceTree = "<group>"; };
+		8A14E4CE1AD91EF80034C7CD /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A14E4D11AD91EF80034C7CD /* strfhelp.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = strfhelp.o; sourceTree = "<group>"; };
+		8A14E4D21AD91EF80034C7CD /* defbinds.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = defbinds.txt; sourceTree = "<group>"; };
+		8A14E4D31AD91EF80034C7CD /* loadacs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = loadacs.txt; sourceTree = "<group>"; };
+		8A14E4D41AD91EF80034C7CD /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
+		8A14E4D51AD91F5D0034C7CD /* mindefaults.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = mindefaults.txt; sourceTree = "<group>"; };
 		8A1D337D154D6E0700BA2C16 /* libfluidsynth.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfluidsynth.a; path = thirdparty/fluidsynth/lib/libfluidsynth.a; sourceTree = "<group>"; };
 		8A1D33A7154D6EC000BA2C16 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		8A1D33B2154D6EEF00BA2C16 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -1379,10 +1390,6 @@
 		8A2F674E1AD0129700E377A0 /* g_doomedmap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = g_doomedmap.cpp; sourceTree = "<group>"; };
 		8A2F67511AD012E500E377A0 /* a_flies.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = a_flies.cpp; sourceTree = "<group>"; };
 		8A2F67521AD0130D00E377A0 /* flies.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = flies.txt; sourceTree = "<group>"; };
-		8A2F67551AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
-		8A2F67571AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
-		8A2F67591AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
-		8A2F675B1AD0133000E377A0 /* sndinfo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sndinfo.txt; sourceTree = "<group>"; };
 		8A2F675C1AD0136100E377A0 /* doomitems.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = doomitems.txt; sourceTree = "<group>"; };
 		8A2F675D1AD0139000E377A0 /* AFLYA0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AFLYA0.png; sourceTree = "<group>"; };
 		8A2F675E1AD0139000E377A0 /* AFLYB0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AFLYB0.png; sourceTree = "<group>"; };
@@ -2519,8 +2526,6 @@
 		8A906CB719556C370017F0E4 /* main_foglayer.fp */ = {isa = PBXFileReference; lastKnownFileType = text; path = main_foglayer.fp; sourceTree = "<group>"; };
 		8A906CB819556CAB0017F0E4 /* doom2_xbox.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doom2_xbox.txt; sourceTree = "<group>"; };
 		8A906CBA19556CC30017F0E4 /* readyico.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = readyico.png; sourceTree = "<group>"; };
-		8A90D63B1AD117AA00CFDF5C /* strfhelp.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = strfhelp.o; sourceTree = "<group>"; };
-		8A90D63C1AD117AA00CFDF5C /* loadacs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = loadacs.txt; sourceTree = "<group>"; };
 		8A90D63F1AD117C300CFDF5C /* conversationids.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = conversationids.txt; sourceTree = "<group>"; };
 		8A90D6421AD117C300CFDF5C /* conversationids.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = conversationids.txt; sourceTree = "<group>"; };
 		8A90D6431AD117F300CFDF5C /* conversationids.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = conversationids.txt; sourceTree = "<group>"; };
@@ -3761,51 +3766,62 @@
 			path = r_data;
 			sourceTree = "<group>";
 		};
+		8A14E4C71AD91EF80034C7CD /* game-doomchex */ = {
+			isa = PBXGroup;
+			children = (
+				8A14E4C81AD91EF80034C7CD /* sndinfo.txt */,
+			);
+			path = "game-doomchex";
+			sourceTree = "<group>";
+		};
+		8A14E4C91AD91EF80034C7CD /* game-heretic */ = {
+			isa = PBXGroup;
+			children = (
+				8A14E4CA1AD91EF80034C7CD /* defbinds.txt */,
+				8A14E4CB1AD91EF80034C7CD /* sndinfo.txt */,
+			);
+			path = "game-heretic";
+			sourceTree = "<group>";
+		};
+		8A14E4CC1AD91EF80034C7CD /* game-hexen */ = {
+			isa = PBXGroup;
+			children = (
+				8A14E4CD1AD91EF80034C7CD /* defbinds.txt */,
+				8A14E4CE1AD91EF80034C7CD /* sndinfo.txt */,
+			);
+			path = "game-hexen";
+			sourceTree = "<group>";
+		};
+		8A14E4CF1AD91EF80034C7CD /* game-strife */ = {
+			isa = PBXGroup;
+			children = (
+				8A14E4D01AD91EF80034C7CD /* acs */,
+				8A14E4D21AD91EF80034C7CD /* defbinds.txt */,
+				8A14E4D31AD91EF80034C7CD /* loadacs.txt */,
+				8A14E4D41AD91EF80034C7CD /* sndinfo.txt */,
+			);
+			path = "game-strife";
+			sourceTree = "<group>";
+		};
+		8A14E4D01AD91EF80034C7CD /* acs */ = {
+			isa = PBXGroup;
+			children = (
+				8A14E4D11AD91EF80034C7CD /* strfhelp.o */,
+			);
+			path = acs;
+			sourceTree = "<group>";
+		};
 		8A2F67531AD0133000E377A0 /* filter */ = {
 			isa = PBXGroup;
 			children = (
-				8A2F67541AD0133000E377A0 /* doom */,
-				8A2F67561AD0133000E377A0 /* heretic */,
-				8A2F67581AD0133000E377A0 /* hexen */,
-				8A2F675A1AD0133000E377A0 /* strife */,
+				8A14E4C71AD91EF80034C7CD /* game-doomchex */,
+				8A14E4C91AD91EF80034C7CD /* game-heretic */,
+				8A14E4CC1AD91EF80034C7CD /* game-hexen */,
+				8A14E4CF1AD91EF80034C7CD /* game-strife */,
 				8A90D63D1AD117C300CFDF5C /* strifeteaser1 */,
 				8A90D6401AD117C300CFDF5C /* strifeteaser2 */,
 			);
 			path = filter;
-			sourceTree = "<group>";
-		};
-		8A2F67541AD0133000E377A0 /* doom */ = {
-			isa = PBXGroup;
-			children = (
-				8A2F67551AD0133000E377A0 /* sndinfo.txt */,
-			);
-			path = doom;
-			sourceTree = "<group>";
-		};
-		8A2F67561AD0133000E377A0 /* heretic */ = {
-			isa = PBXGroup;
-			children = (
-				8A2F67571AD0133000E377A0 /* sndinfo.txt */,
-			);
-			path = heretic;
-			sourceTree = "<group>";
-		};
-		8A2F67581AD0133000E377A0 /* hexen */ = {
-			isa = PBXGroup;
-			children = (
-				8A2F67591AD0133000E377A0 /* sndinfo.txt */,
-			);
-			path = hexen;
-			sourceTree = "<group>";
-		};
-		8A2F675A1AD0133000E377A0 /* strife */ = {
-			isa = PBXGroup;
-			children = (
-				8A90D63A1AD117AA00CFDF5C /* acs */,
-				8A90D63C1AD117AA00CFDF5C /* loadacs.txt */,
-				8A2F675B1AD0133000E377A0 /* sndinfo.txt */,
-			);
-			path = strife;
 			sourceTree = "<group>";
 		};
 		8A651FEE191E69C0009DB9CD /* glew */ = {
@@ -3868,6 +3884,7 @@
 				8A80DC9E17ABB57000917483 /* decaldef.txt */,
 				8A80DC9F17ABB57000917483 /* decorate.txt */,
 				8A80DCA017ABB57000917483 /* decorate.z */,
+				8A14E4C61AD91EBA0034C7CD /* defbinds.txt */,
 				8A80DCA117ABB57000917483 /* dehsupp.txt */,
 				8A80DCA217ABB57000917483 /* etc.h.txt */,
 				8A80DCA317ABB57000917483 /* fontdefs.txt */,
@@ -4284,6 +4301,7 @@
 				8A80DD2217ABB57000917483 /* hereticsw.txt */,
 				8A80DD2317ABB57000917483 /* hexdd.txt */,
 				8A80DD2417ABB57000917483 /* hexen.txt */,
+				8A14E4D51AD91F5D0034C7CD /* mindefaults.txt */,
 				8A80DD2517ABB57000917483 /* plutonia.txt */,
 				8A80DD2617ABB57000917483 /* strife.txt */,
 				8A80DD2717ABB57000917483 /* tnt.txt */,
@@ -5205,14 +5223,6 @@
 				8A906CB119556C1D0017F0E4 /* VertexColor.pso */,
 			);
 			path = sm30;
-			sourceTree = "<group>";
-		};
-		8A90D63A1AD117AA00CFDF5C /* acs */ = {
-			isa = PBXGroup;
-			children = (
-				8A90D63B1AD117AA00CFDF5C /* strfhelp.o */,
-			);
-			path = acs;
 			sourceTree = "<group>";
 		};
 		8A90D63D1AD117C300CFDF5C /* strifeteaser1 */ = {
