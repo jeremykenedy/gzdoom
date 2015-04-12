@@ -31,7 +31,23 @@
  **
  */
 
-#include <GL/glew.h>
+#include "gl/system/gl_load.h"
+
+#define GL_ALPHA_TEST 0x0BC0
+#define GL_MODELVIEW 0x1700
+#define GL_PROJECTION 0x1701
+#define GL_TEXTURE_RECTANGLE_ARB 0x84F5
+#define GL_UNPACK_CLIENT_STORAGE_APPLE 0x85B2
+
+extern "C"
+{
+	void glMatrixMode(GLenum mode);
+	void glLoadIdentity();
+	void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
+	void glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+	void glVertex2f(GLfloat x, GLfloat y);
+	void glTexCoord2f(GLfloat s, GLfloat t);
+}
 
 #include "i_common.h"
 
@@ -336,19 +352,11 @@ private:
 }; // class RenderTarget
 
 
-// ---------------------------------------------------------------------------
-
-
-struct CapabilityChecker
-{
-	CapabilityChecker();
-};
-
 
 // ---------------------------------------------------------------------------
 
 
-class CocoaOpenGLFrameBuffer : public OpenGLFrameBuffer, private CapabilityChecker, private NonCopyable
+class CocoaOpenGLFrameBuffer : public OpenGLFrameBuffer, private NonCopyable
 {
 	typedef OpenGLFrameBuffer Super;
 
@@ -537,6 +545,12 @@ CocoaVideo::CocoaVideo(const int multisample)
 		attributes[i++] = NSOpenGLPixelFormatAttribute(1);
 		attributes[i++] = NSOpenGLPFASamples;
 		attributes[i++] = NSOpenGLPixelFormatAttribute(multisample);
+	}
+
+	if (vid_renderer > 0)
+	{
+		attributes[i++] = NSOpenGLPFAOpenGLProfile;
+		attributes[i++] = NSOpenGLProfileVersion3_2Core;
 	}
 
 	attributes[i] = NSOpenGLPixelFormatAttribute(0);
@@ -1116,12 +1130,14 @@ SDLGLFB::SDLGLFB(void*, const int width, const int height, int, int, const bool 
 , m_lock(-1)
 , m_isUpdatePending(false)
 , m_supportsGamma(true)
-, m_gammaTexture(GAMMA_TABLE_SIZE, 1, false, false, true, true)
+, m_gammaProgram("GammaCorrection")
+, m_gammaTexture(GAMMA_TABLE_SIZE, 1, true)
 {
 }
 
 SDLGLFB::SDLGLFB()
-: m_gammaTexture(0, 0, false, false, false, false)
+: m_gammaProgram("")
+, m_gammaTexture(0, 0, false)
 {
 }
 
@@ -1219,7 +1235,7 @@ void SDLGLFB::SetGammaTable(WORD* table)
 
 	m_gammaTexture.CreateTexture(
 		reinterpret_cast<unsigned char*>(m_gammaTable),
-		GAMMA_TABLE_SIZE, 1, false, 1, 0);
+		GAMMA_TABLE_SIZE, 1, 1, false, 0);
 }
 
 
@@ -1345,19 +1361,19 @@ bool BoundTextureSaveAsPNG(const GLenum target, const char* const path)
 RenderTarget::RenderTarget(const GLsizei width, const GLsizei height)
 : m_ID(0)
 , m_oldID(0)
-, m_texture(width, height, false, false, true, true)
+, m_texture(width, height, true)
 {
-	glGenFramebuffersEXT(1, &m_ID);
+	glGenFramebuffers(1, &m_ID);
 
 	Bind();
-	m_texture.CreateTexture(NULL, width, height, false, 0, 0);
+	m_texture.CreateTexture(NULL, width, height, 0, false, 0);
 	m_texture.BindToFrameBuffer();
 	Unbind();
 }
 
 RenderTarget::~RenderTarget()
 {
-	glDeleteFramebuffersEXT(1, &m_ID);
+	glDeleteFramebuffers(1, &m_ID);
 }
 
 
@@ -1367,14 +1383,14 @@ void RenderTarget::Bind()
 
 	if (m_ID != boundID)
 	{
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_ID);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
 		m_oldID = boundID;
 	}
 }
 
 void RenderTarget::Unbind()
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_oldID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_oldID);
 	m_oldID = 0;
 }
 
@@ -1382,23 +1398,9 @@ void RenderTarget::Unbind()
 GLuint RenderTarget::GetBoundID()
 {
 	GLint result;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &result);
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &result);
 
 	return static_cast<GLuint>(result);
-}
-
-
-// ---------------------------------------------------------------------------
-
-
-CapabilityChecker::CapabilityChecker()
-{
-	if (!(gl.flags & RFL_FRAMEBUFFER))
-	{
-		I_FatalError(
-			"The graphics hardware in your system does not support Frame Buffer Object (FBO).\n"
-			"It is required to run this version of " GAMENAME ".\n");
-	}
 }
 
 
@@ -1477,8 +1479,8 @@ void CocoaOpenGLFrameBuffer::DrawRenderTarget()
 {
 	m_renderTarget.Unbind();
 
-	m_renderTarget.GetColorTexture().Bind(0, 0);
-	m_gammaTexture.Bind(1, 0);
+	m_renderTarget.GetColorTexture().Bind(0, 0, false);
+	m_gammaTexture.Bind(1, 0, false);
 
 	if (rbOpts.dirty)
 	{
@@ -1492,7 +1494,7 @@ void CocoaOpenGLFrameBuffer::DrawRenderTarget()
 
 	glViewport(rbOpts.shiftX, rbOpts.shiftY, rbOpts.width, rbOpts.height);
 
-	m_gammaProgram.Bind(0.0f);
+	m_gammaProgram.Bind();
 	BoundTextureDraw2D(Width, Height);
 	glUseProgram(0);
 
@@ -1503,7 +1505,7 @@ void CocoaOpenGLFrameBuffer::DrawRenderTarget()
 void CocoaOpenGLFrameBuffer::SetSmoothPicture(const bool smooth)
 {
 	FHardwareTexture& texture = m_renderTarget.GetColorTexture();
-	texture.Bind(0, 0);
+	texture.Bind(0, 0, false);
 	BoundTextureSetFilter(GL_TEXTURE_2D, smooth ? GL_LINEAR : GL_NEAREST);
 }
 
