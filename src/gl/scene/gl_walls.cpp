@@ -53,7 +53,6 @@
 #include "gl/data/gl_data.h"
 #include "gl/dynlights/gl_dynlight.h"
 #include "gl/dynlights/gl_glow.h"
-#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/scene/gl_portal.h"
 #include "gl/textures/gl_material.h"
@@ -71,7 +70,7 @@
 void GLWall::CheckGlowing()
 {
 	bottomglowcolor[3] = topglowcolor[3] = 0;
-	if (!gl_isFullbright(Colormap.LightColor, lightlevel) && gl_GlowActive())
+	if (!gl_isFullbright(Colormap.LightColor, lightlevel))
 	{
 		FTexture *tex = TexMan[topflat];
 		if (tex != NULL && tex->isGlowing())
@@ -115,9 +114,8 @@ void GLWall::PutWall(bool translucent)
 		4,		//RENDERWALL_SECTORSTACK,      // special
 		4,		//RENDERWALL_PLANEMIRROR,      // special
 		4,		//RENDERWALL_MIRROR,           // special
-		1,		//RENDERWALL_MIRRORSURFACE,    // needs special handling
-		2,		//RENDERWALL_M2SNF,            // depends on render and texture settings, no fog
-		2,		//RENDERWALL_M2SFOG,            // depends on render and texture settings, no fog
+		1,		//RENDERWALL_MIRRORSURFACE,    // only created here from RENDERWALL_MIRROR
+		2,		//RENDERWALL_M2SNF,            // depends on render and texture settings, no fog, used on mid texture lines with a fog boundary.
 		3,		//RENDERWALL_COLOR,            // translucent
 		2,		//RENDERWALL_FFBLOCK           // depends on render and texture settings
 		4,		//RENDERWALL_COLORLAYER        // color layer needs special handling
@@ -133,7 +131,7 @@ void GLWall::PutWall(bool translucent)
 		// light planes don't get drawn with fullbright rendering
 		if (!gltexture && passflag[type]!=4) return;
 
-		Colormap.GetFixedColormap();
+		Colormap.Clear();
 	}
 
 	CheckGlowing();
@@ -146,46 +144,18 @@ void GLWall::PutWall(bool translucent)
 	}
 	else if (passflag[type]!=4)	// non-translucent walls
 	{
-		static DrawListType list_indices[2][2][2]={
-			{ { GLDL_PLAIN, GLDL_FOG      }, { GLDL_MASKED,      GLDL_FOGMASKED      } },
-			{ { GLDL_LIGHT, GLDL_LIGHTFOG }, { GLDL_LIGHTMASKED, GLDL_LIGHTFOGMASKED } }
-		};
 
 		bool masked;
-		bool light = gl_forcemultipass;
 
-		if (!gl_fixedcolormap)
+		masked = passflag[type]==1? false : (gltexture && gltexture->isMasked());
+
+		if ((flags&GLWF_SKYHACK && type == RENDERWALL_M2S))
 		{
-			if (gl_lights && !gl_dynlight_shader)
-			{
-				if (seg->sidedef == NULL)
-				{
-					light = false;
-				}
-				else if (!(seg->sidedef->Flags & WALLF_POLYOBJ))
-				{
-					light = seg->sidedef->lighthead[0] != NULL;
-				}
-				else if (sub)
-				{
-					// for polyobjects we cannot use the side's light list. 
-					// We must use the subsector's.
-					light = sub->lighthead[0] != NULL;
-				}
-			}
+			list = GLDL_MASKEDWALLSOFS;
 		}
 		else
 		{
-			flags&=~GLWF_FOGGY;
-		}
-
-		masked = passflag[type]==1? false : (light && type!=RENDERWALL_FFBLOCK) || (gltexture && gltexture->isMasked());
-
-		list = list_indices[light][masked][!!(flags&GLWF_FOGGY)];
-		if (list == GLDL_LIGHT)
-		{
-			if (gltexture->tex->gl_info.Brightmap && gl_BrightmapsActive()) list = GLDL_LIGHTBRIGHT;
-			if (flags & GLWF_GLOW) list = GLDL_LIGHTBRIGHT;
+			list = masked ? GLDL_MASKEDWALLS : GLDL_PLAINWALLS;
 		}
 		gl_drawinfo->drawlists[list].AddWall(this);
 
@@ -193,7 +163,7 @@ void GLWall::PutWall(bool translucent)
 	else switch (type)
 	{
 	case RENDERWALL_COLORLAYER:
-		gl_drawinfo->drawlists[GLDL_TRANSLUCENT].AddWall(this);
+		gl_drawinfo->drawlists[GLDL_TRANSLUCENTBORDER].AddWall(this);
 		break;
 
 	// portals don't go into the draw list.
@@ -520,7 +490,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 
-			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
+			if (gl_fixedcolormap) hi.colormap.Clear();
 			horizon = &hi;
 			PutWall(0);
 		}
@@ -549,7 +519,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 				hi.colormap.LightColor = (light->extra_colormap)->Color;
 			}
 
-			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
+			if (gl_fixedcolormap) hi.colormap.Clear();
 			horizon = &hi;
 			PutWall(0);
 		}
@@ -670,17 +640,25 @@ bool GLWall::SetWallCoordinates(seg_t * seg, FTexCoordInfo *tci, float textureto
 	uplft.u = lolft.u = l_ul + texlength * glseg.fracleft;
 	uprgt.u = lorgt.u = l_ul + texlength * glseg.fracright;
 
-
-	if (gltexture && gltexture->tex->bHasCanvas && flags&GLT_CLAMPY)
+	if (gltexture != NULL)
 	{
-		// Camera textures are upside down so we have to shift the y-coordinate
-		// from [-1..0] to [0..1] when using texture clamping
-
-		uplft.v+=1.f;
-		uprgt.v+=1.f;
-		lolft.v+=1.f;
-		lorgt.v+=1.f;
+		bool normalize = false;
+		if (gltexture->tex->bHasCanvas) normalize = true;
+		else if (flags & GLT_CLAMPY)
+		{
+			// for negative scales we can get negative coordinates here.
+			normalize = (uplft.v > lolft.v || uprgt.v > lorgt.v);
+		}
+		if (normalize)
+		{
+			// we have to shift the y-coordinate from [-1..0] to [0..1] when using texture clamping with a negative scale
+			uplft.v+=1.f;
+			uprgt.v+=1.f;
+			lolft.v+=1.f;
+			lorgt.v+=1.f;
+		}
 	}
+	
 	return true;
 }
 
@@ -1009,6 +987,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		//
 		FloatRect *splitrect;
 		int v = gltexture->GetAreas(&splitrect);
+		if (seg->frontsector == seg->backsector) flags |= GLWF_NOSPLIT;	// we don't need to do vertex splits if a line has both sides in the same sector
 		if (v>0 && !drawfogboundary && !(seg->linedef->flags&ML_WRAP_MIDTEX))
 		{
 			// split the poly!
@@ -1118,19 +1097,19 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 		
 		if (rover->flags&FF_UPPERTEXTURE) 
 		{
-			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::top), true);
+			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::top), false,  true);
 			if (!gltexture) return;
 			gltexture->GetTexCoordInfo(&tci, seg->sidedef->GetTextureXScale(side_t::top), seg->sidedef->GetTextureYScale(side_t::top));
 		}
 		else if (rover->flags&FF_LOWERTEXTURE) 
 		{
-			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), true);
+			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), false, true);
 			if (!gltexture) return;
 			gltexture->GetTexCoordInfo(&tci, seg->sidedef->GetTextureXScale(side_t::bottom), seg->sidedef->GetTextureYScale(side_t::bottom));
 		}
 		else 
 		{
-			gltexture = FMaterial::ValidateTexture(mastersd->GetTexture(side_t::mid), true);
+			gltexture = FMaterial::ValidateTexture(mastersd->GetTexture(side_t::mid), false, true);
 			if (!gltexture) return;
 			gltexture->GetTexCoordInfo(&tci, mastersd->GetTextureXScale(side_t::mid), mastersd->GetTextureYScale(side_t::mid));
 		}
@@ -1510,11 +1489,13 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 	glseg.x2 = FIXED2FLOAT(v2->x);
 	glseg.y2 = FIXED2FLOAT(v2->y);
 	Colormap = frontsector->ColorMap;
-	flags = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)? GLWF_FOGGY : 0;
+	flags = 0;
+	dynlightindex = UINT_MAX;
 
 	int rel = 0;
 	int orglightlevel = gl_ClampLight(frontsector->lightlevel);
-	lightlevel = gl_ClampLight(seg->sidedef->GetLightLevel(!!(flags&GLWF_FOGGY), orglightlevel, false, &rel));
+	bool foggy = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE);	// fog disables fake contrast
+	lightlevel = gl_ClampLight(seg->sidedef->GetLightLevel(foggy, orglightlevel, false, &rel));
 	if (orglightlevel >= 253)			// with the software renderer fake contrast won't be visible above this.
 	{
 		rellight = 0;
@@ -1580,7 +1561,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 		SkyNormal(frontsector, v1, v2);
 
 		// normal texture
-		gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);
+		gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), false, true);
 		if (gltexture)
 		{
 			DoTexture(RENDERWALL_M1S, seg, (seg->linedef->flags & ML_DONTPEGBOTTOM) > 0,
@@ -1635,7 +1616,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 
 			if (bch1a < fch1 || bch2a < fch2)
 			{
-				gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::top), true);
+				gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::top), false, true);
 				if (gltexture)
 				{
 					DoTexture(RENDERWALL_TOP, seg, (seg->linedef->flags & (ML_DONTPEGTOP)) == 0,
@@ -1647,7 +1628,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 					frontsector->GetTexture(sector_t::ceiling) != skyflatnum &&
 					backsector->GetTexture(sector_t::ceiling) != skyflatnum)
 				{
-					gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::ceiling), true);
+					gltexture = FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::ceiling), false, true);
 					if (gltexture)
 					{
 						DoTexture(RENDERWALL_TOP, seg, (seg->linedef->flags & (ML_DONTPEGTOP)) == 0,
@@ -1676,7 +1657,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 			{
 				tex = tex->GetRawTexture();
 			}
-			gltexture=FMaterial::ValidateTexture(tex);
+			gltexture = FMaterial::ValidateTexture(tex, false);
 		}
 		else gltexture = NULL;
 
@@ -1701,7 +1682,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 
 		if (bfh1>ffh1 || bfh2>ffh2)
 		{
-			gltexture=FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), true);
+			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom), false, true);
 			if (gltexture)
 			{
 				DoTexture(RENDERWALL_BOTTOM, seg, (seg->linedef->flags & ML_DONTPEGBOTTOM) > 0,
@@ -1719,7 +1700,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 				// render it anyway with the sector's floor texture. With a background sky
 				// there are ugly holes otherwise and slopes are simply not precise enough
 				// to mach in any case.
-				gltexture=FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), true);
+				gltexture = FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), false, true);
 				if (gltexture)
 				{
 					DoTexture(RENDERWALL_BOTTOM, seg, (seg->linedef->flags & ML_DONTPEGBOTTOM) > 0,
@@ -1768,7 +1749,7 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		glseg.fracleft = 0;
 		glseg.fracright = 1;
 
-		flags = (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE)? GLWF_FOGGY : 0;
+		flags = 0;
 
 		// can't do fake contrast without a sidedef
 		lightlevel = gl_ClampLight(frontsector->lightlevel);
@@ -1782,10 +1763,11 @@ void GLWall::ProcessLowerMiniseg(seg_t *seg, sector_t * frontsector, sector_t * 
 		bottomflat = frontsector->GetTexture(sector_t::floor);
 		topplane = frontsector->ceilingplane;
 		bottomplane = frontsector->floorplane;
+		dynlightindex = UINT_MAX;
 
 		zfloor[0] = zfloor[1] = FIXED2FLOAT(ffh);
 
-		gltexture = FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), true);
+		gltexture = FMaterial::ValidateTexture(frontsector->GetTexture(sector_t::floor), false, true);
 
 		if (gltexture)
 		{

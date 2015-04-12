@@ -51,6 +51,7 @@
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/renderer/gl_renderstate.h"
 #include "gl/data/gl_data.h"
+#include "gl/data/gl_vertexbuffer.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"
@@ -70,21 +71,22 @@ EXTERN_CVAR (Bool, r_deathcamera)
 //
 //==========================================================================
 
-void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index, bool hudModelStep, int OverrideShader)
+void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, bool hudModelStep, int OverrideShader, bool alphatexture)
 {
 	float			fU1,fV1;
 	float			fU2,fV2;
-	fixed_t			tx;
-	int				x1,y1,x2,y2;
+	float			tx;
+	float			x1,y1,x2,y2;
 	float			scale;
-	fixed_t			scalex;
-	fixed_t			texturemid;// 4:3		16:9		16:10			17:10			5:4
-	static fixed_t xratio[] = {FRACUNIT, FRACUNIT*3/4, FRACUNIT*5/6, FRACUNIT*40/51, FRACUNIT};
+	float			scalex;
+	float			ftexturemid;
+	                      // 4:3  16:9   16:10  17:10    5:4
+	static float xratio[] = {1.f, 3.f/4, 5.f/6, 40.f/51, 1.f};
 	
 	// [BB] In the HUD model step we just render the model and break out. 
 	if ( hudModelStep )
 	{
-		gl_RenderHUDModel( psp, sx, sy, cm_index );
+		gl_RenderHUDModel( psp, sx, sy);
 		return;
 	}
 
@@ -93,77 +95,83 @@ void FGLRenderer::DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed
 	FTextureID lump = gl_GetSpriteFrame(psp->sprite, psp->frame, 0, 0, &mirror);
 	if (!lump.isValid()) return;
 
-	FMaterial * tex = FMaterial::ValidateTexture(lump, false);
+	FMaterial * tex = FMaterial::ValidateTexture(lump, true, false);
 	if (!tex) return;
 
-	tex->BindPatch(cm_index, 0, OverrideShader);
+	gl_RenderState.SetMaterial(tex, CLAMP_XY_NOMIP, 0, OverrideShader, alphatexture);
 
-	int vw = viewwidth;
-	int vh = viewheight;
+	float vw = (float)viewwidth;
+	float vh = (float)viewheight;
+
+	FloatRect r;
+	tex->GetSpriteRect(&r);
 
 	// calculate edges of the shape
 	scalex = xratio[WidescreenRatio] * vw / 320;
 
-	tx = sx - ((160 + tex->GetScaledLeftOffset(GLUSE_PATCH))<<FRACBITS);
-	x1 = (FixedMul(tx, scalex)>>FRACBITS) + (vw>>1);
+	tx = FIXED2FLOAT(sx) - (160 - r.left);
+	x1 = tx * scalex + vw/2;
 	if (x1 > vw)	return; // off the right side
-	x1+=viewwindowx;
+	x1 += viewwindowx;
 
-	tx +=  tex->TextureWidth(GLUSE_PATCH) << FRACBITS;
-	x2 = (FixedMul(tx, scalex)>>FRACBITS) + (vw>>1);
+	tx += r.width;
+	x2 = tx * scalex + vw / 2;
 	if (x2 < 0) return; // off the left side
-	x2+=viewwindowx;
+	x2 += viewwindowx;
+
 
 	// killough 12/98: fix psprite positioning problem
-	texturemid = (100<<FRACBITS) - (sy-(tex->GetScaledTopOffset(GLUSE_PATCH)<<FRACBITS));
+	ftexturemid = 100.f - FIXED2FLOAT(sy) - r.top;
 
 	AWeapon * wi=player->ReadyWeapon;
 	if (wi && wi->YAdjust)
 	{
-		if (screenblocks>=11)
+		float fYAd = FIXED2FLOAT(wi->YAdjust);
+		if (screenblocks >= 11)
 		{
-			texturemid -= wi->YAdjust;
+			ftexturemid -= fYAd;
 		}
 		else if (!st_scale)
 		{
-			texturemid -= FixedMul (StatusBar->GetDisplacement (), wi->YAdjust);
+			ftexturemid -= FIXED2FLOAT(StatusBar->GetDisplacement ()) * fYAd;
 		}
 	}
 
-	scale = ((SCREENHEIGHT*vw)/SCREENWIDTH) / 200.0f;    
-	y1 = viewwindowy + (vh >> 1) - (int)(((float)texturemid / (float)FRACUNIT) * scale);
-	y2 = y1 + (int)((float)tex->TextureHeight(GLUSE_PATCH) * scale) + 1;
+	scale = (SCREENHEIGHT*vw) / (SCREENWIDTH * 200.0f);
+	y1 = viewwindowy + vh / 2 - (ftexturemid * scale);
+	y2 = y1 + (r.height * scale) + 1;
 
 	if (!mirror)
 	{
-		fU1=tex->GetUL();
-		fV1=tex->GetVT();
-		fU2=tex->GetUR();
-		fV2=tex->GetVB();
+		fU1=tex->GetSpriteUL();
+		fV1=tex->GetSpriteVT();
+		fU2=tex->GetSpriteUR();
+		fV2=tex->GetSpriteVB();
 	}
 	else
 	{
-		fU2=tex->GetUL();
-		fV1=tex->GetVT();
-		fU1=tex->GetUR();
-		fV2=tex->GetVB();
+		fU2=tex->GetSpriteUL();
+		fV1=tex->GetSpriteVT();
+		fU1=tex->GetSpriteUR();
+		fV2=tex->GetSpriteVB();
 	}
 
-	if (tex->GetTransparent() || OverrideShader != 0)
+	if (tex->GetTransparent() || OverrideShader != -1)
 	{
-		gl_RenderState.EnableAlphaTest(false);
+		gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
 	}
 	gl_RenderState.Apply();
-	glBegin(GL_TRIANGLE_STRIP);
-	glTexCoord2f(fU1, fV1); glVertex2f(x1,y1);
-	glTexCoord2f(fU1, fV2); glVertex2f(x1,y2);
-	glTexCoord2f(fU2, fV1); glVertex2f(x2,y1);
-	glTexCoord2f(fU2, fV2); glVertex2f(x2,y2);
-	glEnd();
-	if (tex->GetTransparent() || OverrideShader != 0)
-	{
-		gl_RenderState.EnableAlphaTest(true);
-	}
+	FFlatVertex *ptr = GLRenderer->mVBO->GetBuffer();
+	ptr->Set(x1, y1, 0, fU1, fV1);
+	ptr++;
+	ptr->Set(x1, y2, 0, fU1, fV2);
+	ptr++;
+	ptr->Set(x2, y1, 0, fU2, fV1);
+	ptr++;
+	ptr->Set(x2, y2, 0, fU2, fV2);
+	ptr++;
+	GLRenderer->mVBO->RenderCurrent(ptr, GL_TRIANGLE_STRIP);
+	gl_RenderState.AlphaFunc(GL_GEQUAL, 0.5f);
 }
 
 //==========================================================================
@@ -194,36 +202,32 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		(r_deathcamera && camera->health <= 0))
 		return;
 
-	/*
-	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
-		mViewActor!=playermo || playermo->RenderStyle.BlendOp == STYLEOP_None) return;
-	*/
-
 	P_BobWeapon (player, &player->psprites[ps_weapon], &ofsx, &ofsy);
 
 	// check for fullbright
 	if (player->fixedcolormap==NOFIXEDCOLORMAP)
 	{
-		for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
+		for (i = 0, psp = player->psprites; i <= ps_flash; i++, psp++)
+		{
 			if (psp->state != NULL)
 			{
 				bool disablefullbright = false;
 				FTextureID lump = gl_GetSpriteFrame(psp->sprite, psp->frame, 0, 0, NULL);
-				if (lump.isValid() && gl_BrightmapsActive())
+				if (lump.isValid())
 				{
-					FMaterial * tex=FMaterial::ValidateTexture(lump, false);
+					FMaterial * tex=FMaterial::ValidateTexture(lump, false, false);
 					if (tex)
 						disablefullbright = tex->tex->gl_info.bDisableFullbright;
 				}
 				statebright[i] = !!psp->state->GetFullbright() && !disablefullbright;
 			}
-				
+		}
 	}
 
 	if (gl_fixedcolormap) 
 	{
 		lightlevel=255;
-		cm.GetFixedColormap();
+		cm.Clear();
 		statebright[0] = statebright[1] = true;
 		fakesec = viewsector;
 	}
@@ -287,7 +291,9 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		lightlevel = 255;
 	}
 
-	PalEntry ThingColor = playermo->fillcolor;
+	PalEntry ThingColor = (playermo->RenderStyle.Flags & STYLEF_ColorIsFixed) ? playermo->fillcolor : 0xffffff;
+	ThingColor.a = 255;
+
 	visstyle_t vis;
 
 	vis.RenderStyle=playermo->RenderStyle;
@@ -298,23 +304,23 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 		playermo->Inventory->AlterWeaponSprite(&vis);
 		if (vis.colormap >= SpecialColormaps[0].Colormap && 
 			vis.colormap < SpecialColormaps[SpecialColormaps.Size()].Colormap && 
-			cm.colormap == CM_DEFAULT)
+			gl_fixedcolormap == CM_DEFAULT)
 		{
-			ptrdiff_t specialmap = (vis.colormap - SpecialColormaps[0].Colormap) / sizeof(FSpecialColormap);
-			cm.colormap = int(CM_FIRSTSPECIALCOLORMAP + specialmap);
+			// this only happens for Strife's inverted weapon sprite
+			vis.RenderStyle.Flags |= STYLEF_InvertSource;
 		}
 	}
 
 	// Set the render parameters
 
-	int OverrideShader = 0;
+	int OverrideShader = -1;
 	float trans = 0.f;
 	if (vis.RenderStyle.BlendOp >= STYLEOP_Fuzz && vis.RenderStyle.BlendOp <= STYLEOP_FuzzOrRevSub)
 	{
 		vis.RenderStyle.CheckFuzz();
 		if (vis.RenderStyle.BlendOp == STYLEOP_Fuzz)
 		{
-			if (gl.shadermodel >= 4 && gl_fuzztype != 0)
+			if (gl_fuzztype != 0)
 			{
 				// Todo: implement shader selection here
 				vis.RenderStyle = LegacyRenderStyles[STYLE_Translucent];
@@ -346,6 +352,7 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 
 	// now draw the different layers of the weapon
 	gl_RenderState.EnableBrightmap(true);
+	gl_RenderState.SetObjectColor(ThingColor);
 	if (statebright[0] || statebright[1])
 	{
 		// brighten the weapon to reduce the difference between
@@ -366,7 +373,6 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 			if (statebright[i]) 
 			{
 				if (fakesec == viewsector || in_area != area_below)	
-					// under water areas keep most of their color for fullbright objects
 				{
 					cmc.LightColor.r=
 					cmc.LightColor.g=
@@ -374,17 +380,30 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 				}
 				else
 				{
-					cmc.LightColor.r = (3*cmc.LightColor.r + 0xff)/4;
+					// under water areas keep most of their color for fullbright objects
+					cmc.LightColor.r = (3 * cmc.LightColor.r + 0xff) / 4;
 					cmc.LightColor.g = (3*cmc.LightColor.g + 0xff)/4;
 					cmc.LightColor.b = (3*cmc.LightColor.b + 0xff)/4;
 				}
 			}
-			// set the lighting parameters (only calls glColor and glAlphaFunc)
-			gl_SetSpriteLighting(vis.RenderStyle, playermo, statebright[i]? 255 : lightlevel, 
-				0, &cmc, 0xffffff, trans, statebright[i], true);
-			DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.colormap, hudModelStep, OverrideShader);
+			// set the lighting parameters
+			if (vis.RenderStyle.BlendOp == STYLEOP_Shadow)
+			{
+				gl_RenderState.SetColor(0.2f, 0.2f, 0.2f, 0.33f, cmc.desaturation);
+			}
+			else
+			{
+				if (gl_lights && GLRenderer->mLightCount && !gl_fixedcolormap && gl_light_sprites)
+				{
+					gl_SetDynSpriteLight(playermo, NULL);
+				}
+				gl_SetColor(statebright[i] ? 255 : lightlevel, 0, cmc, trans, true);
+			}
+			DrawPSprite(player, psp, psp->sx + ofsx, psp->sy + ofsy, hudModelStep, OverrideShader, !!(vis.RenderStyle.Flags & STYLEF_RedIsAlpha));
 		}
 	}
+	gl_RenderState.SetObjectColor(0xffffffff);
+	gl_RenderState.SetDynLight(0, 0, 0);
 	gl_RenderState.EnableBrightmap(false);
 	glset.lightmode = oldlightmode;
 }
@@ -409,10 +428,10 @@ void FGLRenderer::DrawTargeterSprites()
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
 	gl_RenderState.BlendEquation(GL_FUNC_ADD);
-	glColor3f(1.0f,1.0f,1.0f);
+	gl_RenderState.ResetColor();
 	gl_RenderState.SetTextureMode(TM_MODULATE);
 
 	// The Targeter's sprites are always drawn normally.
 	for (i=ps_targetcenter, psp = &player->psprites[ps_targetcenter]; i<NUMPSPRITES; i++,psp++)
-		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT, false, 0);
+		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, false, 0, false);
 }

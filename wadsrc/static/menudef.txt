@@ -661,7 +661,6 @@ OptionMenu "OpenGLOptions"
 	Title "OPENGL OPTIONS"
 	Submenu "Dynamic Light Options",	"GLLightOptions"
 	Submenu "Texture Options", 			"GLTextureGLOptions"
-	Submenu "Shader Options", 			"GLShaderOptions"
 	Submenu "Preferences", 				"GLPrefOptions"
 }
 

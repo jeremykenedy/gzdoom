@@ -52,7 +52,6 @@
 
 #include "gl/system/gl_interface.h"
 #include "gl/renderer/gl_renderer.h"
-#include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/scene/gl_drawinfo.h"
 #include "gl/models/gl_models.h"
@@ -210,99 +209,11 @@ int FVoxelTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, F
 //
 //===========================================================================
 
-
-class FVoxelVertexBuffer : public FVertexBuffer
-{
-	unsigned int ibo_id;
-	bool isint;
-
-public:
-	FVoxelVertexBuffer(TArray<FVoxelVertex> &verts, TArray<unsigned int> &indices);
-	~FVoxelVertexBuffer();
-	void BindVBO();
-	bool IsInt() const { return isint; }
-};
-
-
-//===========================================================================
-//
-// 
-//
-//===========================================================================
-
-FVoxelVertexBuffer::FVoxelVertexBuffer(TArray<FVoxelVertex> &verts, TArray<unsigned int> &indices)
-{
-	ibo_id = 0;
-	glGenBuffers(1, &ibo_id);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-	glBufferData(GL_ARRAY_BUFFER, verts.Size() * sizeof(FVoxelVertex), &verts[0], GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id);
-	if (verts.Size() > 65535)
-	{
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.Size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-		isint = true;
-	}
-	else
-	{
-		unsigned short *sbuffer = new unsigned short[indices.Size()];
-		for(unsigned i=0;i<indices.Size();i++)
-		{
-			sbuffer[i] = (unsigned short)indices[i];
-		}
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.Size() * sizeof(unsigned short), sbuffer, GL_STATIC_DRAW);
-		delete [] sbuffer;
-		isint = false;
-	}
-}
-
-//===========================================================================
-//
-// 
-//
-//===========================================================================
-
-FVoxelVertexBuffer::~FVoxelVertexBuffer()
-{
-	if (ibo_id != 0)
-	{
-		glDeleteBuffers(1, &ibo_id);
-	}
-}
-
-//===========================================================================
-//
-// 
-//
-//===========================================================================
-#define VVO ((FVoxelVertex*)NULL)
-
-void FVoxelVertexBuffer::BindVBO()
-{
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id);
-	glVertexPointer(3,GL_FLOAT, sizeof(FVoxelVertex), &VVO->x);
-	glTexCoordPointer(2,GL_FLOAT, sizeof(FVoxelVertex), &VVO->u);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_INDEX_ARRAY);
-}
-
-
-
-//===========================================================================
-//
-// 
-//
-//===========================================================================
-
 FVoxelModel::FVoxelModel(FVoxel *voxel, bool owned)
 {
 	mVoxel = voxel;
 	mOwningVoxel = owned;
-	mVBO = NULL;
 	mPalette = new FVoxelTexture(voxel);
-	Initialize();
 }
 
 //===========================================================================
@@ -313,10 +224,10 @@ FVoxelModel::FVoxelModel(FVoxel *voxel, bool owned)
 
 FVoxelModel::~FVoxelModel()
 {
-	CleanGLData();
 	delete mPalette;
 	if (mOwningVoxel) delete mVoxel;
 }
+
 
 //===========================================================================
 //
@@ -324,14 +235,14 @@ FVoxelModel::~FVoxelModel()
 //
 //===========================================================================
 
-void FVoxelModel::AddVertex(FVoxelVertex &vert, FVoxelMap &check)
+unsigned int FVoxelModel::AddVertex(FModelVertex &vert, FVoxelMap &check)
 {
 	unsigned int index = check[vert];
 	if (index == 0xffffffff)
 	{
 		index = check[vert] =mVertices.Push(vert);
 	}
-	mIndices.Push(index);
+	return index;
 }
 
 //===========================================================================
@@ -346,8 +257,8 @@ void FVoxelModel::AddFace(int x1, int y1, int z1, int x2, int y2, int z2, int x3
 	float PivotY = mVoxel->Mips[0].PivotY / 256.f;
 	float PivotZ = mVoxel->Mips[0].PivotZ / 256.f;
 	int h = mVoxel->Mips[0].SizeZ;
-	FVoxelVertex vert;
-
+	FModelVertex vert;
+	unsigned int indx[4];
 
 	vert.u = (((col & 15) * 255 / 16) + 7) / 255.f;
 	vert.v = (((col / 16) * 255 / 16) + 7) / 255.f;
@@ -355,23 +266,29 @@ void FVoxelModel::AddFace(int x1, int y1, int z1, int x2, int y2, int z2, int x3
 	vert.x =  x1 - PivotX;
 	vert.z = -y1 + PivotY;
 	vert.y = -z1 + PivotZ;
-	AddVertex(vert, check);
+	indx[0] = AddVertex(vert, check);
 
 	vert.x =  x2 - PivotX;
 	vert.z = -y2 + PivotY;
 	vert.y = -z2 + PivotZ;
-	AddVertex(vert, check);
+	indx[1] = AddVertex(vert, check);
 
 	vert.x =  x4 - PivotX;
 	vert.z = -y4 + PivotY;
 	vert.y = -z4 + PivotZ;
-	AddVertex(vert, check);
+	indx[2] = AddVertex(vert, check);
 
 	vert.x =  x3 - PivotX;
 	vert.z = -y3 + PivotY;
 	vert.y = -z3 + PivotZ;
-	AddVertex(vert, check);
+	indx[3] = AddVertex(vert, check);
 
+	mIndices.Push(indx[0]);
+	mIndices.Push(indx[1]);
+	mIndices.Push(indx[3]);
+	mIndices.Push(indx[1]);
+	mIndices.Push(indx[3]);
+	mIndices.Push(indx[2]);
 }
 
 //===========================================================================
@@ -455,35 +372,41 @@ void FVoxelModel::Initialize()
 //
 //===========================================================================
 
+void FVoxelModel::BuildVertexBuffer()
+{
+	if (mVBuf == NULL)
+	{
+		Initialize();
+
+		mVBuf = new FModelVertexBuffer(true);
+		FModelVertex *vertptr = mVBuf->LockVertexBuffer(mVertices.Size());
+		unsigned int *indxptr = mVBuf->LockIndexBuffer(mIndices.Size());
+
+		memcpy(vertptr, &mVertices[0], sizeof(FModelVertex)* mVertices.Size());
+		memcpy(indxptr, &mIndices[0], sizeof(unsigned int)* mIndices.Size());
+
+		mVBuf->UnlockVertexBuffer();
+		mVBuf->UnlockIndexBuffer();
+		mNumIndices = mIndices.Size();
+
+		// delete our temporary buffers
+		mVertices.Clear();
+		mIndices.Clear();
+		mVertices.ShrinkToFit();
+		mIndices.ShrinkToFit();
+	}
+}
+
+
+//===========================================================================
+//
+// 
+//
+//===========================================================================
+
 bool FVoxelModel::Load(const char * fn, int lumpnum, const char * buffer, int length)
 {
 	return false;	// not needed
-}
-
-//===========================================================================
-//
-// 
-//
-//===========================================================================
-
-void FVoxelModel::MakeGLData()
-{
-	mVBO = new FVoxelVertexBuffer(mVertices, mIndices);
-}
-
-//===========================================================================
-//
-// 
-//
-//===========================================================================
-
-void FVoxelModel::CleanGLData()
-{
-	if (mVBO != NULL)
-	{
-		delete mVBO;
-		mVBO = NULL;
-	}
 }
 
 //===========================================================================
@@ -514,39 +437,13 @@ float FVoxelModel::getAspectFactor()
 //
 //===========================================================================
 
-void FVoxelModel::RenderFrame(FTexture * skin, int frame, int cm, int translation)
+void FVoxelModel::RenderFrame(FTexture * skin, int frame, int frame2, double inter, int translation)
 {
-	FMaterial * tex = FMaterial::ValidateTexture(skin);
-	tex->Bind(cm, 0, translation);
+	FMaterial * tex = FMaterial::ValidateTexture(skin, false);
+	gl_RenderState.SetMaterial(tex, CLAMP_NOFILTER, translation, -1, false);
+
 	gl_RenderState.Apply();
-
-	if (mVBO == NULL) MakeGLData();
-	if (mVBO != NULL)
-	{
-		mVBO->BindVBO();
-		glDrawElements(GL_QUADS, mIndices.Size(), mVBO->IsInt()? GL_UNSIGNED_INT:GL_UNSIGNED_SHORT, 0);
-		GLRenderer->mVBO->BindVBO();
-		return;
-	}
-
-	glBegin(GL_QUADS);
-	for(unsigned i=0;i < mIndices.Size(); i++)
-	{
-		FVoxelVertex *vert = &mVertices[mIndices[i]];
-		glTexCoord2fv(&vert->u);
-		glVertex3fv(&vert->x);
-	}
-	glEnd();
-}
-
-//===========================================================================
-//
-// Voxels never interpolate between frames
-//
-//===========================================================================
-
-void FVoxelModel::RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation)
-{
-	RenderFrame(skin, frame, cm, translation);
+	mVBuf->SetupFrame(0, 0);
+	glDrawElements(GL_TRIANGLES, mNumIndices, GL_UNSIGNED_INT, (void*)(intptr_t)0);
 }
 
