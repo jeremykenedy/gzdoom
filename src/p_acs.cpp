@@ -113,8 +113,9 @@ FRandom pr_acs ("ACS");
 #define NOT_FLOOR			8
 #define NOT_CEILING			16
 
-// LineAtack flags
+// LineAttack flags
 #define FHF_NORANDOMPUFFZ	1
+#define FHF_NOIMPACTDECAL	2
 
 // SpawnDecal flags
 #define SDF_ABSANGLE		1
@@ -1133,40 +1134,6 @@ static void GiveInventory (AActor *activator, const char *type, int amount)
 
 //============================================================================
 //
-// DoTakeInv
-//
-// Takes an item from a single actor.
-//
-//============================================================================
-
-static void DoTakeInv (AActor *actor, const PClass *info, int amount)
-{
-	AInventory *item = actor->FindInventory (info);
-	if (item != NULL)
-	{
-		item->Amount -= amount;
-		if (item->Amount <= 0)
-		{
-			// If it's not ammo or an internal armor, destroy it.
-			// Ammo needs to stick around, even when it's zero for the benefit
-			// of the weapons that use it and to maintain the maximum ammo
-			// amounts a backpack might have given.
-			// Armor shouldn't be removed because they only work properly when
-			// they are the last items in the inventory.
-			if (item->ItemFlags & IF_KEEPDEPLETED)
-			{
-				item->Amount = 0;
-			}
-			else
-			{
-				item->Destroy ();
-			}
-		}
-	}
-}
-
-//============================================================================
-//
 // TakeInventory
 //
 // Takes an item from one or more actors.
@@ -1199,12 +1166,12 @@ static void TakeInventory (AActor *activator, const char *type, int amount)
 		for (int i = 0; i < MAXPLAYERS; ++i)
 		{
 			if (playeringame[i])
-				DoTakeInv (players[i].mo, info, amount);
+				players[i].mo->TakeInventory(info, amount);
 		}
 	}
 	else
 	{
-		DoTakeInv (activator, info, amount);
+		activator->TakeInventory(info, amount);
 	}
 }
 
@@ -1424,7 +1391,7 @@ void FBehavior::StaticLoadDefaultModules ()
 			}
 			else
 			{
-				Printf ("Could not find autoloaded ACS library %s\n", sc.String);
+				Printf (TEXTCOLOR_RED "Could not find autoloaded ACS library %s\n", sc.String);
 			}
 		}
 	}
@@ -1442,7 +1409,17 @@ FBehavior *FBehavior::StaticLoadModule (int lumpnum, FileReader *fr, int len)
 		}
 	}
 
-	return new FBehavior (lumpnum, fr, len);
+	FBehavior * behavior = new FBehavior ();
+	if (behavior->Init(lumpnum, fr, len))
+	{
+		return behavior;
+	}
+	else
+	{
+		delete behavior;
+		Printf(TEXTCOLOR_RED "%s: invalid ACS module", Wads.GetLumpFullName(lumpnum));
+		return NULL;
+	}
 }
 
 bool FBehavior::StaticCheckAllGood ()
@@ -1562,7 +1539,7 @@ void FBehavior::StaticSerializeModuleStates (FArchive &arc)
 
 	if (modnum != StaticModules.Size())
 	{
-		I_Error ("Level was saved with a different number of ACS modules.");
+		I_Error("Level was saved with a different number of ACS modules. (Have %d, save has %d)", StaticModules.Size(), modnum);
 	}
 
 	for (modnum = 0; modnum < StaticModules.Size(); ++modnum)
@@ -1583,7 +1560,7 @@ void FBehavior::StaticSerializeModuleStates (FArchive &arc)
 			if (stricmp (modname, module->ModuleName) != 0)
 			{
 				delete[] modname;
-				I_Error ("Level was saved with a different set of ACS modules.");
+				I_Error("Level was saved with a different set or order of ACS modules. (Have %s, save has %s)", module->ModuleName, modname);
 			}
 			else if (ModSize != module->GetDataSize())
 			{
@@ -1701,11 +1678,8 @@ static int ParseLocalArrayChunk(void *chunk, ACSLocalArrays *arrays, int offset)
 	return offset;
 }
 
-FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
+FBehavior::FBehavior()
 {
-	BYTE *object;
-	int i;
-
 	NumScripts = 0;
 	NumFunctions = 0;
 	NumArrays = 0;
@@ -1717,10 +1691,20 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	Chunks = NULL;
 	Data = NULL;
 	Format = ACS_Unknown;
-	LumpNum = lumpnum;
+	LumpNum = -1;
 	memset (MapVarStore, 0, sizeof(MapVarStore));
 	ModuleName[0] = 0;
 	FunctionProfileData = NULL;
+
+}
+	
+	
+bool FBehavior::Init(int lumpnum, FileReader * fr, int len)
+{
+	BYTE *object;
+	int i;
+
+	LumpNum = lumpnum;
 
 	// Now that everything is set up, record this module as being among the loaded modules.
 	// We need to do this before resolving any imports, because an import might (indirectly)
@@ -1732,7 +1716,6 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	// 1. If not, corrupt modules cause memory leaks
 	// 2. Corrupt modules won't be reported when a level is being loaded if this function quits before
 	//    adding it to the list.
-    LibraryID = StaticModules.Push (this) << LIBRARYID_SHIFT;
 
 	if (fr == NULL) len = Wads.LumpLength (lumpnum);
 
@@ -1744,7 +1727,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	// has 24 bytes if it is completely empty. An empty SPTR chunk adds 8 bytes.)
 	if (len < 32)
 	{
-		return;
+		return false;
 	}
 
 	object = new BYTE[len];
@@ -1760,7 +1743,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	if (object[0] != 'A' || object[1] != 'C' || object[2] != 'S')
 	{
 		delete[] object;
-		return;
+		return false;
 	}
 
 	switch (object[3])
@@ -1776,8 +1759,9 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 		break;
 	default:
 		delete[] object;
-		return;
+		return false;
 	}
+    LibraryID = StaticModules.Push (this) << LIBRARYID_SHIFT;
 
 	if (fr == NULL)
 	{
@@ -2060,7 +2044,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 					int lump = Wads.CheckNumForName (&parse[i], ns_acslibrary);
 					if (lump < 0)
 					{
-						Printf ("Could not find ACS library %s.\n", &parse[i]);
+						Printf (TEXTCOLOR_RED "Could not find ACS library %s.\n", &parse[i]);
 					}
 					else
 					{
@@ -2101,7 +2085,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 								func->ImportNum = i+1;
 								if (realfunc->ArgCount != func->ArgCount)
 								{
-									Printf ("Function %s in %s has %d arguments. %s expects it to have %d.\n",
+									Printf (TEXTCOLOR_ORANGE "Function %s in %s has %d arguments. %s expects it to have %d.\n",
 										(char *)(chunk + 2) + chunk[3+j], lib->ModuleName, realfunc->ArgCount,
 										ModuleName, func->ArgCount);
 									Format = ACS_Unknown;
@@ -2154,7 +2138,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 							if (lib->ArrayStore[impNum].ArraySize != expectedSize)
 							{
 								Format = ACS_Unknown;
-								Printf ("The array %s in %s has %u elements, but %s expects it to only have %u.\n",
+								Printf (TEXTCOLOR_ORANGE "The array %s in %s has %u elements, but %s expects it to only have %u.\n",
 									parse, lib->ModuleName, lib->ArrayStore[impNum].ArraySize,
 									ModuleName, expectedSize);
 							}
@@ -2168,6 +2152,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	}
 
 	DPrintf ("Loaded %d scripts, %d functions\n", NumScripts, NumFunctions);
+	return true;
 }
 
 FBehavior::~FBehavior ()
@@ -2302,8 +2287,8 @@ void FBehavior::LoadScriptsDirectory ()
 	}
 
 // [EP] Clang 3.5.0 optimizer miscompiles this function and causes random
-// crashes in the program. I hope that Clang 3.5.x will fix this.
-#if defined(__clang__) && __clang_major__ == 3 && __clang_minor__ >= 5
+// crashes in the program. This is fixed in 3.5.1 onwards.
+#if defined(__clang__) && __clang_major__ == 3 && __clang_minor__ == 5 && __clang_patchlevel__ == 0
 	asm("" : "+g" (NumScripts));
 #endif
 	for (i = 0; i < NumScripts; ++i)
@@ -2326,7 +2311,7 @@ void FBehavior::LoadScriptsDirectory ()
 			{
 				if (Scripts[i].Number == Scripts[i+1].Number)
 				{
-					Printf("%s appears more than once.\n",
+					Printf(TEXTCOLOR_ORANGE "%s appears more than once.\n",
 						ScriptPresentation(Scripts[i].Number).GetChars());
 					// Make the closed version the first one.
 					if (Scripts[i+1].Type == SCRIPT_Closed)
@@ -2523,7 +2508,7 @@ bool FBehavior::IsGood ()
 		if (funcdef->Address == 0 && funcdef->ImportNum == 0)
 		{
 			DWORD *chunk = (DWORD *)FindChunk (MAKE_ID('F','N','A','M'));
-			Printf ("Could not find ACS function %s for use in %s.\n",
+			Printf (TEXTCOLOR_RED "Could not find ACS function %s for use in %s.\n",
 				(char *)(chunk + 2) + chunk[3+i], ModuleName);
 			bad = true;
 		}
@@ -2534,7 +2519,7 @@ bool FBehavior::IsGood ()
 	{
 		if (Imports[i] == NULL)
 		{
-			Printf ("Not all the libraries used by %s could be found.\n", ModuleName);
+			Printf (TEXTCOLOR_RED "Not all the libraries used by %s could be found.\n", ModuleName);
 			return false;
 		}
 	}
@@ -3211,7 +3196,7 @@ do_count:
 			if (actor->health > 0 &&
 				(kind == NULL || actor->IsA (kind)))
 			{
-				if (actor->Sector->HasTag(tag) || tag == -1)
+				if (tag == -1 || tagManager.SectorHasTag(actor->Sector, tag))
 				{
 					// Don't count items in somebody's inventory
 					if (!actor->IsKindOf (RUNTIME_CLASS(AInventory)) ||
@@ -3231,7 +3216,7 @@ do_count:
 			if (actor->health > 0 &&
 				(kind == NULL || actor->IsA (kind)))
 			{
-				if (actor->Sector->HasTag(tag) || tag == -1)
+				if (tag == -1 || tagManager.SectorHasTag(actor->Sector, tag))
 				{
 					// Don't count items in somebody's inventory
 					if (!actor->IsKindOf (RUNTIME_CLASS(AInventory)) ||
@@ -3383,7 +3368,7 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 		actor = Spawn (info, x, y, z, ALLOW_REPLACE);
 		if (actor != NULL)
 		{
-			DWORD oldFlags2 = actor->flags2;
+			ActorFlags2 oldFlags2 = actor->flags2;
 			actor->flags2 |= MF2_PASSMOBJ;
 			if (force || P_TestMobjLocation (actor))
 			{
@@ -3899,7 +3884,13 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 
 	case APROP_ViewHeight:
 		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
+		{
 			static_cast<APlayerPawn *>(actor)->ViewHeight = value;
+			if (actor->player != NULL)
+			{
+				actor->player->viewheight = value;
+			}
+		}
 		break;
 
 	case APROP_AttackZOffset:
@@ -4783,8 +4774,8 @@ static void SetActorTeleFog(AActor *activator, int tid, FString telefogsrc, FStr
 		FActorIterator iterator(tid);
 		AActor *actor;
 
-		const PClass * const src = telefogsrc.IsNotEmpty() ? PClass::FindClass(telefogsrc) : NULL;
-		const PClass * const dest = telefogdest.IsNotEmpty() ? PClass::FindClass(telefogdest) : NULL;
+		const PClass *src = PClass::FindClass(telefogsrc);
+		const PClass * dest = PClass::FindClass(telefogdest);
 		while ((actor = iterator.Next()))
 		{
 			if (telefogsrc.IsNotEmpty())
@@ -5370,7 +5361,9 @@ int DLevelScript::CallFunction(int argCount, int funcIndex, SDWORD *args, const 
 				fixed_t	range		= argCount > 6 && args[6]? args[6] : MISSILERANGE;
 				int flags			= argCount > 7 && args[7]? args[7] : 0;
 
-				int fhflags = (flags & FHF_NORANDOMPUFFZ)? LAF_NORANDOMPUFFZ : 0;
+				int fhflags = 0;
+				if (flags & FHF_NORANDOMPUFFZ) fhflags |= LAF_NORANDOMPUFFZ;
+				if (flags & FHF_NOIMPACTDECAL) fhflags |= LAF_NOIMPACTDECAL;
 
 				if (args[0] == 0)
 				{
