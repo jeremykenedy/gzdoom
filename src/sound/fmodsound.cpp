@@ -52,6 +52,7 @@ extern HWND Window;
 #include <malloc.h>
 #endif
 
+#include "except.h"
 #include "templates.h"
 #include "fmodsound.h"
 #include "c_cvars.h"
@@ -167,9 +168,6 @@ static const FEnumList OutputNames[] =
 	{ "Windows Multimedia",		FMOD_OUTPUTTYPE_WINMM },
 	{ "WinMM",					FMOD_OUTPUTTYPE_WINMM },
 	{ "WaveOut",				FMOD_OUTPUTTYPE_WINMM },
-#if FMOD_VERSION < 0x43400
-	{ "OpenAL",					FMOD_OUTPUTTYPE_OPENAL },
-#endif
 	{ "WASAPI",					FMOD_OUTPUTTYPE_WASAPI },
 	{ "ASIO",					FMOD_OUTPUTTYPE_ASIO },
 
@@ -184,9 +182,6 @@ static const FEnumList OutputNames[] =
 	{ "SDL",					666 },
 
 	// Mac
-#if FMOD_VERSION < 0x43000
-	{ "Sound Manager",			FMOD_OUTPUTTYPE_SOUNDMANAGER },
-#endif
 	{ "Core Audio",				FMOD_OUTPUTTYPE_COREAUDIO },
 
 	{ NULL, 0 }
@@ -309,12 +304,12 @@ class FMODStreamCapsule : public SoundStream
 public:
 	FMODStreamCapsule(FMOD::Sound *stream, FMODSoundRenderer *owner, const char *url)
 		: Owner(owner), Stream(NULL), Channel(NULL),
-		  UserData(NULL), Callback(NULL), URL(url), Ended(false)
+		  UserData(NULL), Callback(NULL), Reader(NULL), URL(url), Ended(false)
 	{
 		SetStream(stream);
 	}
 
-    FMODStreamCapsule(FMOD::Sound *stream, FMODSoundRenderer *owner, std::auto_ptr<FileReader> reader)
+    FMODStreamCapsule(FMOD::Sound *stream, FMODSoundRenderer *owner, FileReader *reader)
         : Owner(owner), Stream(NULL), Channel(NULL),
           UserData(NULL), Callback(NULL), Reader(reader), Ended(false)
     {
@@ -323,7 +318,7 @@ public:
 
 	FMODStreamCapsule(void *udata, SoundStreamCallback callback, FMODSoundRenderer *owner)
 		: Owner(owner), Stream(NULL), Channel(NULL),
-		  UserData(udata), Callback(callback), Ended(false)
+		  UserData(udata), Callback(callback), Reader(NULL), Ended(false)
 	{}
 
 	~FMODStreamCapsule()
@@ -335,6 +330,10 @@ public:
 		if (Stream != NULL)
 		{
 			Stream->release();
+		}
+		if (Reader != NULL)
+		{
+			delete Reader;
 		}
 	}
 
@@ -605,7 +604,7 @@ private:
 	FMOD::Channel *Channel;
 	void *UserData;
 	SoundStreamCallback Callback;
-    std::auto_ptr<FileReader> Reader;
+    FileReader *Reader;
 	FString URL;
 	bool Ended;
 	bool JustStarted;
@@ -634,30 +633,6 @@ bool FMODSoundRenderer::IsValid()
 {
 	return InitSuccess;
 }
-
-#ifdef _MSC_VER
-//==========================================================================
-//
-// CheckException
-//
-//==========================================================================
-
-#ifndef FACILITY_VISUALCPP
-#define FACILITY_VISUALCPP  ((LONG)0x6d)
-#endif
-#define VcppException(sev,err)  ((sev) | (FACILITY_VISUALCPP<<16) | err)
-
-static int CheckException(DWORD code)
-{
-	if (code == VcppException(ERROR_SEVERITY_ERROR,ERROR_MOD_NOT_FOUND) ||
-		code == VcppException(ERROR_SEVERITY_ERROR,ERROR_PROC_NOT_FOUND))
-	{
-		return EXCEPTION_EXECUTE_HANDLER;
-	}
-	return EXCEPTION_CONTINUE_SEARCH;
-}
-
-#endif
 
 //==========================================================================
 //
@@ -696,14 +671,8 @@ bool FMODSoundRenderer::Init()
 
 	Printf("I_InitSound: Initializing FMOD\n");
 
-	// Create a System object and initialize.
-#ifdef _MSC_VER
-	__try {
-#endif
-	result = FMOD::System_Create(&Sys);
-#ifdef _MSC_VER
-	}
-	__except(CheckException(GetExceptionCode()))
+	// This is just for safety. Normally this should never be called if FMod Ex cannot be found.
+	if (!IsFModExPresent())
 	{
 		Sys = NULL;
 		Printf(TEXTCOLOR_ORANGE"Failed to load fmodex"
@@ -713,7 +682,9 @@ bool FMODSoundRenderer::Init()
 			".dll\n");
 		return false;
 	}
-#endif
+
+	// Create a System object and initialize.
+	result = FMOD::System_Create(&Sys);
 	if (result != FMOD_OK)
 	{
 		Sys = NULL;
@@ -905,6 +876,15 @@ bool FMODSoundRenderer::Init()
 	// Set software format
 	eval = Enum_NumForName(SoundFormatNames, snd_output_format);
 	format = eval >= 0 ? FMOD_SOUND_FORMAT(eval) : FMOD_SOUND_FORMAT_PCM16;
+	if (format == FMOD_SOUND_FORMAT_PCM8)
+	{
+		// PCM-8 sounds like garbage with anything but DirectSound.
+		FMOD_OUTPUTTYPE output;
+		if (FMOD_OK != Sys->getOutput(&output) || output != FMOD_OUTPUTTYPE_DSOUND)
+		{
+			format = FMOD_SOUND_FORMAT_PCM16;
+		}
+	}
 	eval = Enum_NumForName(ResamplerNames, snd_resampler);
 	resampler = eval >= 0 ? FMOD_DSP_RESAMPLER(eval) : FMOD_DSP_RESAMPLER_LINEAR;
 	// These represented the frequency limits for hardware channels, which we never used anyway.
@@ -1666,7 +1646,7 @@ static FMOD_RESULT F_CALLBACK seek_reader_callback(void *handle, unsigned int po
 //
 //==========================================================================
 
-SoundStream *FMODSoundRenderer::OpenStream(std::auto_ptr<FileReader> reader, int flags)
+SoundStream *FMODSoundRenderer::OpenStream(FileReader *reader, int flags)
 {
     FMOD_MODE mode;
     FMOD_CREATESOUNDEXINFO exinfo;
@@ -1702,7 +1682,7 @@ SoundStream *FMODSoundRenderer::OpenStream(std::auto_ptr<FileReader> reader, int
         exinfo.dlsname = patches;
     }
 
-    name.Format("_FileReader_%p", reader.get());
+    name.Format("_FileReader_%p", reader);
     result = Sys->createSound(name, mode, &exinfo, &stream);
     if(result == FMOD_ERR_FORMAT && exinfo.dlsname != NULL)
     {
@@ -2145,7 +2125,7 @@ FISoundChannel *FMODSoundRenderer::CommonChannelSetup(FMOD::Channel *chan, FISou
 
 //==========================================================================
 //
-// FMODSoundRenderer :: StopSound
+// FMODSoundRenderer :: StopChannel
 //
 //==========================================================================
 
@@ -2153,7 +2133,10 @@ void FMODSoundRenderer::StopChannel(FISoundChannel *chan)
 {
 	if (chan != NULL && chan->SysChannel != NULL)
 	{
-		((FMOD::Channel *)chan->SysChannel)->stop();
+		if (((FMOD::Channel *)chan->SysChannel)->stop() == FMOD_ERR_INVALID_HANDLE)
+		{ // The channel handle was invalid; pretend it ended.
+			S_ChannelEnded(chan);
+		}
 	}
 }
 
@@ -3191,3 +3174,44 @@ FMOD_RESULT FMODSoundRenderer::SetSystemReverbProperties(const REVERB_PROPERTIES
 }
 
 #endif // NO_FMOD
+
+
+//==========================================================================
+//
+// IsFModExPresent
+//
+// Check if FMod can be used
+//
+//==========================================================================
+
+bool IsFModExPresent()
+{
+#ifdef NO_FMOD
+	return false;
+#elif !defined _WIN32
+	return true;	// on non-Windows we cannot delay load the library so it has to be present.
+#else
+	static bool cached_result;
+	static bool done = false;
+
+	if (!done)
+	{
+		done = true;
+
+		FMOD::System *Sys;
+		FMOD_RESULT result;
+		__try
+		{
+			result = FMOD::System_Create(&Sys);
+		}
+		__except (CheckException(GetExceptionCode()))
+		{
+			// FMod could not be delay loaded
+			return false;
+		}
+		if (result == FMOD_OK) Sys->release();
+		cached_result = true;
+	}
+	return cached_result;
+#endif
+}

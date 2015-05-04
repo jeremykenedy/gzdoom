@@ -48,11 +48,11 @@ extern HINSTANCE g_hInst;
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <memory>
 
 #include "doomtype.h"
 #include <math.h>
 
+#include "except.h"
 #include "fmodsound.h"
 #include "oalsound.h"
 
@@ -83,12 +83,14 @@ CVAR (Int, snd_buffersize, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_output, "default", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 #ifndef NO_FMOD
-CVAR (String, snd_backend, "fmod", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+#define DEF_BACKEND "fmod"
 #elif !defined(NO_OPENAL)
-CVAR (String, snd_backend, "openal", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+#define DEF_BACKEND "openal"
 #else
-CVAR (String, snd_backend, "null", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+#define DEF_BACKEND "null"
 #endif
+
+CVAR(String, snd_backend, DEF_BACKEND, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 // killough 2/21/98: optionally use varying pitched sounds
 CVAR (Bool, snd_pitched, false, CVAR_ARCHIVE)
@@ -172,8 +174,9 @@ public:
 	{
 		return NULL;
 	}
-	SoundStream *OpenStream (std::auto_ptr<FileReader> reader, int flags)
+	SoundStream *OpenStream (FileReader *reader, int flags)
 	{
+		delete reader;
 		return NULL;
 	}
 
@@ -255,6 +258,7 @@ void I_InitSound ()
 	nosound = !!Args->CheckParm ("-nosound");
 	nosfx = !!Args->CheckParm ("-nosfx");
 
+	GSnd = NULL;
 	if (nosound)
 	{
 		GSnd = new NullSoundRenderer;
@@ -262,16 +266,50 @@ void I_InitSound ()
 		return;
 	}
 
-	if(stricmp(snd_backend, "null") == 0)
+	// This has been extended to allow falling back from FMod to OpenAL and vice versa if the currently active sound system cannot be found.
+	if (stricmp(snd_backend, "null") == 0)
+	{
 		GSnd = new NullSoundRenderer;
-#ifndef NO_FMOD
+	}
 	else if(stricmp(snd_backend, "fmod") == 0)
-		GSnd = new FMODSoundRenderer;
-#endif
-#ifndef NO_OPENAL
+	{
+		#ifndef NO_FMOD
+			if (IsFModExPresent())
+			{
+				GSnd = new FMODSoundRenderer;
+			}
+		#endif
+		#ifndef NO_OPENAL
+			if ((!GSnd || !GSnd->IsValid()) && IsOpenALPresent())
+			{
+				Printf (TEXTCOLOR_RED"FMod Ex Sound init failed. Trying OpenAL.\n");
+				GSnd = new OpenALSoundRenderer;
+				snd_backend = "openal";
+			}
+		#endif
+	}
 	else if(stricmp(snd_backend, "openal") == 0)
-		GSnd = new OpenALSoundRenderer;
-#endif
+	{
+		#ifndef NO_OPENAL
+			if (IsOpenALPresent())
+			{
+				GSnd = new OpenALSoundRenderer;
+			}
+		#endif
+		#ifndef NO_FMOD
+			if ((!GSnd || !GSnd->IsValid()) && IsFModExPresent())
+			{
+				Printf (TEXTCOLOR_RED"OpenAL Sound init failed. Trying FMod Ex.\n");
+				GSnd = new FMODSoundRenderer;
+				snd_backend = "fmod";
+			}
+		#endif
+	}
+	else
+	{
+		Printf (TEXTCOLOR_RED"%s: Unknown sound system specified\n", *snd_backend);
+		snd_backend = "null";
+	}
 	if (!GSnd || !GSnd->IsValid ())
 	{
 		I_CloseSound();
@@ -371,17 +409,19 @@ short *SoundRenderer::DecodeSample(int outlen, const void *coded, int sizebytes,
     SampleType type;
     int srate;
 
-    std::auto_ptr<SoundDecoder> decoder(CreateDecoder(&reader));
-    if(!decoder.get()) return samples;
+    SoundDecoder *decoder = CreateDecoder(&reader);
+    if(!decoder) return samples;
 
     decoder->getInfo(&srate, &chans, &type);
     if(chans != ChannelConfig_Mono || type != SampleType_Int16)
     {
         DPrintf("Sample is not 16-bit mono\n");
+        delete decoder;
         return samples;
     }
 
     decoder->read((char*)samples, outlen);
+    delete decoder;
     return samples;
 }
 
@@ -574,22 +614,22 @@ SoundDecoder *SoundRenderer::CreateDecoder(FileReader *reader)
     int pos = reader->Tell();
 
 #ifdef HAVE_MPG123
-    decoder = new MPG123Decoder;
-    if(decoder->open(reader))
-        return decoder;
-    reader->Seek(pos, SEEK_SET);
+		decoder = new MPG123Decoder;
+		if (decoder->open(reader))
+			return decoder;
+		reader->Seek(pos, SEEK_SET);
 
-    delete decoder;
-    decoder = NULL;
+		delete decoder;
+		decoder = NULL;
 #endif
 #ifdef HAVE_SNDFILE
-    decoder = new SndFileDecoder;
-    if(decoder->open(reader))
-        return decoder;
-    reader->Seek(pos, SEEK_SET);
+		decoder = new SndFileDecoder;
+		if (decoder->open(reader))
+			return decoder;
+		reader->Seek(pos, SEEK_SET);
 
-    delete decoder;
-    decoder = NULL;
+		delete decoder;
+		decoder = NULL;
 #endif
     return decoder;
 }
@@ -599,11 +639,11 @@ SoundDecoder *SoundRenderer::CreateDecoder(FileReader *reader)
 TArray<char> SoundDecoder::readAll()
 {
     TArray<char> output;
-    size_t total = 0;
-    size_t got;
+    unsigned total = 0;
+    unsigned got;
 
     output.Resize(total+32768);
-    while((got=read(&output[total], output.Size()-total)) > 0)
+    while((got=(unsigned)read(&output[total], output.Size()-total)) > 0)
     {
         total += got;
         output.Resize(total*2);

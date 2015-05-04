@@ -154,6 +154,8 @@
 		8A51EE791A5FCD4C00D083A8 /* i_system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AF562971A530C4E000F0B60 /* i_system.cpp */; };
 		8A51EE7A1A5FCD4C00D083A8 /* st_start.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AF562AC1A530C4E000F0B60 /* st_start.cpp */; };
 		8A51EE7B1A5FCD7A00D083A8 /* iwadpicker_cocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8AF5629A1A530C4E000F0B60 /* iwadpicker_cocoa.mm */; };
+		8A5DDB9F1AF7AE12008C974C /* p_tags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */; };
+		8A5DDBA01AF7AE19008C974C /* p_tags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */; };
 		8A6227A21A18E0C4004235B1 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F4661392532C001F54B0 /* Carbon.framework */; };
 		8A651FF6191E69EB009DB9CD /* glew.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A651FF5191E69E3009DB9CD /* glew.c */; };
 		8A651FFB191E6A39009DB9CD /* libglew_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A651FED191E6988009DB9CD /* libglew_gzdoom.a */; };
@@ -1411,6 +1413,11 @@
 		8A517FAF19600F4400FAAB33 /* sndfile_decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sndfile_decoder.h; sourceTree = "<group>"; };
 		8A51EE691A5FCB5500D083A8 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = thirdparty/SDL2/lib/libSDL2.a; sourceTree = "<group>"; };
 		8A51EE6B1A5FCCC500D083A8 /* ForceFeedback.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ForceFeedback.framework; path = System/Library/Frameworks/ForceFeedback.framework; sourceTree = SDKROOT; };
+		8A5DDB9A1AF7AD5B008C974C /* tflags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tflags.h; sourceTree = "<group>"; };
+		8A5DDB9B1AF7AD8E008C974C /* except.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = except.h; sourceTree = "<group>"; };
+		8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = p_tags.cpp; sourceTree = "<group>"; };
+		8A5DDB9D1AF7ADAC008C974C /* p_tags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = p_tags.h; sourceTree = "<group>"; };
+		8A5DDB9E1AF7ADF1008C974C /* minza0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = minza0.png; sourceTree = "<group>"; };
 		8A651FED191E6988009DB9CD /* libglew_gzdoom.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libglew_gzdoom.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A651FF1191E69E3009DB9CD /* glew.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glew.h; sourceTree = "<group>"; };
 		8A651FF2191E69E3009DB9CD /* glxew.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glxew.h; sourceTree = "<group>"; };
@@ -4407,6 +4414,7 @@
 				8A80DDDF17ABB57000917483 /* icecc0.png */,
 				8A80DDE017ABB57000917483 /* icecd0.png */,
 				8A80DDE117ABB57000917483 /* pista0.png */,
+				8A5DDB9E1AF7ADF1008C974C /* minza0.png */,
 				8A80DDE217ABB57000917483 /* PLS1A0.png */,
 				8A80DDE317ABB57000917483 /* PLS1B0.png */,
 				8A80DDE417ABB57000917483 /* PLS1C0.png */,
@@ -5944,6 +5952,8 @@
 				8AF27EDF139126C00095D9A0 /* p_spec.h */,
 				8AF27EE0139126C00095D9A0 /* p_states.cpp */,
 				8AF27EE1139126C00095D9A0 /* p_switch.cpp */,
+				8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */,
+				8A5DDB9D1AF7ADAC008C974C /* p_tags.h */,
 				8AF27EE2139126C00095D9A0 /* p_teleport.cpp */,
 				8AF27EE3139126C00095D9A0 /* p_terrain.cpp */,
 				8AF27EE4139126C00095D9A0 /* p_terrain.h */,
@@ -6020,6 +6030,7 @@
 				8AF27F82139126C00095D9A0 /* tempfiles.cpp */,
 				8AF27F83139126C00095D9A0 /* tempfiles.h */,
 				8AF27F84139126C00095D9A0 /* templates.h */,
+				8A5DDB9A1AF7AD5B008C974C /* tflags.h */,
 				8A942A3D1553CC25005083CD /* v_blend.cpp */,
 				8AF27FBD139126C00095D9A0 /* v_collection.cpp */,
 				8AF27FBE139126C00095D9A0 /* v_collection.h */,
@@ -6550,6 +6561,7 @@
 			isa = PBXGroup;
 			children = (
 				8A517FA919600F4400FAAB33 /* efx.h */,
+				8A5DDB9B1AF7AD8E008C974C /* except.h */,
 				8AF27F56139126C00095D9A0 /* fmod_wrap.h */,
 				8AF27F57139126C00095D9A0 /* fmodsound.cpp */,
 				8AF27F58139126C00095D9A0 /* fmodsound.h */,
@@ -7506,6 +7518,7 @@
 				8A9F53E014BB0F2900F3369B /* p_spec.cpp in Sources */,
 				8A9F53E114BB0F2900F3369B /* p_states.cpp in Sources */,
 				8A9F53E214BB0F2900F3369B /* p_switch.cpp in Sources */,
+				8A5DDB9F1AF7AE12008C974C /* p_tags.cpp in Sources */,
 				8A9F53E314BB0F2900F3369B /* p_teleport.cpp in Sources */,
 				8A9F53E414BB0F2900F3369B /* p_terrain.cpp in Sources */,
 				8A9F53E514BB0F2900F3369B /* p_things.cpp in Sources */,
@@ -8139,6 +8152,7 @@
 				8AF28140139126C00095D9A0 /* p_spec.cpp in Sources */,
 				8AF28141139126C00095D9A0 /* p_states.cpp in Sources */,
 				8AF28142139126C00095D9A0 /* p_switch.cpp in Sources */,
+				8A5DDBA01AF7AE19008C974C /* p_tags.cpp in Sources */,
 				8AF28143139126C00095D9A0 /* p_teleport.cpp in Sources */,
 				8AF28144139126C00095D9A0 /* p_terrain.cpp in Sources */,
 				8AF28145139126C00095D9A0 /* p_things.cpp in Sources */,

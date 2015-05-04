@@ -38,6 +38,7 @@
 #define USE_WINDOWS_DWORD
 #endif
 
+#include "except.h"
 #include "doomstat.h"
 #include "templates.h"
 #include "oalsound.h"
@@ -58,6 +59,36 @@ CVAR (String, snd_aldevice, "Default", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, snd_efx, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 
+bool IsOpenALPresent()
+{
+#ifdef NO_OPENAL
+	return false;
+#elif !defined _WIN32
+	return true;	// on non-Windows we cannot delay load the library so it has to be present.
+#else
+	static bool cached_result;
+	static bool done = false;
+
+	if (!done)
+	{
+		done = true;
+
+		__try
+		{
+			// just call one function from the API to force loading the DLL
+			alcGetError(NULL);
+		}
+		__except (CheckException(GetExceptionCode()))
+		{
+			// FMod could not be delay loaded
+			return false;
+		}
+		cached_result = true;
+	}
+	return cached_result;
+#endif
+}
+
 void I_BuildALDeviceList(FOptionValues *opt)
 {
     opt->mValues.Resize(1);
@@ -65,6 +96,8 @@ void I_BuildALDeviceList(FOptionValues *opt)
     opt->mValues[0].Text = "Default";
 
 #ifndef NO_OPENAL
+	if (IsOpenALPresent())
+	{
     const ALCchar *names = (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") ?
                             alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER) :
                             alcGetString(NULL, ALC_DEVICE_SPECIFIER));
@@ -78,15 +111,11 @@ void I_BuildALDeviceList(FOptionValues *opt)
 
         names += strlen(names)+1;
     }
+	}
 #endif
 }
 
 #ifndef NO_OPENAL
-
-#include <algorithm>
-#include <memory>
-#include <string>
-#include <vector>
 
 
 EXTERN_CVAR (Int, snd_channels)
@@ -166,8 +195,8 @@ class OpenALSoundStream : public SoundStream
     ALfloat Volume;
 
 
-    std::auto_ptr<FileReader> Reader;
-    std::auto_ptr<SoundDecoder> Decoder;
+    FileReader *Reader;
+    SoundDecoder *Decoder;
     static bool DecoderCallback(SoundStream *_sstream, void *ptr, int length, void *user)
     {
         OpenALSoundStream *self = static_cast<OpenALSoundStream*>(_sstream);
@@ -223,7 +252,7 @@ class OpenALSoundStream : public SoundStream
 
 public:
     OpenALSoundStream(OpenALSoundRenderer *renderer)
-      : Renderer(renderer), Source(0), Playing(false), Looping(false), Volume(1.0f)
+      : Renderer(renderer), Source(0), Playing(false), Looping(false), Volume(1.0f), Reader(NULL), Decoder(NULL)
     {
         Renderer->Streams.Push(this);
         memset(Buffers, 0, sizeof(Buffers));
@@ -249,6 +278,9 @@ public:
 
         Renderer->Streams.Delete(Renderer->Streams.Find(this));
         Renderer = NULL;
+
+        delete Decoder;
+        delete Reader;
     }
 
 
@@ -509,14 +541,19 @@ public:
         return true;
     }
 
-    bool Init(std::auto_ptr<FileReader> reader, bool loop)
+    bool Init(FileReader *reader, bool loop)
     {
         if(!SetupSource())
+        {
+            delete reader;
             return false;
+        }
 
+        if(Decoder) delete Decoder;
+        if(Reader) delete Reader;
         Reader = reader;
-        Decoder.reset(Renderer->CreateDecoder(Reader.get()));
-        if(!Decoder.get()) return false;
+        Decoder = Renderer->CreateDecoder(Reader);
+        if(!Decoder) return false;
 
         Callback = DecoderCallback;
         UserData = NULL;
@@ -588,6 +625,34 @@ static float GetRolloff(const FRolloffInfo *rolloff, float distance)
     return (powf(10.f, volume) - 1.f) / 9.f;
 }
 
+ALCdevice *OpenALSoundRenderer::InitDevice()
+{
+	ALCdevice *device = NULL;
+	if (IsOpenALPresent())
+	{
+		if(strcmp(snd_aldevice, "Default") != 0)
+		{
+			device = alcOpenDevice(*snd_aldevice);
+			if(!device)
+				Printf(TEXTCOLOR_BLUE" Failed to open device " TEXTCOLOR_BOLD"%s" TEXTCOLOR_BLUE". Trying default.\n", *snd_aldevice);
+		}
+
+		if(!device)
+		{
+			device = alcOpenDevice(NULL);
+			if(!device)
+			{
+				Printf(TEXTCOLOR_RED" Could not open audio device\n");
+			}
+		}
+	}
+	else
+	{
+		Printf(TEXTCOLOR_ORANGE"Failed to load openal32.dll\n");
+	}
+	return device;
+}
+
 
 template<typename T>
 static void LoadALFunc(const char *name, T *x)
@@ -601,22 +666,8 @@ OpenALSoundRenderer::OpenALSoundRenderer()
 
     Printf("I_InitSound: Initializing OpenAL\n");
 
-    if(strcmp(snd_aldevice, "Default") != 0)
-    {
-        Device = alcOpenDevice(*snd_aldevice);
-        if(!Device)
-            Printf(TEXTCOLOR_BLUE" Failed to open device "TEXTCOLOR_BOLD"%s"TEXTCOLOR_BLUE". Trying default.\n", *snd_aldevice);
-    }
-
-    if(!Device)
-    {
-        Device = alcOpenDevice(NULL);
-        if(!Device)
-        {
-            Printf(TEXTCOLOR_RED" Could not open audio device\n");
-            return;
-        }
-    }
+	Device = InitDevice();
+	if (Device == NULL) return;
 
     const ALCchar *current = NULL;
     if(alcIsExtensionPresent(Device, "ALC_ENUMERATE_ALL_EXT"))
@@ -631,20 +682,20 @@ OpenALSoundRenderer::OpenALSoundRenderer()
     DPrintf("  ALC Version: "TEXTCOLOR_BLUE"%d.%d\n", major, minor);
     DPrintf("  ALC Extensions: "TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_EXTENSIONS));
 
-    std::vector<ALCint> attribs;
+    TArray<ALCint> attribs;
     if(*snd_samplerate > 0)
     {
-        attribs.push_back(ALC_FREQUENCY);
-        attribs.push_back(*snd_samplerate);
+        attribs.Push(ALC_FREQUENCY);
+        attribs.Push(*snd_samplerate);
     }
     // Make sure one source is capable of stereo output with the rest doing
     // mono, without running out of voices
-    attribs.push_back(ALC_MONO_SOURCES);
-    attribs.push_back(std::max<ALCint>(*snd_channels, 2) - 1);
-    attribs.push_back(ALC_STEREO_SOURCES);
-    attribs.push_back(1);
+    attribs.Push(ALC_MONO_SOURCES);
+    attribs.Push(MAX<ALCint>(*snd_channels, 2) - 1);
+    attribs.Push(ALC_STEREO_SOURCES);
+    attribs.Push(1);
     // Other attribs..?
-    attribs.push_back(0);
+    attribs.Push(0);
 
     Context = alcCreateContext(Device, &attribs[0]);
     if(!Context || alcMakeContextCurrent(Context) == ALC_FALSE)
@@ -657,18 +708,18 @@ OpenALSoundRenderer::OpenALSoundRenderer()
         Device = NULL;
         return;
     }
-    attribs.clear();
+    attribs.Clear();
 
     DPrintf("  Vendor: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VENDOR));
     DPrintf("  Renderer: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_RENDERER));
     DPrintf("  Version: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VERSION));
     DPrintf("  Extensions: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_EXTENSIONS));
 
-    ALC.EXT_EFX = alcIsExtensionPresent(Device, "ALC_EXT_EFX");
-    ALC.EXT_disconnect = alcIsExtensionPresent(Device, "ALC_EXT_disconnect");;
-    AL.EXT_source_distance_model = alIsExtensionPresent("AL_EXT_source_distance_model");
-    AL.SOFT_deferred_updates = alIsExtensionPresent("AL_SOFT_deferred_updates");
-    AL.SOFT_loop_points = alIsExtensionPresent("AL_SOFT_loop_points");
+    ALC.EXT_EFX = !!alcIsExtensionPresent(Device, "ALC_EXT_EFX");
+    ALC.EXT_disconnect = !!alcIsExtensionPresent(Device, "ALC_EXT_disconnect");;
+    AL.EXT_source_distance_model = !!alIsExtensionPresent("AL_EXT_source_distance_model");
+    AL.SOFT_deferred_updates = !!alIsExtensionPresent("AL_SOFT_deferred_updates");
+    AL.SOFT_loop_points = !!alIsExtensionPresent("AL_SOFT_loop_points");
 
     alDopplerFactor(0.5f);
     alSpeedOfSound(343.3f * 96.0f);
@@ -702,12 +753,12 @@ OpenALSoundRenderer::OpenALSoundRenderer()
     alcGetIntegerv(Device, ALC_MONO_SOURCES, 1, &numMono);
     alcGetIntegerv(Device, ALC_STEREO_SOURCES, 1, &numStereo);
 
-	if (0 == numMono && 0 == numStereo)
-	{
-		numStereo = snd_channels;
-	}
+    if (0 == numMono && 0 == numStereo)
+    {
+        numStereo = snd_channels;
+    }
 
-    Sources.Resize(std::min<int>(std::max<int>(*snd_channels, 2), numMono+numStereo));
+    Sources.Resize(MIN<int>(MAX<int>(*snd_channels, 2), numMono+numStereo));
     for(size_t i = 0;i < Sources.Size();i++)
     {
         alGenSources(1, &Sources[i]);
@@ -1008,8 +1059,8 @@ SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
     SampleType type;
     int srate;
 
-    std::auto_ptr<SoundDecoder> decoder(CreateDecoder(&reader));
-    if(!decoder.get()) return retval;
+    SoundDecoder *decoder = CreateDecoder(&reader);
+    if(!decoder) return retval;
 
     decoder->getInfo(&srate, &chans, &type);
     if(chans == ChannelConfig_Mono)
@@ -1027,6 +1078,7 @@ SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
     {
         Printf("Unsupported audio format: %s, %s\n", GetChannelConfigName(chans),
                GetSampleTypeName(type));
+        delete decoder;
         return retval;
     }
 
@@ -1042,10 +1094,12 @@ SoundHandle OpenALSoundRenderer::LoadSound(BYTE *sfxdata, int length)
         Printf("Failed to buffer data: %s\n", alGetString(err));
         alDeleteBuffers(1, &buffer);
         getALError();
+        delete decoder;
         return retval;
     }
 
     retval.data = MAKE_PTRID(buffer);
+    delete decoder;
     return retval;
 }
 
@@ -1080,20 +1134,24 @@ void OpenALSoundRenderer::UnloadSound(SoundHandle sfx)
 
 SoundStream *OpenALSoundRenderer::CreateStream(SoundStreamCallback callback, int buffbytes, int flags, int samplerate, void *userdata)
 {
-    std::auto_ptr<OpenALSoundStream> stream(new OpenALSoundStream(this));
+	OpenALSoundStream *stream = new OpenALSoundStream(this);
     if(!stream->Init(callback, buffbytes, flags, samplerate, userdata))
+	{
+		delete stream;
         return NULL;
-    return stream.release();
+	}
+	return stream;
 }
 
-SoundStream *OpenALSoundRenderer::OpenStream(std::auto_ptr<FileReader> reader, int flags)
+SoundStream *OpenALSoundRenderer::OpenStream(FileReader *reader, int flags)
 {
-    std::auto_ptr<OpenALSoundStream> stream(new OpenALSoundStream(this));
-
-    bool ok = stream->Init(reader, (flags&SoundStream::Loop));
-    if(ok == false) return NULL;
-
-    return stream.release();
+	OpenALSoundStream *stream = new OpenALSoundStream(this);
+	if (!stream->Init(reader, !!(flags&SoundStream::Loop)))
+{
+		delete stream;
+		return NULL;
+	}
+	return stream;
 }
 
 FISoundChannel *OpenALSoundRenderer::StartSound(SoundHandle sfx, float vol, int pitch, int chanflags, FISoundChannel *reuse_chan)
@@ -1191,7 +1249,7 @@ FISoundChannel *OpenALSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener
     FRolloffInfo *rolloff, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel,
     int channum, int chanflags, FISoundChannel *reuse_chan)
 {
-    float dist_sqr = (pos - listener->position).LengthSquared();
+    float dist_sqr = (float)(pos - listener->position).LengthSquared();
 
     if(FreeSfx.Size() == 0)
     {
@@ -1493,7 +1551,7 @@ void OpenALSoundRenderer::UpdateSoundParams3D(SoundListener *listener, FISoundCh
     alDeferUpdatesSOFT();
 
     FVector3 dir = pos - listener->position;
-    chan->DistanceSqr = dir.LengthSquared();
+    chan->DistanceSqr = (float)dir.LengthSquared();
 
     if(chan->ManualRolloff)
     {
@@ -1629,10 +1687,6 @@ void OpenALSoundRenderer::UpdateSounds()
 {
     alProcessUpdatesSOFT();
 
-    // For some reason this isn't being called?
-    for(uint32 i = 0;i < Streams.Size();++i)
-        Streams[i]->IsEnded();
-
     if(ALC.EXT_disconnect)
     {
         ALCint connected = ALC_TRUE;
@@ -1647,6 +1701,13 @@ void OpenALSoundRenderer::UpdateSounds()
     }
 
     PurgeStoppedSources();
+}
+
+void OpenALSoundRenderer::UpdateMusic()
+{
+    // For some reason this isn't being called?
+    for(uint32 i = 0;i < Streams.Size();++i)
+        Streams[i]->IsEnded();
 }
 
 bool OpenALSoundRenderer::IsValid()

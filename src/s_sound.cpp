@@ -26,7 +26,6 @@
 #include <io.h>
 #endif
 #include <fcntl.h>
-#include <memory>
 
 #include "i_system.h"
 #include "i_sound.h"
@@ -384,7 +383,7 @@ void S_Start ()
 	{
 		// kill all playing sounds at start of level (trust me - a good idea)
 		S_StopAllChannels();
-		
+
 		// Check for local sound definitions. Only reload if they differ
 		// from the previous ones.
 		FString LocalSndInfo;
@@ -487,6 +486,11 @@ void S_PrecacheLevel ()
 		for (i = 0; i < level.info->PrecacheSounds.Size(); ++i)
 		{
 			level.info->PrecacheSounds[i].MarkUsed();
+		}
+		// Don't unload sounds that are playing right now.
+		for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+		{
+			chan->SoundID.MarkUsed();
 		}
 
 		for (i = 1; i < S_sfx.Size(); ++i)
@@ -1909,29 +1913,32 @@ void S_UpdateSounds (AActor *listenactor)
 		S_ActivatePlayList(false);
 	}
 
-	// should never happen
-	S_SetListener(listener, listenactor);
-
-	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	if (listenactor != NULL)
 	{
-		if ((chan->ChanFlags & (CHAN_EVICTED | CHAN_IS3D)) == CHAN_IS3D)
+		// should never happen
+		S_SetListener(listener, listenactor);
+
+		for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
 		{
-			CalcPosVel(chan, &pos, &vel);
-			GSnd->UpdateSoundParams3D(&listener, chan, !!(chan->ChanFlags & CHAN_AREA), pos, vel);
+			if ((chan->ChanFlags & (CHAN_EVICTED | CHAN_IS3D)) == CHAN_IS3D)
+			{
+				CalcPosVel(chan, &pos, &vel);
+				GSnd->UpdateSoundParams3D(&listener, chan, !!(chan->ChanFlags & CHAN_AREA), pos, vel);
+			}
+			chan->ChanFlags &= ~CHAN_JUSTSTARTED;
 		}
-		chan->ChanFlags &= ~CHAN_JUSTSTARTED;
-	}
 
-	SN_UpdateActiveSequences();
+		SN_UpdateActiveSequences();
 
 
-	GSnd->UpdateListener(&listener);
-	GSnd->UpdateSounds();
+		GSnd->UpdateListener(&listener);
+		GSnd->UpdateSounds();
 
-	if (level.time >= RestartEvictionsAt)
-	{
-		RestartEvictionsAt = 0;
-		S_RestoreEvictedChannels();
+		if (level.time >= RestartEvictionsAt)
+		{
+			RestartEvictionsAt = 0;
+			S_RestoreEvictedChannels();
+		}
 	}
 }
 
@@ -2067,12 +2074,6 @@ void S_ChannelEnded(FISoundChannel *ichan)
 				evicted = (pos < len);
 			}
 		}
-		/*
-		else
-		{
-			evicted = false;
-		}
-		*/
 		if (!evicted)
 		{
 			S_ReturnChannel(schan);
@@ -2330,8 +2331,6 @@ bool S_StartMusic (const char *m_id)
 // specified, it will only be played if the specified CD is in a drive.
 //==========================================================================
 
-TArray<BYTE> musiccache;
-
 bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 {
 	if (!force && PlayList)
@@ -2432,7 +2431,7 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 			musicname += 7;
 		}
 
-        std::auto_ptr<FileReader> reader;
+		FileReader *reader = NULL;
 		if (!FileExists (musicname))
 		{
 			if ((lumpnum = Wads.CheckNumForFullName (musicname, true, ns_music)) == -1)
@@ -2455,37 +2454,21 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 			}
 			if (handle == NULL)
 			{
-				if (!Wads.IsUncompressedFile(lumpnum))
+				if (Wads.LumpLength (lumpnum) == 0)
 				{
-					// We must cache the music data and use it from memory.
-
-					// shut down old music before reallocating and overwriting the cache!
-					S_StopMusic (true);
-
-					length = Wads.LumpLength (lumpnum);
-					if (length == 0)
-					{
-						return false;
-					}
-					musiccache.Resize(length);
-					Wads.ReadLump(lumpnum, &musiccache[0]);
-
-                    reader.reset(new MemoryReader((const char*)&musiccache[0], musiccache.Size()));
+					return false;
 				}
-				else
+				reader = Wads.ReopenLumpNumNewFile(lumpnum);
+				if (reader == NULL)
 				{
-					if (Wads.LumpLength (lumpnum) == 0)
-					{
-						return false;
-					}
-					reader.reset(Wads.ReopenLumpNum(lumpnum));
+					return false;
 				}
 			}
 		}
 		else
 		{
 			// Load an external file.
-			reader.reset(new FileReader(musicname));
+			reader = new FileReader(musicname);
 		}
 
 		// shutdown old music
@@ -2498,6 +2481,7 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 			mus_playing.name = musicname;
 			mus_playing.baseorder = order;
 			LastSong = musicname;
+			delete reader;
 			return true;
 		}
 
@@ -2505,6 +2489,7 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 		if (handle != NULL)
 		{
 			mus_playing.handle = handle;
+			delete reader;
 		}
 		else
 		{
@@ -2604,6 +2589,17 @@ void S_StopMusic (bool force)
 		LastSong = mus_playing.name;
 		mus_playing.name = "";
 	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void S_UpdateMusic()
+{
+	GSnd->UpdateMusic();
 }
 
 //==========================================================================

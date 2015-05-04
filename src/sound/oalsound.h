@@ -1,10 +1,6 @@
 #ifndef OALSOUND_H
 #define OALSOUND_H
 
-
-#include <vector>
-#include <map>
-
 #include "i_sound.h"
 #include "s_sound.h"
 #include "menu/menu.h"
@@ -87,7 +83,7 @@ public:
 
 	// Streaming sounds.
 	virtual SoundStream *CreateStream(SoundStreamCallback callback, int buffbytes, int flags, int samplerate, void *userdata);
-	virtual SoundStream *OpenStream(std::auto_ptr<FileReader> reader, int flags);
+	virtual SoundStream *OpenStream(FileReader *reader, int flags);
 
 	// Starts a sound.
 	virtual FISoundChannel *StartSound(SoundHandle sfx, float vol, int pitch, int chanflags, FISoundChannel *reuse_chan);
@@ -116,6 +112,7 @@ public:
 
 	virtual void UpdateListener(SoundListener *);
 	virtual void UpdateSounds();
+	virtual void UpdateMusic();
 
 	virtual void MarkStartTime(FISoundChannel*);
 	virtual float GetAudibility(FISoundChannel*);
@@ -210,6 +207,8 @@ private:
 
     TArray<OpenALSoundStream*> Streams;
     friend class OpenALSoundStream;
+
+	ALCdevice *InitDevice();
 };
 
 #endif // NO_OPENAL

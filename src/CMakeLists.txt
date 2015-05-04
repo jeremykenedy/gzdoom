@@ -268,10 +268,9 @@ endif( NOT GLEW_LIBRARY )
 set( ZDOOM_LIBS ${ZDOOM_LIBS} ${GLEW_LIBRARY} )
 
 
-# Decide on the name of the FMOD library we want to use.
-
 if( NOT NO_OPENAL )
     find_package( OpenAL )
+	mark_as_advanced(CLEAR OPENAL_LIBRARY OPENAL_INCLUDE_DIR)
     if( OPENAL_FOUND )
         include_directories( ${OPENAL_INCLUDE_DIR} )
         set( ZDOOM_LIBS ${OPENAL_LIBRARY} ${ZDOOM_LIBS} )
@@ -1009,6 +1008,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	p_spec.cpp
 	p_states.cpp
 	p_switch.cpp
+	p_tags.cpp
 	p_teleport.cpp
 	p_terrain.cpp
 	p_things.cpp
@@ -1327,15 +1327,22 @@ endif( NOT ZDOOM_OUTPUT_OLDSTYLE OR NO_GENERATOR_EXPRESSIONS )
 if( MSVC )
 	option( ZDOOM_GENERATE_MAPFILE "Generate .map file for debugging." OFF )
 	if( ZDOOM_GENERATE_MAPFILE )
-		set_target_properties(zdoom PROPERTIES LINK_FLAGS "/MANIFEST:NO /DELAYLOAD:\"fmodex${X64}.dll\" /MAP")
+		set_target_properties(zdoom PROPERTIES LINK_FLAGS "/MANIFEST:NO /DELAYLOAD:\"fmodex${X64}.dll\" /DELAYLOAD:\"openal32.dll\" /DELAYLOAD:\"libmpg123-0.dll\" /DELAYLOAD:\"libsndfile-1.dll\" /MAP")
 	else( ZDOOM_GENERATE_MAPFILE )
-		set_target_properties(zdoom PROPERTIES LINK_FLAGS "/MANIFEST:NO /DELAYLOAD:\"fmodex${X64}.dll\"")
+		set_target_properties(zdoom PROPERTIES LINK_FLAGS "/MANIFEST:NO /DELAYLOAD:\"fmodex${X64}.dll\" /DELAYLOAD:\"openal32.dll\" /DELAYLOAD:\"libmpg123-0.dll\" /DELAYLOAD:\"libsndfile-1.dll\"")
 	endif( ZDOOM_GENERATE_MAPFILE )
 
+	if( NO_GENERATOR_EXPRESSIONS )
 	add_custom_command(TARGET zdoom POST_BUILD
 		COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$(TargetDir)$(TargetFileName)\"\;\#1
 		COMMENT "Adding manifest..."
 	)
+	else( NO_GENERATOR_EXPRESSIONS )
+		add_custom_command(TARGET zdoom POST_BUILD
+			COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$<TARGET_FILE:zdoom>\"\;\#1
+			COMMENT "Adding manifest..."
+		)
+	endif( NO_GENERATOR_EXPRESSIONS )
 
 	create_default_target_launcher( zdoom WORKING_DIRECTORY ${ZDOOM_OUTPUT_DIR} )
 endif( MSVC )

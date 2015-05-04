@@ -35,8 +35,6 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
-#include <memory>
-
 #include "doomtype.h"
 #include "i_soundinternal.h"
 
@@ -107,7 +105,7 @@ public:
 
 	// Streaming sounds.
 	virtual SoundStream *CreateStream (SoundStreamCallback callback, int buffbytes, int flags, int samplerate, void *userdata) = 0;
-    virtual SoundStream *OpenStream (std::auto_ptr<FileReader> reader, int flags) = 0;
+    virtual SoundStream *OpenStream (FileReader *reader, int flags) = 0;
 	virtual SoundStream *OpenStream (const char *url, int flags);
 
 	// Starts a sound.
@@ -149,6 +147,7 @@ public:
 
 	virtual void UpdateListener (SoundListener *) = 0;
 	virtual void UpdateSounds () = 0;
+	virtual void UpdateMusic() {}
 
 	virtual bool IsValid () = 0;
 	virtual void PrintStatus () = 0;
@@ -175,5 +174,8 @@ float S_GetRolloff(FRolloffInfo *rolloff, float distance, bool logarithmic);
 FISoundChannel *S_GetChannel(void *syschan);
 
 extern ReverbContainer *DefaultEnvironments[26];
+
+bool IsFModExPresent();
+bool IsOpenALPresent();
 
 #endif
