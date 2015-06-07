@@ -41,9 +41,9 @@
 #include "w_wad.h"
 #include "sc_man.h"
 #include "g_level.h"
+#include "p_terrain.h"
 #include "r_data/colormaps.h"
 
-#ifdef _3DFLOORS
 EXTERN_CVAR(Int, vid_renderer)
 
 //==========================================================================
@@ -344,7 +344,14 @@ void P_PlayerOnSpecial3DFloor(player_t* player)
 				continue;
 		}
 		
-		if (rover->model->special || rover->model->damage) P_PlayerInSpecialSector(player, rover->model);
+		// Apply sector specials
+		if (rover->model->special || rover->model->damage)
+			P_PlayerInSpecialSector(player, rover->model);
+
+		// Apply flat specials (using the ceiling!)
+		P_PlayerOnSpecialFlat(
+			player, TerrainTypes[rover->model->GetTexture(rover->flags & FF_INVERTSECTOR? sector_t::floor : sector_t::ceiling)]);
+
 		break;
 	}
 }
@@ -956,8 +963,6 @@ int	P_Find3DFloor(sector_t * sec, fixed_t x, fixed_t y, fixed_t z, bool above, b
 	// Failsafe
 	return -1;
 }
-
-#endif
 
 #include "c_dispatch.h"
 
