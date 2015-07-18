@@ -929,6 +929,8 @@ void OpenALSoundRenderer::SetSfxVolume(float volume)
         schan = schan->NextChan;
     }
 
+    alProcessUpdatesSOFT();
+
     getALError();
 }
 
