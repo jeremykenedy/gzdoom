@@ -205,11 +205,13 @@ void gl_PrintStartupLog()
 	Printf ("Max. vertex uniforms: %d\n", v);
 	glGetIntegerv(GL_MAX_VARYING_FLOATS, &v);
 	Printf ("Max. varying: %d\n", v);
+#ifndef __APPLE__
+	// GL_ARB_uniform_buffer_object extention is not supported on OS X
 	glGetIntegerv(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, &v);
 	Printf ("Max. combined uniforms: %d\n", v);
 	glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &v);
 	Printf ("Max. combined uniform blocks: %d\n", v);
-
+#endif // !__APPLE__
 }
 
 //==========================================================================
