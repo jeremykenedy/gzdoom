@@ -186,8 +186,6 @@
 		8A805D06196046FE009AF921 /* libmpg123.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D04196046FE009AF921 /* libmpg123.a */; };
 		8A805D0D19604711009AF921 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D0C19604711009AF921 /* libsndfile.a */; };
 		8A805D0E19604711009AF921 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D0C19604711009AF921 /* libsndfile.a */; };
-		8A805D1019604786009AF921 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D0F19604786009AF921 /* OpenAL.framework */; };
-		8A805D1119604796009AF921 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D0F19604786009AF921 /* OpenAL.framework */; };
 		8A805D15196048A3009AF921 /* libvorbis.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D1419604887009AF921 /* libvorbis.a */; };
 		8A805D16196048A5009AF921 /* libogg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D1319604887009AF921 /* libogg.a */; };
 		8A805D17196048AC009AF921 /* libFLAC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D1219604887009AF921 /* libFLAC.a */; };
@@ -570,6 +568,12 @@
 		8AC81C441391321300F49DC3 /* libdumb_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27B251390F5DC0095D9A0 /* libdumb_gzdoom.a */; };
 		8AC81C451391321300F49DC3 /* libgdtoa_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27C1C1390F7E20095D9A0 /* libgdtoa_gzdoom.a */; };
 		8AD870F3140A4EC5007A06A9 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 8AD870F1140A4EC5007A06A9 /* Credits.html */; };
+		8AE875801BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
+		8AE875811BAAFDB700717B78 /* libopenal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757F1BAAFDB700717B78 /* libopenal.a */; };
+		8AE875821BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
+		8AE875831BAAFDB700717B78 /* libopenal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757F1BAAFDB700717B78 /* libopenal.a */; };
+		8AE875991BAAFF8F00717B78 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */; };
+		8AE875AD1BAAFFAD00717B78 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */; };
 		8AF2792A1390F0880095D9A0 /* jcomapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF2790B1390F0880095D9A0 /* jcomapi.c */; };
 		8AF2792C1390F0880095D9A0 /* jdapimin.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF2790D1390F0880095D9A0 /* jdapimin.c */; };
 		8AF2792D1390F0880095D9A0 /* jdapistd.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF2790E1390F0880095D9A0 /* jdapistd.c */; };
@@ -1433,7 +1437,6 @@
 		8A7C310418F16B220001B5A2 /* Spc_Filter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Spc_Filter.h; sourceTree = "<group>"; };
 		8A805D04196046FE009AF921 /* libmpg123.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmpg123.a; path = thirdparty/mpg123/lib/libmpg123.a; sourceTree = "<group>"; };
 		8A805D0C19604711009AF921 /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsndfile.a; path = thirdparty/sndfile/lib/libsndfile.a; sourceTree = "<group>"; };
-		8A805D0F19604786009AF921 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		8A805D1219604887009AF921 /* libFLAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFLAC.a; path = thirdparty/sndfile/lib/libFLAC.a; sourceTree = "<group>"; };
 		8A805D1319604887009AF921 /* libogg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libogg.a; path = thirdparty/sndfile/lib/libogg.a; sourceTree = "<group>"; };
 		8A805D1419604887009AF921 /* libvorbis.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbis.a; path = thirdparty/sndfile/lib/libvorbis.a; sourceTree = "<group>"; };
@@ -2551,6 +2554,9 @@
 		8AB930CD199FA6EF00EEF7AF /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		8AB930CE199FA6EF00EEF7AF /* Image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Image.h; sourceTree = "<group>"; };
 		8AD870F1140A4EC5007A06A9 /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = Credits.html; path = misc/resources/Credits.html; sourceTree = "<group>"; };
+		8AE8757E1BAAFDB700717B78 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "thirdparty/openal-soft/lib/libcommon.a"; sourceTree = "<group>"; };
+		8AE8757F1BAAFDB700717B78 /* libopenal.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenal.a; path = "thirdparty/openal-soft/lib/libopenal.a"; sourceTree = "<group>"; };
+		8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		8AF278CA1390F0370095D9A0 /* libjpeg_gzdoom.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libjpeg_gzdoom.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AF2790B1390F0880095D9A0 /* jcomapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jcomapi.c; sourceTree = "<group>"; };
 		8AF2790C1390F0880095D9A0 /* jconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jconfig.h; sourceTree = "<group>"; };
@@ -3572,17 +3578,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A1D33A4154D6EA100BA2C16 /* AudioUnit.framework in Frameworks */,
+				8AE875991BAAFF8F00717B78 /* AudioToolbox.framework in Frameworks */,
 				8A6227A21A18E0C4004235B1 /* Carbon.framework in Frameworks */,
 				8A9F547414BB0F2900F3369B /* Cocoa.framework in Frameworks */,
 				8A1D33B3154D6EEF00BA2C16 /* CoreAudio.framework in Frameworks */,
 				8A1D33A8154D6EC000BA2C16 /* CoreMIDI.framework in Frameworks */,
 				8A9F547514BB0F2900F3369B /* IOKit.framework in Frameworks */,
-				8A805D1019604786009AF921 /* OpenAL.framework in Frameworks */,
 				8A9F547614BB0F2900F3369B /* OpenGL.framework in Frameworks */,
 				8A9F547714BB0F2900F3369B /* libbz2.dylib in Frameworks */,
 				8A1D33E7154D6FD200BA2C16 /* libiconv.dylib in Frameworks */,
 				8A9F547814BB0F2900F3369B /* libz.dylib in Frameworks */,
 				8A9F547914BB0F2900F3369B /* libfmodex.dylib in Frameworks */,
+				8AE875801BAAFDB700717B78 /* libcommon.a in Frameworks */,
+				8AE875811BAAFDB700717B78 /* libopenal.a in Frameworks */,
 				8A805D18196048B1009AF921 /* libFLAC.a in Frameworks */,
 				8A1D337E154D6E1300BA2C16 /* libfluidsynth.a in Frameworks */,
 				8A1D33E2154D6F8900BA2C16 /* libglib-2.0.a in Frameworks */,
@@ -3630,19 +3638,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A74F451139252F9001F54B0 /* AudioUnit.framework in Frameworks */,
+				8AE875AD1BAAFFAD00717B78 /* AudioToolbox.framework in Frameworks */,
 				8A74F4671392532C001F54B0 /* Carbon.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				8A1D33BF154D6F1800BA2C16 /* CoreAudio.framework in Frameworks */,
 				8A1D33C0154D6F1800BA2C16 /* CoreMIDI.framework in Frameworks */,
 				8A51EE6C1A5FCCC500D083A8 /* ForceFeedback.framework in Frameworks */,
 				8A74F38F13925284001F54B0 /* IOKit.framework in Frameworks */,
-				8A805D1119604796009AF921 /* OpenAL.framework in Frameworks */,
 				8A74F2A2139235E0001F54B0 /* OpenGL.framework in Frameworks */,
 				8AF2794A1390F0C20095D9A0 /* libbz2.dylib in Frameworks */,
 				8A1D33E8154D6FF900BA2C16 /* libiconv.dylib in Frameworks */,
 				8AF27A491390F4910095D9A0 /* libz.dylib in Frameworks */,
 				8A74F2BA1392360F001F54B0 /* libfmodex.dylib in Frameworks */,
-				8A51EE6A1A5FCB5500D083A8 /* libSDL2.a in Frameworks */,
+				8AE875821BAAFDB700717B78 /* libcommon.a in Frameworks */,
+				8AE875831BAAFDB700717B78 /* libopenal.a in Frameworks */,
 				8A805D17196048AC009AF921 /* libFLAC.a in Frameworks */,
 				8A1D337F154D6E2300BA2C16 /* libfluidsynth.a in Frameworks */,
 				8A1D33E3154D6F8900BA2C16 /* libglib-2.0.a in Frameworks */,
@@ -3658,6 +3667,7 @@
 				8AC81C441391321300F49DC3 /* libdumb_gzdoom.a in Frameworks */,
 				8AC81C451391321300F49DC3 /* libgdtoa_gzdoom.a in Frameworks */,
 				8A651FFB191E6A39009DB9CD /* libglew_gzdoom.a in Frameworks */,
+				8A51EE6A1A5FCB5500D083A8 /* libSDL2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3728,19 +3738,20 @@
 			isa = PBXGroup;
 			children = (
 				8A74F450139252F9001F54B0 /* AudioUnit.framework */,
+				8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */,
 				8A74F4661392532C001F54B0 /* Carbon.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				8A1D33B2154D6EEF00BA2C16 /* CoreAudio.framework */,
 				8A1D33A7154D6EC000BA2C16 /* CoreMIDI.framework */,
 				8A51EE6B1A5FCCC500D083A8 /* ForceFeedback.framework */,
 				8A74F38E13925284001F54B0 /* IOKit.framework */,
-				8A805D0F19604786009AF921 /* OpenAL.framework */,
 				8A74F2A1139235E0001F54B0 /* OpenGL.framework */,
 				8AF279491390F0C20095D9A0 /* libbz2.dylib */,
 				8A1D33E6154D6FD200BA2C16 /* libiconv.dylib */,
 				8AF27A461390F47C0095D9A0 /* libz.dylib */,
 				8A74F2B91392360F001F54B0 /* libfmodex.dylib */,
-				8A51EE691A5FCB5500D083A8 /* libSDL2.a */,
+				8AE8757E1BAAFDB700717B78 /* libcommon.a */,
+				8AE8757F1BAAFDB700717B78 /* libopenal.a */,
 				8A805D1219604887009AF921 /* libFLAC.a */,
 				8A1D337D154D6E0700BA2C16 /* libfluidsynth.a */,
 				8A1D33E1154D6F8900BA2C16 /* libglib-2.0.a */,
@@ -3750,6 +3761,7 @@
 				8A805D0C19604711009AF921 /* libsndfile.a */,
 				8A805D1419604887009AF921 /* libvorbis.a */,
 				8A805D1B196048EB009AF921 /* libvorbisenc.a */,
+				8A51EE691A5FCB5500D083A8 /* libSDL2.a */,
 			);
 			name = Dependencies;
 			sourceTree = "<group>";
