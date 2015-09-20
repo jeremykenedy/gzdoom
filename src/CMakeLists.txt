@@ -912,6 +912,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	p_3dfloors.cpp
 	p_3dmidtex.cpp
 	p_acs.cpp
+	p_acsutl.cpp
 	p_buildmap.cpp
 	p_ceiling.cpp
 	p_conversation.cpp
