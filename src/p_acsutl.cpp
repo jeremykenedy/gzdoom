@@ -518,36 +518,6 @@ bool ACSDisassembler::Next(FString& assembly)
 
 	for (const char* c = pcode.args; 0 != *c; ++c)
 	{
-//		const char* format = "%d";
-//		int value = 0;
-//
-//		switch (*c)
-//		{
-//		case 'a':
-//			format = "$%04x";
-//			value = GetNextWord();
-//			break;
-//
-//		case 'b':
-//			value = GetNextFormatByte();
-//			break;
-//
-//		case 'B':
-//			value = GetNextByte();
-//			break;
-//
-//		case 'w':
-//			value = GetNextWord();
-//			break;
-//
-//		default:
-//			assert(!"Uknown parameter type");
-//			return false;
-//		}
-//
-//		assembly += pcode.args == c ? " " : ", ";
-//		assembly.AppendFormat(format, value);
-
 		assembly += pcode.args == c ? " " : ", ";
 
 		switch (*c)
@@ -577,7 +547,7 @@ bool ACSDisassembler::Next(FString& assembly)
 			break;
 
 		default:
-			assert(!"Uknown parameter type");
+			assert(!"Unknown parameter type");
 			return false;
 		}
 	}
