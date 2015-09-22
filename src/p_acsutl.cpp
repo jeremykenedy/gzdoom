@@ -310,7 +310,7 @@ static const PCode PCODES[DLevelScript::PCODE_COMMAND_COUNT] =
 	{ "strlen", "" },
 	{ "sethudsize", "" },
 	{ "getcvar", "" },
-	{ "casegotosorted", "w" },  // TODO: variable param count!
+	{ "casegotosorted", "j" },
 	{ "setresultvalue", "" },
 	{ "getlinerowoffset", "" },
 	{ "getactorfloorz", "" },
@@ -540,6 +540,27 @@ bool ACSDisassembler::Next(FString& assembly)
 
 		case 'h':
 			assembly.AppendFormat("%d", GetNextFormatShort());
+			break;
+
+		case 'j':
+			{
+				const int jumpCount = GetNextWord();
+				assembly.AppendFormat("%d [", jumpCount);
+
+				for (int j = 0; j < jumpCount; ++j)
+				{
+					if (j > 0)
+					{
+						assembly += ", ";
+					}
+
+					const int caseValue = GetNextWord();
+					const int jumpAddress = GetNextWord();
+					assembly.AppendFormat("%d: $%04x", caseValue, jumpAddress);
+				}
+
+				assembly += "]";
+			}
 			break;
 
 		case 'w':
