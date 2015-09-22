@@ -37,6 +37,7 @@
 #include "c_dispatch.h"
 #include "cmdlib.h"
 #include "m_swap.h"
+#include "v_text.h"
 
 
 namespace
@@ -676,5 +677,58 @@ CCMD(acsdisasm)
 		{
 			Printf("%s\n", assembly.GetChars());
 		}
+	}
+}
+
+
+CCMD(acslist)
+{
+	int mi = 0;
+
+	while (const FBehavior* const module = FBehavior::StaticGetModule(mi))
+	{
+		if (mi > 0)
+		{
+			Printf("\n");
+		}
+
+		Printf(TEXTCOLOR_YELLOW "Module %s:\n", module->GetModuleName());
+
+		int si = 0;
+
+		while (const ScriptPtr* const script = module->GetScriptPtr(si))
+		{
+			if (script->Number < 0)
+			{
+				Printf("Script " TEXTCOLOR_YELLOW "%i " TEXTCOLOR_WHITE "named " TEXTCOLOR_YELLOW "%s " TEXTCOLOR_WHITE "at $%04x\n",
+					script->Number, FName(ENamedName(-script->Number)).GetChars(), script->Address);
+			}
+			else
+			{
+				Printf("Script " TEXTCOLOR_YELLOW "%i " TEXTCOLOR_WHITE "at $%04x\n", script->Number, script->Address);
+			}
+
+			++si;
+		}
+
+		FBehavior* functionModule = NULL;
+		int fi = 0;
+
+		const DWORD* const functionNames = reinterpret_cast<const DWORD*>(module->FindChunk(MAKE_ID('F','N','A','M')));
+
+		while (const ScriptFunction* const function = module->GetFunction(fi, functionModule))
+		{
+			if (module == functionModule && 0 != function->Address)
+			{
+				assert(NULL != functionNames);
+
+				const char* const funcName = reinterpret_cast<const char*>(functionNames + 2) + LittleLong(functionNames[3 + fi]);
+				Printf("Function " TEXTCOLOR_YELLOW "%s " TEXTCOLOR_WHITE "at $%04x\n", funcName, function->Address);
+			}
+
+			++fi;
+		}
+
+		++mi;
 	}
 }
