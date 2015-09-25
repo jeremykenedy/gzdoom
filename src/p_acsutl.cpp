@@ -49,9 +49,17 @@ struct PCode
 	const char* args;
 };
 
-// TODO: comment arguments encoding!
-// http://zdoom.org/wiki/ACS_PCodes
-// http://zdoom.org/wiki/Reserved_ACS_names
+// List of ACS p-codes: http://zdoom.org/wiki/ACS_PCodes
+// Some p-codes are not used: http://zdoom.org/wiki/Reserved_ACS_names
+
+// Arguments encoding:
+// 'a' - word as address
+// 'B' - byte
+// 'b' - byte or word depending on script format
+// 'H' - short, 2 bytes
+// 'h' - short or word depending on script format
+// 'j' - jump table, variable arguments length
+// 'w' - word, 4 bytes
 
 static const PCode PCODES[DLevelScript::PCODE_COMMAND_COUNT] =
 {
