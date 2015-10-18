@@ -396,6 +396,17 @@ A53AE580A4AF2B5D0B0893F86914781E // TNT: Evilution map31
 {
 	setthingflags 470 2016
 }
+
+D0139194F7817BF06F3988DFC47DB38D // Whispers of Satan map29
+{
+	nopassover
+}
+
+D7F6E9F08C39A17026349A04F8C0B0BE // Return to Hadron, e1m9
+{
+	pointonline
+}
+
 712BB4CFBD0753178CA0C6814BE4C288 // map12 BTSX_E1 - patch some rendering glitches that are problematic to detect
 {
 	setsectortag 545 32000
@@ -409,12 +420,3 @@ A53AE580A4AF2B5D0B0893F86914781E // TNT: Evilution map31
 	setlinespecial 2410 Sector_Set3DFloor 32002 4 1 0 0
 }
 
-D0139194F7817BF06F3988DFC47DB38D // Whispers of Satan map29
-{
-	nopassover
-}
-
-D7F6E9F08C39A17026349A04F8C0B0BE // Return to Hadron, e1m9
-{
-	pointonline
-}
