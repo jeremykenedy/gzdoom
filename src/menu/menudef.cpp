@@ -95,6 +95,18 @@ static void DeinitMenus()
 	ClearSaveGames();
 }
 
+static FTextureID GetMenuTexture(const char* const name)
+{
+	const FTextureID texture = TexMan.CheckForTexture(name, FTexture::TEX_MiscPatch);
+
+	if (!texture.Exists())
+	{
+		Printf("Missing menu texture: \"%s\"\n", name);
+	}
+
+	return texture;
+}
+
 //=============================================================================
 //
 //
@@ -235,7 +247,7 @@ static void ParseListMenuBody(FScanner &sc, FListMenuDescriptor *desc)
 		else if (sc.Compare("Selector"))
 		{
 			sc.MustGetString();
-			desc->mSelector = TexMan.CheckForTexture(sc.String, FTexture::TEX_MiscPatch);
+			desc->mSelector = GetMenuTexture(sc.String);
 			sc.MustGetStringName(",");
 			sc.MustGetNumber();
 			desc->mSelectOfsX = sc.Number;
@@ -278,7 +290,7 @@ static void ParseListMenuBody(FScanner &sc, FListMenuDescriptor *desc)
 			int y = sc.Number;
 			sc.MustGetStringName(",");
 			sc.MustGetString();
-			FTextureID tex = TexMan.CheckForTexture(sc.String, FTexture::TEX_MiscPatch);
+			FTextureID tex = GetMenuTexture(sc.String);
 
 			FListMenuItem *it = new FListMenuItemStaticPatch(x, y, tex, centered);
 			desc->mItems.Push(it);
@@ -299,7 +311,7 @@ static void ParseListMenuBody(FScanner &sc, FListMenuDescriptor *desc)
 		else if (sc.Compare("PatchItem"))
 		{
 			sc.MustGetString();
-			FTextureID tex = TexMan.CheckForTexture(sc.String, FTexture::TEX_MiscPatch);
+			FTextureID tex = GetMenuTexture(sc.String);
 			sc.MustGetStringName(",");
 			sc.MustGetString();
 			int hotkey = sc.String[0];
@@ -830,6 +842,63 @@ static void ParseOptionMenuBody(FScanner &sc, FOptionMenuDescriptor *desc)
 			FOptionMenuItem *it = new FOptionMenuScreenResolutionLine(sc.String);
 			desc->mItems.Push(it);
 		}
+		// [TP] -- Text input widget
+		else if ( sc.Compare( "TextField" ))
+		{
+			sc.MustGetString();
+			FString label = sc.String;
+			sc.MustGetStringName( "," );
+			sc.MustGetString();
+			FString cvar = sc.String;
+			FString check;
+			
+			if ( sc.CheckString( "," ))
+			{
+				sc.MustGetString();
+				check = sc.String;
+			}
+
+			FOptionMenuItem* it = new FOptionMenuTextField( label, cvar, check );
+			desc->mItems.Push( it );
+		}
+		// [TP] -- Number input widget
+		else if ( sc.Compare( "NumberField" ))
+		{
+			sc.MustGetString();
+			FString label = sc.String;
+			sc.MustGetStringName( "," );
+			sc.MustGetString();
+			FString cvar = sc.String;
+			float minimum = 0.0f;
+			float maximum = 100.0f;
+			float step = 1.0f;
+			FString check;
+
+			if ( sc.CheckString( "," ))
+			{
+				sc.MustGetFloat();
+				minimum = (float) sc.Float;
+				sc.MustGetStringName( "," );
+				sc.MustGetFloat();
+				maximum = (float) sc.Float;
+
+				if ( sc.CheckString( "," ))
+				{
+					sc.MustGetFloat();
+					step = (float) sc.Float;
+
+					if ( sc.CheckString( "," ))
+					{
+						sc.MustGetString();
+						check = sc.String;
+					}
+				}
+			}
+
+			FOptionMenuItem* it = new FOptionMenuNumberField( label, cvar,
+				minimum, maximum, step, check );
+			desc->mItems.Push( it );
+		}
 		else
 		{
 			sc.ScriptError("Unknown keyword '%s'", sc.String);
@@ -988,7 +1057,7 @@ static void BuildEpisodeMenu()
 					FListMenuItem *it;
 					if (AllEpisodes[i].mPicName.IsNotEmpty())
 					{
-						FTextureID tex = TexMan.CheckForTexture(AllEpisodes[i].mPicName, FTexture::TEX_MiscPatch);
+						FTextureID tex = GetMenuTexture(AllEpisodes[i].mPicName);
 						it = new FListMenuItemPatch(ld->mXpos, posy, ld->mLinespacing, AllEpisodes[i].mShortcut, 
 							tex, NAME_Skillmenu, i);
 					}
@@ -1385,7 +1454,7 @@ void M_StartupSkillMenu(FGameStartup *gs)
 
 				if (skill.PicName.Len() != 0 && pItemText == NULL)
 				{
-					FTextureID tex = TexMan.CheckForTexture(skill.PicName, FTexture::TEX_MiscPatch);
+					FTextureID tex = GetMenuTexture(skill.PicName);
 					li = new FListMenuItemPatch(ld->mXpos, y, ld->mLinespacing, skill.Shortcut, tex, action, i);
 				}
 				else
