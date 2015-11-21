@@ -799,11 +799,12 @@ file( GLOB HEADER_FILES
 	gl/models/*.h
 	gl/renderer/*.h
 	gl/scene/*.h
+	gl/stereo3d/*.h
 	gl/shaders/*.h
 	gl/system/*.h
 	gl/textures/*.h
 	gl/utility/*.h
-    gl/xbr/*.h
+	gl/xbr/*.h
 	*.h
 )
 
@@ -1157,6 +1158,11 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	gl/scene/gl_walls_draw.cpp
 	gl/scene/gl_vertex.cpp
 	gl/scene/gl_spritelight.cpp
+        gl/stereo3d/gl_anaglyph.cpp
+        gl/stereo3d/gl_stereo_cvars.cpp
+        gl/stereo3d/gl_stereo_leftright.cpp
+        gl/stereo3d/gl_stereo3d.cpp
+        gl/stereo3d/scoped_view_shifter.cpp
 	gl/dynlights/gl_dynlight.cpp
 	gl/dynlights/gl_glow.cpp
 	gl/dynlights/gl_dynlight1.cpp
@@ -1182,7 +1188,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	oplsynth/nukedopl3.cpp
 	resourcefiles/ancientzip.cpp
 	resourcefiles/file_7z.cpp
-    resourcefiles/file_chasm_bin.cpp
+	resourcefiles/file_chasm_bin.cpp
 	resourcefiles/file_grp.cpp
 	resourcefiles/file_lump.cpp
 	resourcefiles/file_rff.cpp
@@ -1221,7 +1227,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	textures/bitmap.cpp
 	textures/buildtexture.cpp
 	textures/canvastexture.cpp
-    textures/celtexture.cpp
+	textures/celtexture.cpp
 	textures/ddstexture.cpp
 	textures/flattexture.cpp
 	textures/imgztexture.cpp
@@ -1408,6 +1414,7 @@ source_group("OpenGL Renderer\\HQ Resize" REGULAR_EXPRESSION "^${CMAKE_CURRENT_S
 source_group("OpenGL Renderer\\Models" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/models/.+")
 source_group("OpenGL Renderer\\Renderer" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/renderer/.+")
 source_group("OpenGL Renderer\\Scene" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/scene/.+")
+source_group("OpenGL Renderer\\Stereo3D" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/stereo3d/.+")
 source_group("OpenGL Renderer\\Shaders" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/shaders/.+")
 source_group("OpenGL Renderer\\System" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/system/.+")
 source_group("OpenGL Renderer\\Textures" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/textures/.+")

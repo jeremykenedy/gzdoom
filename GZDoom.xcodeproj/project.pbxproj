@@ -121,6 +121,16 @@
 		8A1D33E8154D6FF900BA2C16 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1D33E6154D6FD200BA2C16 /* libiconv.dylib */; };
 		8A1D33EF154D702000BA2C16 /* libintl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1D33ED154D702000BA2C16 /* libintl.a */; };
 		8A1D33F1154D702000BA2C16 /* libintl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1D33ED154D702000BA2C16 /* libintl.a */; };
+		8A213C461C0062F2002DD476 /* gl_anaglyph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C3C1C0062C3002DD476 /* gl_anaglyph.cpp */; };
+		8A213C471C0062F2002DD476 /* gl_stereo3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C3E1C0062C3002DD476 /* gl_stereo3d.cpp */; };
+		8A213C481C0062F2002DD476 /* gl_stereo_cvars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C401C0062C3002DD476 /* gl_stereo_cvars.cpp */; };
+		8A213C491C0062F2002DD476 /* gl_stereo_leftright.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C411C0062C3002DD476 /* gl_stereo_leftright.cpp */; };
+		8A213C4A1C0062F2002DD476 /* scoped_view_shifter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C441C0062C3002DD476 /* scoped_view_shifter.cpp */; };
+		8A213C4B1C006300002DD476 /* gl_anaglyph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C3C1C0062C3002DD476 /* gl_anaglyph.cpp */; };
+		8A213C4C1C006300002DD476 /* gl_stereo3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C3E1C0062C3002DD476 /* gl_stereo3d.cpp */; };
+		8A213C4D1C006300002DD476 /* gl_stereo_cvars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C401C0062C3002DD476 /* gl_stereo_cvars.cpp */; };
+		8A213C4E1C006300002DD476 /* gl_stereo_leftright.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C411C0062C3002DD476 /* gl_stereo_leftright.cpp */; };
+		8A213C4F1C006300002DD476 /* scoped_view_shifter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A213C441C0062C3002DD476 /* scoped_view_shifter.cpp */; };
 		8A2C747F16C66DA600ABD7C8 /* loadokt.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A2C747616C66CB600ABD7C8 /* loadokt.c */; };
 		8A2C748016C66DA600ABD7C8 /* loadokt2.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A2C747716C66CB600ABD7C8 /* loadokt2.c */; };
 		8A2C748116C66DBA00ABD7C8 /* readokt.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A2C747816C66CB600ABD7C8 /* readokt.c */; };
@@ -1374,6 +1384,16 @@
 		8A1D33E1154D6F8900BA2C16 /* libglib-2.0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libglib-2.0.a"; path = "thirdparty/fluidsynth/lib/libglib-2.0.a"; sourceTree = "<group>"; };
 		8A1D33E6154D6FD200BA2C16 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		8A1D33ED154D702000BA2C16 /* libintl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libintl.a; path = thirdparty/fluidsynth/lib/libintl.a; sourceTree = "<group>"; };
+		8A213C3C1C0062C3002DD476 /* gl_anaglyph.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gl_anaglyph.cpp; sourceTree = "<group>"; };
+		8A213C3D1C0062C3002DD476 /* gl_anaglyph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_anaglyph.h; sourceTree = "<group>"; };
+		8A213C3E1C0062C3002DD476 /* gl_stereo3d.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gl_stereo3d.cpp; sourceTree = "<group>"; };
+		8A213C3F1C0062C3002DD476 /* gl_stereo3d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_stereo3d.h; sourceTree = "<group>"; };
+		8A213C401C0062C3002DD476 /* gl_stereo_cvars.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gl_stereo_cvars.cpp; sourceTree = "<group>"; };
+		8A213C411C0062C3002DD476 /* gl_stereo_leftright.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gl_stereo_leftright.cpp; sourceTree = "<group>"; };
+		8A213C421C0062C3002DD476 /* gl_stereo_leftright.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_stereo_leftright.h; sourceTree = "<group>"; };
+		8A213C431C0062C3002DD476 /* scoped_color_mask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scoped_color_mask.h; sourceTree = "<group>"; };
+		8A213C441C0062C3002DD476 /* scoped_view_shifter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = scoped_view_shifter.cpp; sourceTree = "<group>"; };
+		8A213C451C0062C3002DD476 /* scoped_view_shifter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scoped_view_shifter.h; sourceTree = "<group>"; };
 		8A2C747616C66CB600ABD7C8 /* loadokt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = loadokt.c; sourceTree = "<group>"; };
 		8A2C747716C66CB600ABD7C8 /* loadokt2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = loadokt2.c; sourceTree = "<group>"; };
 		8A2C747816C66CB600ABD7C8 /* readokt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = readokt.c; sourceTree = "<group>"; };
@@ -3808,6 +3828,23 @@
 				8A14E4D11AD91EF80034C7CD /* strfhelp.o */,
 			);
 			path = acs;
+			sourceTree = "<group>";
+		};
+		8A213C3B1C0062C3002DD476 /* stereo3d */ = {
+			isa = PBXGroup;
+			children = (
+				8A213C3C1C0062C3002DD476 /* gl_anaglyph.cpp */,
+				8A213C3D1C0062C3002DD476 /* gl_anaglyph.h */,
+				8A213C3E1C0062C3002DD476 /* gl_stereo3d.cpp */,
+				8A213C3F1C0062C3002DD476 /* gl_stereo3d.h */,
+				8A213C401C0062C3002DD476 /* gl_stereo_cvars.cpp */,
+				8A213C411C0062C3002DD476 /* gl_stereo_leftright.cpp */,
+				8A213C421C0062C3002DD476 /* gl_stereo_leftright.h */,
+				8A213C431C0062C3002DD476 /* scoped_color_mask.h */,
+				8A213C441C0062C3002DD476 /* scoped_view_shifter.cpp */,
+				8A213C451C0062C3002DD476 /* scoped_view_shifter.h */,
+			);
+			path = stereo3d;
 			sourceTree = "<group>";
 		};
 		8A2F67531AD0133000E377A0 /* filter */ = {
@@ -6248,6 +6285,7 @@
 				8AF27E1E139126C00095D9A0 /* renderer */,
 				8AF27E26139126C00095D9A0 /* scene */,
 				8AF27E3C139126C00095D9A0 /* shaders */,
+				8A213C3B1C0062C3002DD476 /* stereo3d */,
 				8AF27E41139126C00095D9A0 /* system */,
 				8AF27E4C139126C00095D9A0 /* textures */,
 				8AF27E5C139126C00095D9A0 /* utility */,
@@ -7217,6 +7255,11 @@
 				8A9F538614BB0F2900F3369B /* gl_weapon.cpp in Sources */,
 				8A9F538714BB0F2900F3369B /* gl_shader.cpp in Sources */,
 				8A9F538814BB0F2900F3369B /* gl_texshader.cpp in Sources */,
+				8A213C461C0062F2002DD476 /* gl_anaglyph.cpp in Sources */,
+				8A213C471C0062F2002DD476 /* gl_stereo3d.cpp in Sources */,
+				8A213C481C0062F2002DD476 /* gl_stereo_cvars.cpp in Sources */,
+				8A213C491C0062F2002DD476 /* gl_stereo_leftright.cpp in Sources */,
+				8A213C4A1C0062F2002DD476 /* scoped_view_shifter.cpp in Sources */,
 				8A9F538914BB0F2900F3369B /* gl_framebuffer.cpp in Sources */,
 				8A9F538A14BB0F2900F3369B /* gl_interface.cpp in Sources */,
 				8A9F538B14BB0F2900F3369B /* gl_menu.cpp in Sources */,
@@ -7848,6 +7891,11 @@
 				8AF280E5139126C00095D9A0 /* gl_weapon.cpp in Sources */,
 				8AF280E6139126C00095D9A0 /* gl_shader.cpp in Sources */,
 				8AF280E7139126C00095D9A0 /* gl_texshader.cpp in Sources */,
+				8A213C4B1C006300002DD476 /* gl_anaglyph.cpp in Sources */,
+				8A213C4C1C006300002DD476 /* gl_stereo3d.cpp in Sources */,
+				8A213C4D1C006300002DD476 /* gl_stereo_cvars.cpp in Sources */,
+				8A213C4E1C006300002DD476 /* gl_stereo_leftright.cpp in Sources */,
+				8A213C4F1C006300002DD476 /* scoped_view_shifter.cpp in Sources */,
 				8AF280E8139126C00095D9A0 /* gl_framebuffer.cpp in Sources */,
 				8AF280E9139126C00095D9A0 /* gl_interface.cpp in Sources */,
 				8AF280EA139126C00095D9A0 /* gl_menu.cpp in Sources */,
