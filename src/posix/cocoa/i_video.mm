@@ -360,7 +360,7 @@ public:
 
 	virtual void GetScreenshotBuffer(const BYTE*& buffer, int& pitch, ESSType& color_type);
 
-	void SetSmoothPicture(const bool smooth);
+	virtual void SetSmoothPicture(bool smooth);
 
 private:
 	RenderTarget m_renderTarget;
@@ -1516,9 +1516,9 @@ void CocoaOpenGLFrameBuffer::SetSmoothPicture(const bool smooth)
 
 CUSTOM_CVAR(Bool, gl_smooth_rendered, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
-	if (CocoaOpenGLFrameBuffer* frameBuffer = static_cast<CocoaOpenGLFrameBuffer*>(screen))
+	if (NULL != screen)
 	{
-		frameBuffer->SetSmoothPicture(self);
+		screen->SetSmoothPicture(self);
 	}
 }
 
