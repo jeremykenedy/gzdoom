@@ -98,19 +98,19 @@ void I_BuildALDeviceList(FOptionValues *opt)
 #ifndef NO_OPENAL
 	if (IsOpenALPresent())
 	{
-    const ALCchar *names = (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") ?
-                            alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER) :
-                            alcGetString(NULL, ALC_DEVICE_SPECIFIER));
-    if(!names)
-        Printf("Failed to get device list: %s\n", alcGetString(NULL, alcGetError(NULL)));
-    else while(*names)
-    {
-        unsigned int i = opt->mValues.Reserve(1);
-        opt->mValues[i].TextValue = names;
-        opt->mValues[i].Text = names;
+		const ALCchar *names = (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") ?
+			alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER) :
+			alcGetString(NULL, ALC_DEVICE_SPECIFIER));
+		if (!names)
+			Printf("Failed to get device list: %s\n", alcGetString(NULL, alcGetError(NULL)));
+		else while (*names)
+		{
+			unsigned int i = opt->mValues.Reserve(1);
+			opt->mValues[i].TextValue = names;
+			opt->mValues[i].Text = names;
 
-        names += strlen(names)+1;
-    }
+			names += strlen(names) + 1;
+		}
 	}
 #endif
 }
@@ -674,13 +674,13 @@ OpenALSoundRenderer::OpenALSoundRenderer()
         current = alcGetString(Device, ALC_ALL_DEVICES_SPECIFIER);
     if(alcGetError(Device) != ALC_NO_ERROR || !current)
         current = alcGetString(Device, ALC_DEVICE_SPECIFIER);
-    Printf("  Opened device "TEXTCOLOR_ORANGE"%s\n", current);
+    Printf("  Opened device " TEXTCOLOR_ORANGE"%s\n", current);
 
     ALCint major=0, minor=0;
     alcGetIntegerv(Device, ALC_MAJOR_VERSION, 1, &major);
     alcGetIntegerv(Device, ALC_MINOR_VERSION, 1, &minor);
-    DPrintf("  ALC Version: "TEXTCOLOR_BLUE"%d.%d\n", major, minor);
-    DPrintf("  ALC Extensions: "TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_EXTENSIONS));
+    DPrintf("  ALC Version: " TEXTCOLOR_BLUE"%d.%d\n", major, minor);
+    DPrintf("  ALC Extensions: " TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_EXTENSIONS));
 
     TArray<ALCint> attribs;
     if(*snd_samplerate > 0)
@@ -710,10 +710,10 @@ OpenALSoundRenderer::OpenALSoundRenderer()
     }
     attribs.Clear();
 
-    DPrintf("  Vendor: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VENDOR));
-    DPrintf("  Renderer: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_RENDERER));
-    DPrintf("  Version: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VERSION));
-    DPrintf("  Extensions: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_EXTENSIONS));
+    DPrintf("  Vendor: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VENDOR));
+    DPrintf("  Renderer: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_RENDERER));
+    DPrintf("  Version: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VERSION));
+    DPrintf("  Extensions: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_EXTENSIONS));
 
     ALC.EXT_EFX = !!alcIsExtensionPresent(Device, "ALC_EXT_EFX");
     ALC.EXT_disconnect = !!alcIsExtensionPresent(Device, "ALC_EXT_disconnect");;
@@ -775,7 +775,7 @@ OpenALSoundRenderer::OpenALSoundRenderer()
         return;
     }
     FreeSfx = Sources;
-    DPrintf("  Allocated "TEXTCOLOR_BLUE"%u"TEXTCOLOR_NORMAL" sources\n", Sources.Size());
+    DPrintf("  Allocated " TEXTCOLOR_BLUE"%u" TEXTCOLOR_NORMAL" sources\n", Sources.Size());
 
     WasInWater = false;
     if(*snd_efx && ALC.EXT_EFX)
@@ -1132,10 +1132,10 @@ void OpenALSoundRenderer::UnloadSound(SoundHandle sfx)
 SoundStream *OpenALSoundRenderer::CreateStream(SoundStreamCallback callback, int buffbytes, int flags, int samplerate, void *userdata)
 {
 	OpenALSoundStream *stream = new OpenALSoundStream(this);
-    if(!stream->Init(callback, buffbytes, flags, samplerate, userdata))
+	if (!stream->Init(callback, buffbytes, flags, samplerate, userdata))
 	{
 		delete stream;
-        return NULL;
+		return NULL;
 	}
 	return stream;
 }
@@ -1144,7 +1144,7 @@ SoundStream *OpenALSoundRenderer::OpenStream(FileReader *reader, int flags)
 {
 	OpenALSoundStream *stream = new OpenALSoundStream(this);
 	if (!stream->Init(reader, !!(flags&SoundStream::Loop)))
-{
+	{
 		delete stream;
 		return NULL;
 	}
@@ -1349,7 +1349,7 @@ FISoundChannel *OpenALSoundRenderer::StartSound3D(SoundHandle sfx, SoundListener
     alSourcei(source, AL_LOOPING, (chanflags&SNDF_LOOP) ? AL_TRUE : AL_FALSE);
 
     alSourcef(source, AL_MAX_GAIN, SfxVolume);
-    alSourcef(source, AL_GAIN, SfxVolume);
+    alSourcef(source, AL_GAIN, SfxVolume*vol);
 
     if(EnvSlot)
     {
@@ -1737,7 +1737,7 @@ float OpenALSoundRenderer::GetAudibility(FISoundChannel *chan)
 
 void OpenALSoundRenderer::PrintStatus()
 {
-    Printf("Output device: "TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_DEVICE_SPECIFIER));
+    Printf("Output device: " TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_DEVICE_SPECIFIER));
     getALCError(Device);
 
     ALCint frequency, major, minor, mono, stereo;
@@ -1748,10 +1748,10 @@ void OpenALSoundRenderer::PrintStatus()
     alcGetIntegerv(Device, ALC_STEREO_SOURCES, 1, &stereo);
     if(getALCError(Device) == AL_NO_ERROR)
     {
-        Printf("Device sample rate: "TEXTCOLOR_BLUE"%d"TEXTCOLOR_NORMAL"hz\n", frequency);
-        Printf("ALC Version: "TEXTCOLOR_BLUE"%d.%d\n", major, minor);
-        Printf("ALC Extensions: "TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_EXTENSIONS));
-        Printf("Available sources: "TEXTCOLOR_BLUE"%d"TEXTCOLOR_NORMAL" ("TEXTCOLOR_BLUE"%d"TEXTCOLOR_NORMAL" mono, "TEXTCOLOR_BLUE"%d"TEXTCOLOR_NORMAL" stereo)\n", mono+stereo, mono, stereo);
+        Printf("Device sample rate: " TEXTCOLOR_BLUE"%d" TEXTCOLOR_NORMAL"hz\n", frequency);
+        Printf("ALC Version: " TEXTCOLOR_BLUE"%d.%d\n", major, minor);
+        Printf("ALC Extensions: " TEXTCOLOR_ORANGE"%s\n", alcGetString(Device, ALC_EXTENSIONS));
+        Printf("Available sources: " TEXTCOLOR_BLUE"%d" TEXTCOLOR_NORMAL" (" TEXTCOLOR_BLUE"%d" TEXTCOLOR_NORMAL" mono, " TEXTCOLOR_BLUE"%d" TEXTCOLOR_NORMAL" stereo)\n", mono+stereo, mono, stereo);
     }
     if(!alcIsExtensionPresent(Device, "ALC_EXT_EFX"))
         Printf("EFX not found\n");
@@ -1763,14 +1763,14 @@ void OpenALSoundRenderer::PrintStatus()
         alcGetIntegerv(Device, ALC_MAX_AUXILIARY_SENDS, 1, &sends);
         if(getALCError(Device) == AL_NO_ERROR)
         {
-            Printf("EFX Version: "TEXTCOLOR_BLUE"%d.%d\n", major, minor);
-            Printf("Auxiliary sends: "TEXTCOLOR_BLUE"%d\n", sends);
+            Printf("EFX Version: " TEXTCOLOR_BLUE"%d.%d\n", major, minor);
+            Printf("Auxiliary sends: " TEXTCOLOR_BLUE"%d\n", sends);
         }
     }
-    Printf("Vendor: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VENDOR));
-    Printf("Renderer: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_RENDERER));
-    Printf("Version: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VERSION));
-    Printf("Extensions: "TEXTCOLOR_ORANGE"%s\n", alGetString(AL_EXTENSIONS));
+    Printf("Vendor: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VENDOR));
+    Printf("Renderer: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_RENDERER));
+    Printf("Version: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_VERSION));
+    Printf("Extensions: " TEXTCOLOR_ORANGE"%s\n", alGetString(AL_EXTENSIONS));
     getALError();
 }
 
@@ -1785,7 +1785,7 @@ FString OpenALSoundRenderer::GatherStats()
     uint32 unused = FreeSfx.Size();
 
     FString out;
-    out.Format("%u sources ("TEXTCOLOR_YELLOW"%u"TEXTCOLOR_NORMAL" active, "TEXTCOLOR_YELLOW"%u"TEXTCOLOR_NORMAL" free), Update interval: "TEXTCOLOR_YELLOW"%d"TEXTCOLOR_NORMAL"ms",
+    out.Format("%u sources (" TEXTCOLOR_YELLOW"%u" TEXTCOLOR_NORMAL" active, " TEXTCOLOR_YELLOW"%u" TEXTCOLOR_NORMAL" free), Update interval: " TEXTCOLOR_YELLOW"%d" TEXTCOLOR_NORMAL"ms",
                total, used, unused, 1000/updates);
     return out;
 }
