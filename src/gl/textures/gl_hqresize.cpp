@@ -55,7 +55,7 @@
 
 CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
-	if (self < 0 || self > 10)
+	if (self < 0 || self > 11)
 		self = 0;
 	GLRenderer->FlushTextures();
 }
@@ -348,6 +348,7 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 			{ 3, xbrzNx  },
 			{ 4, xbrzNx  },
 			{ 5, xbrzNx  },
+			{ 6, xbrzNx  },
 		};
 
 		if (type > 0)
