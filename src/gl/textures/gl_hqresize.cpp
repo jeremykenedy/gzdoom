@@ -265,14 +265,14 @@ static void xbrzNx(const size_t scale, const size_t width, const size_t height, 
 		dispatch_apply(height / thresholdHeight + 1, queue, ^(size_t sliceY)
 		{
 			xbrz::scale(scale, input, output,
-				static_cast<int>(width), static_cast<int>(height), xbrz::ARGB, xbrz::ScalerCfg(),
+				static_cast<int>(width), static_cast<int>(height), xbrz::ScalerCfg(),
 				sliceY * thresholdHeight, (sliceY + 1) * thresholdHeight);
 		});
 	}
 	else
 #endif // GZ_USE_LIBDISPATCH
 	{
-		xbrz::scale(scale, input, output, static_cast<int>(width), static_cast<int>(height), xbrz::ARGB);
+		xbrz::scale(scale, input, output, static_cast<int>(width), static_cast<int>(height));
 	}
 }
 
