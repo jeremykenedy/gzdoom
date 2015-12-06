@@ -1169,6 +1169,100 @@ struct Scaler5x
 }
 
 
+struct Scaler6x
+{
+    static const int scale = 6;
+
+    template <class OutputMatrix>
+    static void blendLineShallow(uint32_t col, OutputMatrix& out)
+    {
+        alphaBlend<1, 4>(out.template ref<scale - 1, 0>(), col);
+        alphaBlend<1, 4>(out.template ref<scale - 2, 2>(), col);
+        alphaBlend<1, 4>(out.template ref<scale - 3, 4>(), col);
+
+        alphaBlend<3, 4>(out.template ref<scale - 1, 1>(), col);
+        alphaBlend<3, 4>(out.template ref<scale - 2, 3>(), col);
+        alphaBlend<3, 4>(out.template ref<scale - 3, 5>(), col);
+
+        out.template ref<scale - 1, 2>() = col;
+        out.template ref<scale - 1, 3>() = col;
+        out.template ref<scale - 1, 4>() = col;
+        out.template ref<scale - 1, 5>() = col;
+
+        out.template ref<scale - 2, 4>() = col;
+        out.template ref<scale - 2, 5>() = col;
+    }
+
+    template <class OutputMatrix>
+    static void blendLineSteep(uint32_t col, OutputMatrix& out)
+    {
+        alphaBlend<1, 4>(out.template ref<0, scale - 1>(), col);
+        alphaBlend<1, 4>(out.template ref<2, scale - 2>(), col);
+        alphaBlend<1, 4>(out.template ref<4, scale - 3>(), col);
+
+        alphaBlend<3, 4>(out.template ref<1, scale - 1>(), col);
+        alphaBlend<3, 4>(out.template ref<3, scale - 2>(), col);
+        alphaBlend<3, 4>(out.template ref<5, scale - 3>(), col);
+
+        out.template ref<2, scale - 1>() = col;
+        out.template ref<3, scale - 1>() = col;
+        out.template ref<4, scale - 1>() = col;
+        out.template ref<5, scale - 1>() = col;
+
+        out.template ref<4, scale - 2>() = col;
+        out.template ref<5, scale - 2>() = col;
+    }
+
+    template <class OutputMatrix>
+    static void blendLineSteepAndShallow(uint32_t col, OutputMatrix& out)
+    {
+        alphaBlend<1, 4>(out.template ref<0, scale - 1>(), col);
+        alphaBlend<1, 4>(out.template ref<2, scale - 2>(), col);
+        alphaBlend<3, 4>(out.template ref<1, scale - 1>(), col);
+        alphaBlend<3, 4>(out.template ref<3, scale - 2>(), col);
+
+        alphaBlend<1, 4>(out.template ref<scale - 1, 0>(), col);
+        alphaBlend<1, 4>(out.template ref<scale - 2, 2>(), col);
+        alphaBlend<3, 4>(out.template ref<scale - 1, 1>(), col);
+        alphaBlend<3, 4>(out.template ref<scale - 2, 3>(), col);
+
+        out.template ref<2, scale - 1>() = col;
+        out.template ref<3, scale - 1>() = col;
+        out.template ref<4, scale - 1>() = col;
+        out.template ref<5, scale - 1>() = col;
+
+        out.template ref<4, scale - 2>() = col;
+        out.template ref<5, scale - 2>() = col;
+
+        out.template ref<scale - 1, 2>() = col;
+        out.template ref<scale - 1, 3>() = col;
+    }
+
+    template <class OutputMatrix>
+    static void blendLineDiagonal(uint32_t col, OutputMatrix& out)
+    {
+        alphaBlend<1, 2>(out.template ref<scale - 1, scale / 2    >(), col);
+        alphaBlend<1, 2>(out.template ref<scale - 2, scale / 2 + 1>(), col);
+        alphaBlend<1, 2>(out.template ref<scale - 3, scale / 2 + 2>(), col);
+
+        out.template ref<scale - 2, scale - 1>() = col;
+        out.template ref<scale - 1, scale - 1>() = col;
+        out.template ref<scale - 1, scale - 2>() = col;
+    }
+
+    template <class OutputMatrix>
+    static void blendCorner(uint32_t col, OutputMatrix& out)
+    {
+        //model a round corner
+        alphaBlend<97, 100>(out.template ref<5, 5>(), col); //exact: 0.9711013910
+        alphaBlend<42, 100>(out.template ref<4, 5>(), col); //0.4236372243
+        alphaBlend<42, 100>(out.template ref<5, 4>(), col); //0.4236372243
+        alphaBlend< 6, 100>(out.template ref<5, 3>(), col); //0.05652034508
+        alphaBlend< 6, 100>(out.template ref<3, 5>(), col); //0.05652034508
+    }
+};
+
+
 void xbrz::scale(size_t factor, const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight, const xbrz::ScalerCfg& cfg, int yFirst, int yLast)
 {
     switch (factor)
@@ -1181,6 +1275,8 @@ void xbrz::scale(size_t factor, const uint32_t* src, uint32_t* trg, int srcWidth
             return scaleImage<Scaler4x>(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
         case 5:
             return scaleImage<Scaler5x>(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+        case 6:
+            return scaleImage<Scaler6x>(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
     }
     assert(false);
 }
