@@ -7,7 +7,8 @@ fi
 
 echo "Generating xlat_parser.c and xlat_parser.h..."
 
-cp -f "${SRCROOT}/tools/lemon/lempar.c" "${CONFIGURATION_BUILD_DIR}/lempar.c"
+rsync -av "${SRCROOT}/tools/lemon/lempar.c" "${CONFIGURATION_BUILD_DIR}"
+rsync -av "${SRCROOT}/src/xlat/xlat_parser.y" "${CONFIGURATION_BUILD_DIR}"
 
-cd "${SRCROOT}/src/xlat"
-"${CONFIGURATION_BUILD_DIR}/lemon" xlat_parser.y
+cd "${CONFIGURATION_BUILD_DIR}"
+./lemon xlat_parser.y

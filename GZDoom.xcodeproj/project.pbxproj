@@ -3360,7 +3360,6 @@
 		8AF27F26139126C00095D9A0 /* s_sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = s_sound.h; sourceTree = "<group>"; };
 		8AF27F27139126C00095D9A0 /* sc_man.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sc_man.cpp; sourceTree = "<group>"; };
 		8AF27F28139126C00095D9A0 /* sc_man.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sc_man.h; sourceTree = "<group>"; };
-		8AF27F29139126C00095D9A0 /* sc_man_scanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sc_man_scanner.h; sourceTree = "<group>"; };
 		8AF27F2B139126C00095D9A0 /* sc_man_tokens.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sc_man_tokens.h; sourceTree = "<group>"; };
 		8AF27F44139126C00095D9A0 /* SFMT-alti.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SFMT-alti.h"; sourceTree = "<group>"; };
 		8AF27F45139126C00095D9A0 /* SFMT-params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SFMT-params.h"; sourceTree = "<group>"; };
@@ -6000,7 +5999,6 @@
 				8AF27F26139126C00095D9A0 /* s_sound.h */,
 				8AF27F27139126C00095D9A0 /* sc_man.cpp */,
 				8AF27F28139126C00095D9A0 /* sc_man.h */,
-				8AF27F29139126C00095D9A0 /* sc_man_scanner.h */,
 				8AF27F2B139126C00095D9A0 /* sc_man_tokens.h */,
 				8AF27F53139126C00095D9A0 /* skins.cpp */,
 				8AF27F54139126C00095D9A0 /* skins.h */,
@@ -7062,9 +7060,8 @@
 			);
 			name = "Generate xlat_parser.c|.h";
 			outputPaths = (
-				"$(SRCROOT)/src/xlat/xlat_parser.c",
-				"$(SRCROOT)/src/xlat/xlat_parser.h",
-				"$(CONFIGURATION_BUILD_DIR)/lempar.c",
+				"$(CONFIGURATION_BUILD_DIR)/xlat_parser.c",
+				"$(CONFIGURATION_BUILD_DIR)/xlat_parser.h",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -7094,7 +7091,7 @@
 			);
 			name = "Generate sc_man_scanner.h";
 			outputPaths = (
-				"$(SRCROOT)/src/sc_man_scanner.h",
+				"$(CONFIGURATION_BUILD_DIR)/sc_man_scanner.h",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
