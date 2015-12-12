@@ -1135,8 +1135,12 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	gl/renderer/gl_lightdata.cpp
 	gl/hqnx/Image.cpp
 	gl/hqnx/hq2x_16.cpp
+	gl/hqnx/hq2x_32.cpp
 	gl/hqnx/hq3x_16.cpp
+	gl/hqnx/hq3x_32.cpp
 	gl/hqnx/hq4x_16.cpp
+	gl/hqnx/hq4x_32.cpp
+	gl/hqnx/hqnx_32_init.cpp
 	gl/xbr/xbrz.cpp
 	gl/textures/gl_hwtexture.cpp
 	gl/textures/gl_texture.cpp

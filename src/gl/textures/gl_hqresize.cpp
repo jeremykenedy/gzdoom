@@ -51,22 +51,38 @@
 #include "gl/textures/gl_texture.h"
 #include "c_cvars.h"
 #include "gl/hqnx/hqnx_16.h"
+#include "gl/hqnx/hqnx_32.h"
 #include "gl/xbr/xbrz.h"
+
+#if __cplusplus <= 199711
+#define static_assert(VAL, MSG) static_assertion<VAL>();
+template<bool> struct static_assertion;
+template<> struct static_assertion<true> {};
+#endif // __cplusplus <= 199711
 
 enum HQResizeModes
 {
 	HQResize_None,
+
 	HQResize_scale2x,
 	HQResize_scale3x,
 	HQResize_scale4x,
+
 	HQResize_hq2x_16,
 	HQResize_hq3x_16,
 	HQResize_hq4x_16,
+
+	HQResize_hq2x_32,
+	HQResize_hq3x_32,
+	HQResize_hq4x_32,
+
 	HQResize_xbrz2x,
 	HQResize_xbrz3x,
 	HQResize_xbrz4x,
 	HQResize_xbrz5x,
 	HQResize_xbrz6x,
+
+	HQResize_COUNT
 };
 
 #define GZ_HQRESIZE_CVAR(NAME)                                                     \
@@ -245,6 +261,31 @@ static void hqNx_16(const size_t scale, const size_t width, const size_t height,
 		static_cast<int>(width), static_cast<int>(height), static_cast<int>(width * scale * BYTES_PER_PIXEL));
 }
 
+static void hqNx_32(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
+{
+	static int initdone = false;
+
+	static bool isInitialized = false;
+
+	if (!isInitialized)
+	{
+		hqxInit();
+		isInitialized = true;
+	}
+
+	void (*function)(uint32_t* input, uint32_t* output, int width, int height);
+
+	switch (scale)
+	{
+		case  2: function = hq2x_32;     break;
+		case  3: function = hq3x_32;     break;
+		case  4: function = hq4x_32;     break;
+		default: assert(!"Wrong scale"); return;
+	}
+
+	function(input, output, static_cast<int>(width), static_cast<int>(height));
+}
+
 #ifdef GZ_USE_LIBDISPATCH
 CVAR(Bool, gl_texture_hqresize_multithread, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
@@ -364,12 +405,17 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 			{ 2, hqNx_16 }, // HQResize_hq2x_16
 			{ 3, hqNx_16 }, // HQResize_hq3x_16
 			{ 4, hqNx_16 }, // HQResize_hq4x_16
+			{ 2, hqNx_32 }, // HQResize_hq2x_32
+			{ 3, hqNx_32 }, // HQResize_hq3x_32
+			{ 4, hqNx_32 }, // HQResize_hq4x_32
 			{ 2, xbrzNx  }, // HQResize_xbrz2x
 			{ 3, xbrzNx  }, // HQResize_xbrz3x
 			{ 4, xbrzNx  }, // HQResize_xbrz4x
 			{ 5, xbrzNx  }, // HQResize_xbrz5x
 			{ 6, xbrzNx  }, // HQResize_xbrz6x
 		};
+
+		static_assert(HQResize_COUNT == sizeof(SCALERS) / sizeof(Scaler), "Inconsistent list of scales/functions");
 
 		const Scaler& scaler = SCALERS[type];
 		const size_t scale = scaler.factor;

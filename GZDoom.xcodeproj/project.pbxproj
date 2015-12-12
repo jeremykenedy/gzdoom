@@ -206,6 +206,14 @@
 		8A938D1113B6039F002627DE /* actorptrselect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A938D0F13B6039F002627DE /* actorptrselect.cpp */; };
 		8A942A3E1553CC25005083CD /* v_blend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A942A3D1553CC25005083CD /* v_blend.cpp */; };
 		8A942A3F1553CC25005083CD /* v_blend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A942A3D1553CC25005083CD /* v_blend.cpp */; };
+		8A98C3E41C1C75BD003B90D5 /* hq2x_32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3DE1C1C7585003B90D5 /* hq2x_32.cpp */; };
+		8A98C3E51C1C75D1003B90D5 /* hq3x_32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3DF1C1C7585003B90D5 /* hq3x_32.cpp */; };
+		8A98C3E61C1C75D7003B90D5 /* hq4x_32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3E01C1C7585003B90D5 /* hq4x_32.cpp */; };
+		8A98C3E71C1C75DF003B90D5 /* hqnx_32_init.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3E21C1C7585003B90D5 /* hqnx_32_init.cpp */; };
+		8A98C3E81C1C760A003B90D5 /* hq2x_32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3DE1C1C7585003B90D5 /* hq2x_32.cpp */; };
+		8A98C3E91C1C7611003B90D5 /* hq3x_32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3DF1C1C7585003B90D5 /* hq3x_32.cpp */; };
+		8A98C3EA1C1C7617003B90D5 /* hq4x_32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3E01C1C7585003B90D5 /* hq4x_32.cpp */; };
+		8A98C3EB1C1C7623003B90D5 /* hqnx_32_init.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A98C3E21C1C7585003B90D5 /* hqnx_32_init.cpp */; };
 		8A9F530114BB0F2900F3369B /* doom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 49E9287713978BF600CCEBBC /* doom.icns */; };
 		8A9F530214BB0F2900F3369B /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 8AD870F1140A4EC5007A06A9 /* Credits.html */; };
 		8A9F530414BB0F2900F3369B /* __autostart.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AF27D0C139126C00095D9A0 /* __autostart.cpp */; };
@@ -2542,6 +2550,12 @@
 		8A938D0F13B6039F002627DE /* actorptrselect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = actorptrselect.cpp; sourceTree = "<group>"; };
 		8A938D1013B6039F002627DE /* actorptrselect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = actorptrselect.h; sourceTree = "<group>"; };
 		8A942A3D1553CC25005083CD /* v_blend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = v_blend.cpp; sourceTree = "<group>"; };
+		8A98C3DE1C1C7585003B90D5 /* hq2x_32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = hq2x_32.cpp; sourceTree = "<group>"; };
+		8A98C3DF1C1C7585003B90D5 /* hq3x_32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = hq3x_32.cpp; sourceTree = "<group>"; };
+		8A98C3E01C1C7585003B90D5 /* hq4x_32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = hq4x_32.cpp; sourceTree = "<group>"; };
+		8A98C3E11C1C7585003B90D5 /* hqnx_32_common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hqnx_32_common.h; sourceTree = "<group>"; };
+		8A98C3E21C1C7585003B90D5 /* hqnx_32_init.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = hqnx_32_init.cpp; sourceTree = "<group>"; };
+		8A98C3E31C1C7585003B90D5 /* hqnx_32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hqnx_32.h; sourceTree = "<group>"; };
 		8A9F548414BB0F2900F3369B /* GZDoom_Cocoa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GZDoom_Cocoa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AA9A1921660E80A007F75A4 /* opl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opl.cpp; sourceTree = "<group>"; };
 		8AA9A1931660E80A007F75A4 /* opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opl.h; sourceTree = "<group>"; };
@@ -6326,9 +6340,15 @@
 			isa = PBXGroup;
 			children = (
 				8AF27E11139126C00095D9A0 /* hq2x_16.cpp */,
+				8A98C3DE1C1C7585003B90D5 /* hq2x_32.cpp */,
 				8AF27E12139126C00095D9A0 /* hq3x_16.cpp */,
+				8A98C3DF1C1C7585003B90D5 /* hq3x_32.cpp */,
 				8AF27E13139126C00095D9A0 /* hq4x_16.cpp */,
+				8A98C3E01C1C7585003B90D5 /* hq4x_32.cpp */,
 				8AB930CC199FA6EF00EEF7AF /* hqnx_16.h */,
+				8A98C3E31C1C7585003B90D5 /* hqnx_32.h */,
+				8A98C3E11C1C7585003B90D5 /* hqnx_32_common.h */,
+				8A98C3E21C1C7585003B90D5 /* hqnx_32_init.cpp */,
 				8AB930CD199FA6EF00EEF7AF /* Image.cpp */,
 				8AB930CE199FA6EF00EEF7AF /* Image.h */,
 			);
@@ -7223,8 +7243,12 @@
 				8A9F536C14BB0F2900F3369B /* gl_dynlight1.cpp in Sources */,
 				8A9F536D14BB0F2900F3369B /* gl_glow.cpp in Sources */,
 				8A7D86801537055D002D03BD /* hq2x_16.cpp in Sources */,
+				8A98C3E41C1C75BD003B90D5 /* hq2x_32.cpp in Sources */,
 				8A7D867F1537055D002D03BD /* hq3x_16.cpp in Sources */,
+				8A98C3E51C1C75D1003B90D5 /* hq3x_32.cpp in Sources */,
 				8A7D867E1537055C002D03BD /* hq4x_16.cpp in Sources */,
+				8A98C3E61C1C75D7003B90D5 /* hq4x_32.cpp in Sources */,
+				8A98C3E71C1C75DF003B90D5 /* hqnx_32_init.cpp in Sources */,
 				8AB930CF199FA70A00EEF7AF /* Image.cpp in Sources */,
 				8A9F536F14BB0F2900F3369B /* gl_models.cpp in Sources */,
 				8A9F537014BB0F2900F3369B /* gl_models_md2.cpp in Sources */,
@@ -7859,8 +7883,12 @@
 				8AF280C6139126C00095D9A0 /* gl_dynlight1.cpp in Sources */,
 				8AF280C7139126C00095D9A0 /* gl_glow.cpp in Sources */,
 				8A7D86E715370D98002D03BD /* hq2x_16.cpp in Sources */,
+				8A98C3E81C1C760A003B90D5 /* hq2x_32.cpp in Sources */,
 				8A7D86E815370D98002D03BD /* hq3x_16.cpp in Sources */,
+				8A98C3E91C1C7611003B90D5 /* hq3x_32.cpp in Sources */,
 				8A7D86E915370D98002D03BD /* hq4x_16.cpp in Sources */,
+				8A98C3EA1C1C7617003B90D5 /* hq4x_32.cpp in Sources */,
+				8A98C3EB1C1C7623003B90D5 /* hqnx_32_init.cpp in Sources */,
 				8AB930D0199FA70E00EEF7AF /* Image.cpp in Sources */,
 				8AF280CE139126C00095D9A0 /* gl_models.cpp in Sources */,
 				8AF280CF139126C00095D9A0 /* gl_models_md2.cpp in Sources */,
