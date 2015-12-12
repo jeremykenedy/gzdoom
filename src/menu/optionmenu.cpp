@@ -600,10 +600,13 @@ public:
 	{
 		Super::Drawer();
 
-		EXTERN_CVAR(Int, gl_texture_hqresize);
+		EXTERN_CVAR(Int, gl_texture_hqresize_textures);
+		EXTERN_CVAR(Int, gl_texture_hqresize_sprites);
 		EXTERN_CVAR(Bool, gl_precache);
 
-		if (gl_texture_hqresize > 0 && !gl_precache)
+		if ((   gl_texture_hqresize_textures > 0
+			 || gl_texture_hqresize_sprites  > 0)
+				&& !gl_precache)
 		{
 			static const char* const HINT_TEXT[] =
 			{

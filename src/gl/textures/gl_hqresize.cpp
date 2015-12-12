@@ -53,27 +53,24 @@
 #include "gl/hqnx/hqnx.h"
 #include "gl/xbr/xbrz.h"
 
-CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
-{
-	if (self < 0 || self > 11)
-		self = 0;
-	GLRenderer->FlushTextures();
-}
+#define GZ_HQRESIZE_CVAR(NAME)                                                     \
+	CUSTOM_CVAR(Int, NAME, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)  \
+	{                                                                              \
+		if (self < 0 || self > 11) self = 0;                                       \
+		GLRenderer->FlushTextures();                                               \
+	}
+
+GZ_HQRESIZE_CVAR(gl_texture_hqresize_textures);
+GZ_HQRESIZE_CVAR(gl_texture_hqresize_sprites);
+GZ_HQRESIZE_CVAR(gl_texture_hqresize_fonts);
+
+#undef GZ_HQRESIZE_CVAR
 
 CUSTOM_CVAR(Int, gl_texture_hqresize_maxinputsize, 512, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
 	if (self > 1024) self = 1024;
 	GLRenderer->FlushTextures();
 }
-
-CUSTOM_CVAR(Int, gl_texture_hqresize_targets, 7, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
-{
-	GLRenderer->FlushTextures();
-}
-
-CVAR (Flag, gl_texture_hqresize_textures, gl_texture_hqresize_targets, 1);
-CVAR (Flag, gl_texture_hqresize_sprites, gl_texture_hqresize_targets, 2);
-CVAR (Flag, gl_texture_hqresize_fonts, gl_texture_hqresize_targets, 4);
 
 
 static void scale2x(uint32* const input, uint32* const output, const size_t width, const size_t height)
@@ -302,27 +299,34 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 	if (gl.shadermodel == 2 || (gl.shadermodel == 3 && inputTexture->bWarped))
 		return inputBuffer;
 
+	int type = 0;
+
 	switch (inputTexture->UseType)
 	{
 	case FTexture::TEX_Sprite:
 	case FTexture::TEX_SkinSprite:
-		if (!(gl_texture_hqresize_targets & 2)) return inputBuffer;
+		type = gl_texture_hqresize_sprites;
 		break;
 
 	case FTexture::TEX_FontChar:
-		if (!(gl_texture_hqresize_targets & 4)) return inputBuffer;
+		type = gl_texture_hqresize_fonts;
 		break;
 
 	default:
-		if (!(gl_texture_hqresize_targets & 1)) return inputBuffer;
+		type = gl_texture_hqresize_textures;
 		break;
+	}
+
+	if (0 == type)
+	{
+		return inputBuffer;
 	}
 
 	if (inputBuffer)
 	{
 		outWidth = inWidth;
 		outHeight = inHeight;
-		int type = gl_texture_hqresize;
+
 		// hqNx does not preserve the alpha channel so fall back to ScaleNx for such textures
 		if (hasAlpha && type > 3 && type < 7)
 		{
@@ -351,21 +355,18 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 			{ 6, xbrzNx  },
 		};
 
-		if (type > 0)
-		{
-			const Scaler& scaler = SCALERS[type];
-			const size_t scale = scaler.factor;
+		const Scaler& scaler = SCALERS[type];
+		const size_t scale = scaler.factor;
 
-			uint32* const output = new uint32[scale * inWidth * scale * inHeight];
-			scaler.function(scale, inWidth, inHeight, reinterpret_cast<uint32*>(inputBuffer), output);
+		uint32* const output = new uint32[scale * inWidth * scale * inHeight];
+		scaler.function(scale, inWidth, inHeight, reinterpret_cast<uint32*>(inputBuffer), output);
 
-			outWidth  = static_cast<int>(scaler.factor * inWidth );
-			outHeight = static_cast<int>(scaler.factor * inHeight);
+		outWidth  = static_cast<int>(scaler.factor * inWidth );
+		outHeight = static_cast<int>(scaler.factor * inHeight);
 
-			delete[] inputBuffer;
+		delete[] inputBuffer;
 
-			return reinterpret_cast<unsigned char*>(output);
-		}
+		return reinterpret_cast<unsigned char*>(output);
 	}
 
 	return inputBuffer;
