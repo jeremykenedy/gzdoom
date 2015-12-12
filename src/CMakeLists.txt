@@ -1141,7 +1141,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	gl/hqnx/hq4x_16.cpp
 	gl/hqnx/hq4x_32.cpp
 	gl/hqnx/hqnx_32_init.cpp
-	gl/xbr/xbrz.cpp
+	gl/xbr/xbrz_old.cpp
 	gl/textures/gl_hwtexture.cpp
 	gl/textures/gl_texture.cpp
 	gl/textures/gl_material.cpp

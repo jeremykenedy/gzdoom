@@ -18,15 +18,15 @@
 // * Backported to C++98 by Alexey Lysiuk                                     *
 // ****************************************************************************
 
-#ifndef XBRZ_HEADER_3847894708239054
-#define XBRZ_HEADER_3847894708239054
+#ifndef __XBRZ_OLD_HEADER_INCLUDED__
+#define __XBRZ_OLD_HEADER_INCLUDED__
 
 #include <cstddef> //size_t
 #include <stdint.h> //uint32_t
 #include <limits>
-#include "config.h"
+#include "xbrz_config_old.h"
 
-namespace xbrz
+namespace xbrz_old
 {
 /*
 -------------------------------------------------------------------------

@@ -573,8 +573,8 @@
 		8AA9A1971660E80A007F75A4 /* OPL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AA9A1951660E80A007F75A4 /* OPL3.cpp */; };
 		8AA9A1981660E8DC007F75A4 /* OPL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AA9A1951660E80A007F75A4 /* OPL3.cpp */; };
 		8AA9A1991660E8E5007F75A4 /* opl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AA9A1921660E80A007F75A4 /* opl.cpp */; };
-		8AB53BBB18941AD10079E426 /* xbrz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz.cpp */; };
-		8AB53BBC18941AD90079E426 /* xbrz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz.cpp */; };
+		8AB53BBB18941AD10079E426 /* xbrz_old.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz_old.cpp */; };
+		8AB53BBC18941AD90079E426 /* xbrz_old.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz_old.cpp */; };
 		8AB930CF199FA70A00EEF7AF /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB930CD199FA6EF00EEF7AF /* Image.cpp */; };
 		8AB930D0199FA70E00EEF7AF /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB930CD199FA6EF00EEF7AF /* Image.cpp */; };
 		8AC81C411391321300F49DC3 /* libjpeg_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF278CA1390F0370095D9A0 /* libjpeg_gzdoom.a */; };
@@ -2561,9 +2561,9 @@
 		8AA9A1931660E80A007F75A4 /* opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opl.h; sourceTree = "<group>"; };
 		8AA9A1941660E80A007F75A4 /* opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opl.h; sourceTree = "<group>"; };
 		8AA9A1951660E80A007F75A4 /* OPL3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OPL3.cpp; sourceTree = "<group>"; };
-		8AB53BB818941A880079E426 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
-		8AB53BB918941A880079E426 /* xbrz.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xbrz.cpp; sourceTree = "<group>"; usesTabs = 0; };
-		8AB53BBA18941A880079E426 /* xbrz.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xbrz.h; sourceTree = "<group>"; };
+		8AB53BB818941A880079E426 /* xbrz_config_old.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xbrz_config_old.h; sourceTree = "<group>"; };
+		8AB53BB918941A880079E426 /* xbrz_old.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xbrz_old.cpp; sourceTree = "<group>"; usesTabs = 0; };
+		8AB53BBA18941A880079E426 /* xbrz_old.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xbrz_old.h; sourceTree = "<group>"; };
 		8AB930CC199FA6EF00EEF7AF /* hqnx_16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hqnx_16.h; sourceTree = "<group>"; };
 		8AB930CD199FA6EF00EEF7AF /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		8AB930CE199FA6EF00EEF7AF /* Image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Image.h; sourceTree = "<group>"; };
@@ -5283,9 +5283,9 @@
 		8AB53BB718941A880079E426 /* xbr */ = {
 			isa = PBXGroup;
 			children = (
-				8AB53BB818941A880079E426 /* config.h */,
-				8AB53BB918941A880079E426 /* xbrz.cpp */,
-				8AB53BBA18941A880079E426 /* xbrz.h */,
+				8AB53BB818941A880079E426 /* xbrz_config_old.h */,
+				8AB53BB918941A880079E426 /* xbrz_old.cpp */,
+				8AB53BBA18941A880079E426 /* xbrz_old.h */,
 			);
 			path = xbr;
 			sourceTree = "<group>";
@@ -7296,7 +7296,7 @@
 				8A9F539614BB0F2900F3369B /* gl_clock.cpp in Sources */,
 				8A9F539714BB0F2900F3369B /* gl_cycler.cpp in Sources */,
 				8A9F539814BB0F2900F3369B /* gl_geometric.cpp in Sources */,
-				8AB53BBC18941AD90079E426 /* xbrz.cpp in Sources */,
+				8AB53BBC18941AD90079E426 /* xbrz_old.cpp in Sources */,
 				8A9F539C14BB0F2900F3369B /* intermission.cpp in Sources */,
 				8A9F539D14BB0F2900F3369B /* intermission_parse.cpp in Sources */,
 				8A9F53AA14BB0F2900F3369B /* colorpickermenu.cpp in Sources */,
@@ -7936,7 +7936,7 @@
 				8AF280F6139126C00095D9A0 /* gl_clock.cpp in Sources */,
 				8AF280F7139126C00095D9A0 /* gl_cycler.cpp in Sources */,
 				8AF280F8139126C00095D9A0 /* gl_geometric.cpp in Sources */,
-				8AB53BBB18941AD10079E426 /* xbrz.cpp in Sources */,
+				8AB53BBB18941AD10079E426 /* xbrz_old.cpp in Sources */,
 				8AF280FC139126C00095D9A0 /* intermission.cpp in Sources */,
 				8AF280FD139126C00095D9A0 /* intermission_parse.cpp in Sources */,
 				8AF2810A139126C00095D9A0 /* colorpickermenu.cpp in Sources */,

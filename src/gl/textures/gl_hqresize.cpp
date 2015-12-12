@@ -52,7 +52,7 @@
 #include "c_cvars.h"
 #include "gl/hqnx/hqnx_16.h"
 #include "gl/hqnx/hqnx_32.h"
-#include "gl/xbr/xbrz.h"
+#include "gl/xbr/xbrz_old.h"
 
 #if __cplusplus <= 199711
 #define static_assert(VAL, MSG) static_assertion<VAL>();
@@ -76,11 +76,11 @@ enum HQResizeModes
 	HQResize_hq3x_32,
 	HQResize_hq4x_32,
 
-	HQResize_xbrz2x,
-	HQResize_xbrz3x,
-	HQResize_xbrz4x,
-	HQResize_xbrz5x,
-	HQResize_xbrz6x,
+	HQResize_xbrz2x_old,
+	HQResize_xbrz3x_old,
+	HQResize_xbrz4x_old,
+	HQResize_xbrz5x_old,
+	HQResize_xbrz6x_old,
 
 	HQResize_COUNT
 };
@@ -88,7 +88,7 @@ enum HQResizeModes
 #define GZ_HQRESIZE_CVAR(NAME)                                                     \
 	CUSTOM_CVAR(Int, NAME, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)  \
 	{                                                                              \
-		if (self < HQResize_None || self > HQResize_xbrz6x) self = HQResize_None;  \
+		if (self < HQResize_None || self > HQResize_xbrz6x_old) self = HQResize_None;  \
 		GLRenderer->FlushTextures();                                               \
 	}
 
@@ -302,7 +302,7 @@ CUSTOM_CVAR(Int, gl_texture_hqresize_mt_height, 4, CVAR_ARCHIVE | CVAR_GLOBALCON
 }
 #endif // GZ_USE_LIBDISPATCH
 
-static void xbrzNx(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
+static void xbrzNx_old(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
 {
 #ifdef GZ_USE_LIBDISPATCH
 	const size_t thresholdWidth  = gl_texture_hqresize_mt_width;
@@ -318,15 +318,15 @@ static void xbrzNx(const size_t scale, const size_t width, const size_t height, 
 
 		dispatch_apply(height / thresholdHeight + 1, queue, ^(size_t sliceY)
 		{
-			xbrz::scale(scale, input, output,
-				static_cast<int>(width), static_cast<int>(height), xbrz::ScalerCfg(),
+			xbrz_old::scale(scale, input, output,
+				static_cast<int>(width), static_cast<int>(height), xbrz_old::ScalerCfg(),
 				sliceY * thresholdHeight, (sliceY + 1) * thresholdHeight);
 		});
 	}
 	else
 #endif // GZ_USE_LIBDISPATCH
 	{
-		xbrz::scale(scale, input, output, static_cast<int>(width), static_cast<int>(height));
+		xbrz_old::scale(scale, input, output, static_cast<int>(width), static_cast<int>(height));
 	}
 }
 
@@ -398,21 +398,21 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 
 		static const Scaler SCALERS[] =
 		{
-			{ 0, NULL    }, // HQResize_None,
-			{ 2, scaleNx }, // HQResize_scale2x
-			{ 3, scaleNx }, // HQResize_scale3x
-			{ 4, scaleNx }, // HQResize_scale4x
-			{ 2, hqNx_16 }, // HQResize_hq2x_16
-			{ 3, hqNx_16 }, // HQResize_hq3x_16
-			{ 4, hqNx_16 }, // HQResize_hq4x_16
-			{ 2, hqNx_32 }, // HQResize_hq2x_32
-			{ 3, hqNx_32 }, // HQResize_hq3x_32
-			{ 4, hqNx_32 }, // HQResize_hq4x_32
-			{ 2, xbrzNx  }, // HQResize_xbrz2x
-			{ 3, xbrzNx  }, // HQResize_xbrz3x
-			{ 4, xbrzNx  }, // HQResize_xbrz4x
-			{ 5, xbrzNx  }, // HQResize_xbrz5x
-			{ 6, xbrzNx  }, // HQResize_xbrz6x
+			{ 0, NULL       }, // HQResize_None,
+			{ 2, scaleNx    }, // HQResize_scale2x
+			{ 3, scaleNx    }, // HQResize_scale3x
+			{ 4, scaleNx    }, // HQResize_scale4x
+			{ 2, hqNx_16    }, // HQResize_hq2x_16
+			{ 3, hqNx_16    }, // HQResize_hq3x_16
+			{ 4, hqNx_16    }, // HQResize_hq4x_16
+			{ 2, hqNx_32    }, // HQResize_hq2x_32
+			{ 3, hqNx_32    }, // HQResize_hq3x_32
+			{ 4, hqNx_32    }, // HQResize_hq4x_32
+			{ 2, xbrzNx_old }, // HQResize_xbrz2x_old
+			{ 3, xbrzNx_old }, // HQResize_xbrz3x_old
+			{ 4, xbrzNx_old }, // HQResize_xbrz4x_old
+			{ 5, xbrzNx_old }, // HQResize_xbrz5x_old
+			{ 6, xbrzNx_old }, // HQResize_xbrz6x_old
 		};
 
 		static_assert(HQResize_COUNT == sizeof(SCALERS) / sizeof(Scaler), "Inconsistent list of scales/functions");

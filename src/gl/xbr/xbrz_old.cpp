@@ -18,7 +18,7 @@
 // * Backported to C++98 by Alexey Lysiuk                                     *
 // ****************************************************************************
 
-#include "xbrz.h"
+#include "xbrz_old.h"
 
 #include <cassert>
 #include <cmath>
@@ -516,7 +516,7 @@ input kernel area naming convention:
 -----------------
 */
 FORCE_INLINE //detect blend direction
-BlendResult preProcessCorners(const Kernel_4x4& ker, const xbrz::ScalerCfg& cfg) //result: F, G, J, K corners of "GradientType"
+BlendResult preProcessCorners(const Kernel_4x4& ker, const xbrz_old::ScalerCfg& cfg) //result: F, G, J, K corners of "GradientType"
 {
     BlendResult result = {};
 
@@ -634,7 +634,7 @@ bool breakIntoDebugger = false;
 #ifndef XBRZ_CXX11
 
 template <RotationDegree rotDeg>
-bool doLineBlend(const Kernel_3x3& ker, const xbrz::ScalerCfg& cfg, const unsigned char blend)
+bool doLineBlend(const Kernel_3x3& ker, const xbrz_old::ScalerCfg& cfg, const unsigned char blend)
 {
     if (getBottomR(blend) >= BLEND_DOMINANT)
         return true;
@@ -673,7 +673,7 @@ FORCE_INLINE //perf: quite worth it!
 void scalePixel(const Kernel_3x3& ker,
                 uint32_t* target, int trgWidth,
                 unsigned char blendInfo, //result of preprocessing all four corners of pixel "e"
-                const xbrz::ScalerCfg& cfg)
+                const xbrz_old::ScalerCfg& cfg)
 {
 #ifndef NDEBUG
     if (breakIntoDebugger)
@@ -765,7 +765,7 @@ void scalePixel(const Kernel_3x3& ker,
 
 
 template <class Scaler> //scaler policy: see "Scaler2x" reference implementation
-void scaleImage(const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight, const xbrz::ScalerCfg& cfg, int yFirst, int yLast)
+void scaleImage(const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight, const xbrz_old::ScalerCfg& cfg, int yFirst, int yLast)
 {
     yFirst = std::max(yFirst, 0);
     yLast  = std::min(yLast, srcHeight);
@@ -1268,7 +1268,7 @@ struct Scaler6x
 };
 
 
-void xbrz::scale(size_t factor, const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight, const xbrz::ScalerCfg& cfg, int yFirst, int yLast)
+void xbrz_old::scale(size_t factor, const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight, const xbrz_old::ScalerCfg& cfg, int yFirst, int yLast)
 {
     switch (factor)
     {
@@ -1287,15 +1287,15 @@ void xbrz::scale(size_t factor, const uint32_t* src, uint32_t* trg, int srcWidth
 }
 
 
-bool xbrz::equalColor(uint32_t col1, uint32_t col2, double luminanceWeight, double equalColorTolerance)
+bool xbrz_old::equalColor(uint32_t col1, uint32_t col2, double luminanceWeight, double equalColorTolerance)
 {
     return colorDist(col1, col2, luminanceWeight) < equalColorTolerance;
 }
 
 
-void xbrz::nearestNeighborScale(const uint32_t* src, int srcWidth, int srcHeight, int srcPitch,
-                                uint32_t* trg, int trgWidth, int trgHeight, int trgPitch,
-                                SliceType st, int yFirst, int yLast)
+void xbrz_old::nearestNeighborScale(const uint32_t* src, int srcWidth, int srcHeight, int srcPitch,
+                                    uint32_t* trg, int trgWidth, int trgHeight, int trgPitch,
+                                    SliceType st, int yFirst, int yLast)
 {
     if (srcPitch < srcWidth * static_cast<int>(sizeof(uint32_t))  ||
         trgPitch < trgWidth * static_cast<int>(sizeof(uint32_t)))

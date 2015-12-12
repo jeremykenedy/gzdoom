@@ -18,12 +18,12 @@
 // * Backported to C++98 by Alexey Lysiuk                                     *
 // ****************************************************************************
 
-#ifndef XBRZ_CONFIG_HEADER_284578425345
-#define XBRZ_CONFIG_HEADER_284578425345
+#ifndef __XBRZ_CONFIG_OLD_HEADER_INCLUDED__
+#define __XBRZ_CONFIG_OLD_HEADER_INCLUDED__
 
 //do NOT include any headers here! used by xBRZ_dll!!!
 
-namespace xbrz
+namespace xbrz_old
 {
 struct ScalerCfg
 {
