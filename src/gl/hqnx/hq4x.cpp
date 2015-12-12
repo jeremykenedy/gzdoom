@@ -1,6 +1,7 @@
 //hq4x filter demo program
 //----------------------------------------------------------
 //Copyright (C) 2003 MaxSt ( maxst@hiend3d.com )
+//Copyright (C) 2012-2014 Alexey Lysiuk
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,10 +26,10 @@
 int   LUT16to32[65536*2];
 int   RGBtoYUV[65536*2];
 
-static const hq_vec const3 = 0x0003000300030003LL;
-static const hq_vec const5 = 0x0005000500050005LL;
-static const hq_vec const6 = 0x0006000600060006LL;
-static const hq_vec const7 = 0x0007000700070007LL;
+static const hq_vec const3 = hq_vec::expand(0x0003);
+static const hq_vec const5 = hq_vec::expand(0x0005);
+static const hq_vec const6 = hq_vec::expand(0x0006);
+static const hq_vec const7 = hq_vec::expand(0x0007);
 
 
 inline void Interp1(unsigned char * pc, int c1, int c2)
