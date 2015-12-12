@@ -124,6 +124,11 @@ OptionValue "HqResizeModes"
 	12, "Old xBRZ4x"
 	13, "Old xBRZ5x"
 	14, "Old xBRZ6x"
+	15, "xBRZ2x"
+	16, "xBRZ3x"
+	17, "xBRZ4x"
+	18, "xBRZ5x"
+	19, "xBRZ6x"
 }
 
 OptionValue "FogMode"

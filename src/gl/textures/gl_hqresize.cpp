@@ -52,6 +52,7 @@
 #include "c_cvars.h"
 #include "gl/hqnx/hqnx_16.h"
 #include "gl/hqnx/hqnx_32.h"
+#include "gl/xbr/xbrz.h"
 #include "gl/xbr/xbrz_old.h"
 
 #if __cplusplus <= 199711
@@ -82,13 +83,19 @@ enum HQResizeModes
 	HQResize_xbrz5x_old,
 	HQResize_xbrz6x_old,
 
+	HQResize_xbrz2x,
+	HQResize_xbrz3x,
+	HQResize_xbrz4x,
+	HQResize_xbrz5x,
+	HQResize_xbrz6x,
+
 	HQResize_COUNT
 };
 
 #define GZ_HQRESIZE_CVAR(NAME)                                                     \
 	CUSTOM_CVAR(Int, NAME, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)  \
 	{                                                                              \
-		if (self < HQResize_None || self > HQResize_xbrz6x_old) self = HQResize_None;  \
+		if (self < HQResize_None || self > HQResize_xbrz6x) self = HQResize_None;  \
 		GLRenderer->FlushTextures();                                               \
 	}
 
@@ -302,7 +309,11 @@ CUSTOM_CVAR(Int, gl_texture_hqresize_mt_height, 4, CVAR_ARCHIVE | CVAR_GLOBALCON
 }
 #endif // GZ_USE_LIBDISPATCH
 
-static void xbrzNx_old(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
+typedef void (*xbrzScalerFunction)(size_t scale, const uint32_t* input, uint32_t* output,
+	int width, int height, int yFirst, int yLast);
+
+static void xbrzNx_common(const size_t scale, const size_t width, const size_t height,
+	uint32* const input, uint32* const output, xbrzScalerFunction func)
 {
 #ifdef GZ_USE_LIBDISPATCH
 	const size_t thresholdWidth  = gl_texture_hqresize_mt_width;
@@ -326,10 +337,33 @@ static void xbrzNx_old(const size_t scale, const size_t width, const size_t heig
 	else
 #endif // GZ_USE_LIBDISPATCH
 	{
-		xbrz_old::scale(scale, input, output, static_cast<int>(width), static_cast<int>(height));
+		func(scale, input, output, static_cast<int>(width), static_cast<int>(height), 0, height);
 	}
 }
 
+static void xbrzNx_old_scaler(size_t scale, const uint32_t* input, uint32_t* output, int width, int height, int yFirst, int yLast)
+{
+	xbrz_old::scale(scale, input, output,
+		static_cast<int>(width), static_cast<int>(height),
+		xbrz_old::ScalerCfg(), yFirst, yLast);
+}
+
+static void xbrzNx_old(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
+{
+	xbrzNx_common(scale, width, height, input, output, xbrzNx_old_scaler);
+}
+
+static void xbrzNx_scaler(size_t scale, const uint32_t* input, uint32_t* output, int width, int height, int yFirst, int yLast)
+{
+	xbrz::scale(scale, input, output,
+		static_cast<int>(width), static_cast<int>(height),
+		xbrz::ARGB, xbrz::ScalerCfg(), yFirst, yLast);
+}
+
+static void xbrzNx(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
+{
+	xbrzNx_common(scale, width, height, input, output, xbrzNx_scaler);
+}
 
 //===========================================================================
 // 
@@ -413,6 +447,11 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 			{ 4, xbrzNx_old }, // HQResize_xbrz4x_old
 			{ 5, xbrzNx_old }, // HQResize_xbrz5x_old
 			{ 6, xbrzNx_old }, // HQResize_xbrz6x_old
+			{ 2, xbrzNx     }, // HQResize_xbrz2x
+			{ 3, xbrzNx     }, // HQResize_xbrz3x
+			{ 4, xbrzNx     }, // HQResize_xbrz4x
+			{ 5, xbrzNx     }, // HQResize_xbrz5x
+			{ 6, xbrzNx     }, // HQResize_xbrz6x
 		};
 
 		static_assert(HQResize_COUNT == sizeof(SCALERS) / sizeof(Scaler), "Inconsistent list of scales/functions");
