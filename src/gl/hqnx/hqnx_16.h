@@ -218,10 +218,9 @@ inline bool operator!=(const int left, const hq_vec& right)
 
 #endif // _MSC_VER && _M_X64
 
-void DLL hq2x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
-void DLL hq3x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
-void DLL hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
-int DLL hq4x_32 ( CImage &ImageIn, CImage &ImageOut );
+void DLL hq2x_16( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
+void DLL hq3x_16( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
+void DLL hq4x_16( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
 
 void DLL InitLUTs();
 

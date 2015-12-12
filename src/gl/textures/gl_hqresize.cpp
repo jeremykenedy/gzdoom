@@ -50,7 +50,7 @@
 #include "gl/renderer/gl_renderer.h"
 #include "gl/textures/gl_texture.h"
 #include "c_cvars.h"
-#include "gl/hqnx/hqnx.h"
+#include "gl/hqnx/hqnx_16.h"
 #include "gl/xbr/xbrz.h"
 
 enum HQResizeModes
@@ -59,9 +59,9 @@ enum HQResizeModes
 	HQResize_scale2x,
 	HQResize_scale3x,
 	HQResize_scale4x,
-	HQResize_hq2x,
-	HQResize_hq3x,
-	HQResize_hq4x,
+	HQResize_hq2x_16,
+	HQResize_hq3x_16,
+	HQResize_hq4x_16,
 	HQResize_xbrz2x,
 	HQResize_xbrz3x,
 	HQResize_xbrz4x,
@@ -217,7 +217,7 @@ static void scaleNx(const size_t scale, const size_t width, const size_t height,
 	function(input, output, width, height);
 }
 
-static void hqNx(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
+static void hqNx_16(const size_t scale, const size_t width, const size_t height, uint32* const input, uint32* const output)
 {
 	static bool isInitialized = false;
 
@@ -235,9 +235,9 @@ static void hqNx(const size_t scale, const size_t width, const size_t height, ui
 
 	switch (scale)
 	{
-		case  2: function = hq2x_32;     break;
-		case  3: function = hq3x_32;     break;
-		case  4: function = hq4x_32;     break;
+		case  2: function = hq2x_16;     break;
+		case  3: function = hq3x_16;     break;
+		case  4: function = hq4x_16;     break;
 		default: assert(!"Wrong scale"); return;
 	}
 
@@ -343,10 +343,10 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 		outWidth = inWidth;
 		outHeight = inHeight;
 
-		// hqNx does not preserve the alpha channel so fall back to ScaleNx for such textures
-		if (hasAlpha && type >= HQResize_hq2x && type <= HQResize_hq4x)
+		// hqNx 16-bit does not preserve the alpha channel so fall back to ScaleNx for such textures
+		if (hasAlpha && type >= HQResize_hq2x_16 && type <= HQResize_hq4x_16)
 		{
-			type -= HQResize_hq4x - HQResize_hq2x + 1;
+			type -= HQResize_hq4x_16 - HQResize_hq2x_16 + 1;
 		}
 
 		struct Scaler
@@ -361,9 +361,9 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 			{ 2, scaleNx }, // HQResize_scale2x
 			{ 3, scaleNx }, // HQResize_scale3x
 			{ 4, scaleNx }, // HQResize_scale4x
-			{ 2, hqNx    }, // HQResize_hq2x
-			{ 3, hqNx    }, // HQResize_hq3x
-			{ 4, hqNx    }, // HQResize_hq4x
+			{ 2, hqNx_16 }, // HQResize_hq2x_16
+			{ 3, hqNx_16 }, // HQResize_hq3x_16
+			{ 4, hqNx_16 }, // HQResize_hq4x_16
 			{ 2, xbrzNx  }, // HQResize_xbrz2x
 			{ 3, xbrzNx  }, // HQResize_xbrz3x
 			{ 4, xbrzNx  }, // HQResize_xbrz4x

@@ -17,7 +17,7 @@
 //License along with this program; if not, write to the Free Software
 //Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-#include "hqnx.h"
+#include "hqnx_16.h"
 
 extern int   LUT16to32[65536*2];
 extern int   RGBtoYUV[65536*2];
@@ -147,7 +147,7 @@ inline void Interp5(unsigned char * pc, int c1, int c2)
 
 bool Diff(const unsigned int, const unsigned int);
 
-void DLL hq3x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void DLL hq3x_16( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
 {
   int  i, j, k;
   int  w[10];

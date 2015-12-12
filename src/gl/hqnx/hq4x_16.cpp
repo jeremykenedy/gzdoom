@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hqnx.h"
+#include "hqnx_16.h"
 
 int   LUT16to32[65536*2];
 int   RGBtoYUV[65536*2];
@@ -287,7 +287,7 @@ bool Diff(const unsigned int rgb1, const unsigned int rgb2)
   return 0 != result;
 }
 
-void DLL hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void DLL hq4x_16( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
 {
   int  i, j, k;
   int  w[10];
@@ -5392,26 +5392,3 @@ void DLL InitLUTs()
     RGBtoYUV[ 65536 + (i << 11) + (j << 5) + k ] = (Y<<16) + (u<<8) + v;
   }
 }
-
-/*
-int DLL hq4x_32 ( CImage &ImageIn, CImage &ImageOut )
-{
-  if ( ImageIn.Convert32To17() != 0 )
-  {
-	  printf( "ERROR: conversion to 17 bit failed\n" );
-	  return 1;
-  }
-
-  if ( ImageOut.Init( ImageIn.m_Xres*4, ImageIn.m_Yres*4, 32 ) != 0 )
-  {
-    printf( "ERROR: ImageOut.Init()\n" );
-    return 1;
-  };
-
-  InitLUTs();
-  hq4x_32( (int*)ImageIn.m_pBitmap, ImageOut.m_pBitmap, ImageIn.m_Xres, ImageIn.m_Yres, ImageOut.m_Xres*4 );
-
-  printf( "\nOK\n" );
-  return 0;
-}
-*/
