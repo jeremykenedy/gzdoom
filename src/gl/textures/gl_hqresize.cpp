@@ -53,10 +53,26 @@
 #include "gl/hqnx/hqnx.h"
 #include "gl/xbr/xbrz.h"
 
+enum HQResizeModes
+{
+	HQResize_None,
+	HQResize_scale2x,
+	HQResize_scale3x,
+	HQResize_scale4x,
+	HQResize_hq2x,
+	HQResize_hq3x,
+	HQResize_hq4x,
+	HQResize_xbrz2x,
+	HQResize_xbrz3x,
+	HQResize_xbrz4x,
+	HQResize_xbrz5x,
+	HQResize_xbrz6x,
+};
+
 #define GZ_HQRESIZE_CVAR(NAME)                                                     \
 	CUSTOM_CVAR(Int, NAME, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)  \
 	{                                                                              \
-		if (self < 0 || self > 11) self = 0;                                       \
+		if (self < HQResize_None || self > HQResize_xbrz6x) self = HQResize_None;  \
 		GLRenderer->FlushTextures();                                               \
 	}
 
@@ -299,7 +315,7 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 	if (gl.shadermodel == 2 || (gl.shadermodel == 3 && inputTexture->bWarped))
 		return inputBuffer;
 
-	int type = 0;
+	int type = HQResize_None;
 
 	switch (inputTexture->UseType)
 	{
@@ -317,7 +333,7 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 		break;
 	}
 
-	if (0 == type)
+	if (HQResize_None == type)
 	{
 		return inputBuffer;
 	}
@@ -328,9 +344,9 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 		outHeight = inHeight;
 
 		// hqNx does not preserve the alpha channel so fall back to ScaleNx for such textures
-		if (hasAlpha && type > 3 && type < 7)
+		if (hasAlpha && type >= HQResize_hq2x && type <= HQResize_hq4x)
 		{
-			type -= 3;
+			type -= HQResize_hq4x - HQResize_hq2x + 1;
 		}
 
 		struct Scaler
@@ -341,18 +357,18 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 
 		static const Scaler SCALERS[] =
 		{
-			{ 0, NULL    },
-			{ 2, scaleNx },
-			{ 3, scaleNx },
-			{ 4, scaleNx },
-			{ 2, hqNx    },
-			{ 3, hqNx    },
-			{ 4, hqNx    },
-			{ 2, xbrzNx  },
-			{ 3, xbrzNx  },
-			{ 4, xbrzNx  },
-			{ 5, xbrzNx  },
-			{ 6, xbrzNx  },
+			{ 0, NULL    }, // HQResize_None,
+			{ 2, scaleNx }, // HQResize_scale2x
+			{ 3, scaleNx }, // HQResize_scale3x
+			{ 4, scaleNx }, // HQResize_scale4x
+			{ 2, hqNx    }, // HQResize_hq2x
+			{ 3, hqNx    }, // HQResize_hq3x
+			{ 4, hqNx    }, // HQResize_hq4x
+			{ 2, xbrzNx  }, // HQResize_xbrz2x
+			{ 3, xbrzNx  }, // HQResize_xbrz3x
+			{ 4, xbrzNx  }, // HQResize_xbrz4x
+			{ 5, xbrzNx  }, // HQResize_xbrz5x
+			{ 6, xbrzNx  }, // HQResize_xbrz6x
 		};
 
 		const Scaler& scaler = SCALERS[type];
