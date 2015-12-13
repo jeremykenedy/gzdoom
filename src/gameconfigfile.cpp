@@ -258,6 +258,42 @@ void FGameConfigFile::DoAutoloadSetup (FIWadManager *iwad_man)
 		"# 'doom.doom2.commercial.Autoload' only when playing doom2.wad.\n\n");
 }
 
+EXTERN_CVAR(Int, gl_texture_hqresize_textures);
+EXTERN_CVAR(Int, gl_texture_hqresize_sprites);
+EXTERN_CVAR(Int, gl_texture_hqresize_fonts);
+
+static void ConvertHQResizeMode(FConfigFile& config)
+{
+	static const char* const OLD_MODE    = "gl_texture_hqresize";
+	static const char* const OLD_TARGETS = "gl_texture_hqresize_targets";
+
+	const char* const    modeStr = config.GetValueForKey(OLD_MODE);
+	const char* const targetsStr = config.GetValueForKey(OLD_TARGETS);
+
+	if (NULL != modeStr && NULL != targetsStr)
+	{
+		const int mode    = atoi(modeStr);
+		const int targets = atoi(targetsStr);
+
+		if (0 != mode && 0 != targets)
+		{
+			// Adjust old xBRZ mode, i.e. skip hqNx 32-bit modes
+			const int newMode = (mode > 6) ? (mode + 3) : mode;
+
+			static const int FLAG_TEXTURES = 1;
+			static const int FLAG_SPRITES  = 2;
+			static const int FLAG_FONTS    = 4;
+
+			gl_texture_hqresize_textures = (targets & FLAG_TEXTURES) ? newMode : 0;
+			gl_texture_hqresize_sprites  = (targets & FLAG_SPRITES ) ? newMode : 0;
+			gl_texture_hqresize_fonts    = (targets & FLAG_FONTS   ) ? newMode : 0;
+		}
+
+		config.ClearKey(OLD_MODE);
+		config.ClearKey(OLD_TARGETS);
+	}
+}
+
 void FGameConfigFile::DoGlobalSetup ()
 {
 	if (SetSection ("GlobalSettings.Unknown"))
@@ -267,6 +303,8 @@ void FGameConfigFile::DoGlobalSetup ()
 	if (SetSection ("GlobalSettings"))
 	{
 		ReadCVars (CVAR_GLOBALCONFIG);
+
+		ConvertHQResizeMode(*this);
 	}
 	if (SetSection ("LastRun"))
 	{
