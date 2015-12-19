@@ -95,7 +95,6 @@
 		8A054ACF193B2A7700D7849E /* c_consolebuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A054ACC193B2A5300D7849E /* c_consolebuffer.cpp */; };
 		8A07F0DD1AAC476D005E4236 /* lpc.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A07F0D61AAC46EB005E4236 /* lpc.c */; };
 		8A07F0DE1AAC4777005E4236 /* resampler.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A07F0D71AAC46EB005E4236 /* resampler.c */; };
-		8A07F0DF1AAC477E005E4236 /* tarray.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A07F0D81AAC46EB005E4236 /* tarray.c */; };
 		8A07F0E01AAC478F005E4236 /* loadamf.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A07F0D91AAC473D005E4236 /* loadamf.c */; };
 		8A07F0E11AAC478F005E4236 /* loadamf2.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A07F0DA1AAC473D005E4236 /* loadamf2.c */; };
 		8A07F0E21AAC478F005E4236 /* loadany.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A07F0DB1AAC473D005E4236 /* loadany.c */; };
@@ -1365,10 +1364,8 @@
 		8A07F0D21AAC466B005E4236 /* lpc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lpc.h; sourceTree = "<group>"; };
 		8A07F0D31AAC466B005E4236 /* resampler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = resampler.h; sourceTree = "<group>"; };
 		8A07F0D41AAC466B005E4236 /* stack_alloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stack_alloc.h; sourceTree = "<group>"; };
-		8A07F0D51AAC466B005E4236 /* tarray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tarray.h; sourceTree = "<group>"; };
 		8A07F0D61AAC46EB005E4236 /* lpc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lpc.c; sourceTree = "<group>"; };
 		8A07F0D71AAC46EB005E4236 /* resampler.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = resampler.c; sourceTree = "<group>"; };
-		8A07F0D81AAC46EB005E4236 /* tarray.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tarray.c; sourceTree = "<group>"; };
 		8A07F0D91AAC473D005E4236 /* loadamf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loadamf.c; sourceTree = "<group>"; };
 		8A07F0DA1AAC473D005E4236 /* loadamf2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loadamf2.c; sourceTree = "<group>"; };
 		8A07F0DB1AAC473D005E4236 /* loadany.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loadany.c; sourceTree = "<group>"; };
@@ -5576,7 +5573,6 @@
 				8A07F0D31AAC466B005E4236 /* resampler.h */,
 				8AF27B411390F5EE0095D9A0 /* riff.h */,
 				8A07F0D41AAC466B005E4236 /* stack_alloc.h */,
-				8A07F0D51AAC466B005E4236 /* tarray.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -5626,7 +5622,6 @@
 				8AF27B5C1390F5EE0095D9A0 /* sampbuf.c */,
 				8AF27B5D1390F5EE0095D9A0 /* silence.c */,
 				8AF27B5E1390F5EE0095D9A0 /* stdfile.c */,
-				8A07F0D81AAC46EB005E4236 /* tarray.c */,
 			);
 			path = helpers;
 			sourceTree = "<group>";
@@ -7735,7 +7730,6 @@
 				8AF27BBB1390F5EE0095D9A0 /* sampbuf.c in Sources */,
 				8AF27BBC1390F5EE0095D9A0 /* silence.c in Sources */,
 				8AF27BBD1390F5EE0095D9A0 /* stdfile.c in Sources */,
-				8A07F0DF1AAC477E005E4236 /* tarray.c in Sources */,
 				8AF27BBF1390F5EE0095D9A0 /* itload.c in Sources */,
 				8AF27BC01390F5EE0095D9A0 /* itload2.c in Sources */,
 				8AF27BC11390F5EE0095D9A0 /* itmisc.c in Sources */,

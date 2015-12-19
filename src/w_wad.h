@@ -239,6 +239,7 @@ protected:
 
 private:
 	void RenameSprites();
+	void FixMacHexen();
 	void ApplyWadSpecials();
 	void DeleteAll();
 };
