@@ -77,6 +77,20 @@
 		497C93EF13C5A6F800E6B4A8 /* sprites.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 497C93E713C5A6F800E6B4A8 /* sprites.cpp */; };
 		497C93F013C5A6F800E6B4A8 /* voxels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 497C93E913C5A6F800E6B4A8 /* voxels.cpp */; };
 		49E9287913978BF600CCEBBC /* doom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 49E9287713978BF600CCEBBC /* doom.icns */; };
+		8A01A38D1C32DA6E006511F7 /* file_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3811C32DA47006511F7 /* file_io.cpp */; };
+		8A01A38E1C32DA6E006511F7 /* gus_pat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3831C32DA47006511F7 /* gus_pat.cpp */; };
+		8A01A38F1C32DA6E006511F7 /* lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3851C32DA47006511F7 /* lock.cpp */; };
+		8A01A3901C32DA6E006511F7 /* reverb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3871C32DA47006511F7 /* reverb.cpp */; };
+		8A01A3911C32DA6E006511F7 /* wildmidi_lib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */; };
+		8A01A3921C32DA6E006511F7 /* wm_error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A38B1C32DA47006511F7 /* wm_error.cpp */; };
+		8A01A3931C32DA75006511F7 /* file_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3811C32DA47006511F7 /* file_io.cpp */; };
+		8A01A3941C32DA75006511F7 /* gus_pat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3831C32DA47006511F7 /* gus_pat.cpp */; };
+		8A01A3951C32DA75006511F7 /* lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3851C32DA47006511F7 /* lock.cpp */; };
+		8A01A3961C32DA75006511F7 /* reverb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3871C32DA47006511F7 /* reverb.cpp */; };
+		8A01A3971C32DA75006511F7 /* wildmidi_lib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */; };
+		8A01A3981C32DA75006511F7 /* wm_error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A38B1C32DA47006511F7 /* wm_error.cpp */; };
+		8A01A39A1C32DAFD006511F7 /* music_wildmidi_mididevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3991C32DAC3006511F7 /* music_wildmidi_mididevice.cpp */; };
+		8A01A39B1C32DB02006511F7 /* music_wildmidi_mididevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3991C32DAC3006511F7 /* music_wildmidi_mididevice.cpp */; };
 		8A0304D1190D4238000BC6D7 /* 7zBuf.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A0304B3190D4215000BC6D7 /* 7zBuf.c */; };
 		8A0304D2190D4238000BC6D7 /* 7zCrc.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A0304B5190D4215000BC6D7 /* 7zCrc.c */; };
 		8A0304D3190D4238000BC6D7 /* 7zCrcOpt.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A0304B7190D4215000BC6D7 /* 7zCrcOpt.c */; };
@@ -1326,6 +1340,20 @@
 		497C93EA13C5A6F800E6B4A8 /* voxels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxels.h; sourceTree = "<group>"; };
 		497C941213C5AA2500E6B4A8 /* errors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = errors.h; sourceTree = "<group>"; };
 		49E9287713978BF600CCEBBC /* doom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = doom.icns; path = misc/resources/doom.icns; sourceTree = "<group>"; };
+		8A01A3801C32DA47006511F7 /* common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		8A01A3811C32DA47006511F7 /* file_io.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = file_io.cpp; sourceTree = "<group>"; };
+		8A01A3821C32DA47006511F7 /* file_io.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = file_io.h; sourceTree = "<group>"; };
+		8A01A3831C32DA47006511F7 /* gus_pat.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gus_pat.cpp; sourceTree = "<group>"; };
+		8A01A3841C32DA47006511F7 /* gus_pat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gus_pat.h; sourceTree = "<group>"; };
+		8A01A3851C32DA47006511F7 /* lock.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lock.cpp; sourceTree = "<group>"; };
+		8A01A3861C32DA47006511F7 /* lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lock.h; sourceTree = "<group>"; };
+		8A01A3871C32DA47006511F7 /* reverb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = reverb.cpp; sourceTree = "<group>"; };
+		8A01A3881C32DA47006511F7 /* reverb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = reverb.h; sourceTree = "<group>"; };
+		8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = wildmidi_lib.cpp; sourceTree = "<group>"; };
+		8A01A38A1C32DA47006511F7 /* wildmidi_lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wildmidi_lib.h; sourceTree = "<group>"; };
+		8A01A38B1C32DA47006511F7 /* wm_error.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = wm_error.cpp; sourceTree = "<group>"; };
+		8A01A38C1C32DA47006511F7 /* wm_error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm_error.h; sourceTree = "<group>"; };
+		8A01A3991C32DAC3006511F7 /* music_wildmidi_mididevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = music_wildmidi_mididevice.cpp; sourceTree = "<group>"; };
 		8A0304B2190D4215000BC6D7 /* 7z.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = 7z.h; sourceTree = "<group>"; };
 		8A0304B3190D4215000BC6D7 /* 7zBuf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = 7zBuf.c; sourceTree = "<group>"; };
 		8A0304B4190D4215000BC6D7 /* 7zBuf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = 7zBuf.h; sourceTree = "<group>"; };
@@ -3800,6 +3828,26 @@
 			path = r_data;
 			sourceTree = "<group>";
 		};
+		8A01A37F1C32DA47006511F7 /* wildmidi */ = {
+			isa = PBXGroup;
+			children = (
+				8A01A3801C32DA47006511F7 /* common.h */,
+				8A01A3811C32DA47006511F7 /* file_io.cpp */,
+				8A01A3821C32DA47006511F7 /* file_io.h */,
+				8A01A3831C32DA47006511F7 /* gus_pat.cpp */,
+				8A01A3841C32DA47006511F7 /* gus_pat.h */,
+				8A01A3851C32DA47006511F7 /* lock.cpp */,
+				8A01A3861C32DA47006511F7 /* lock.h */,
+				8A01A3871C32DA47006511F7 /* reverb.cpp */,
+				8A01A3881C32DA47006511F7 /* reverb.h */,
+				8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */,
+				8A01A38A1C32DA47006511F7 /* wildmidi_lib.h */,
+				8A01A38B1C32DA47006511F7 /* wm_error.cpp */,
+				8A01A38C1C32DA47006511F7 /* wm_error.h */,
+			);
+			path = wildmidi;
+			sourceTree = "<group>";
+		};
 		8A14E4C71AD91EF80034C7CD /* game-doomchex */ = {
 			isa = PBXGroup;
 			children = (
@@ -5769,6 +5817,7 @@
 				8AF27F85139126C00095D9A0 /* textures */,
 				8AF27F9C139126C00095D9A0 /* thingdef */,
 				8AF27FA9139126C00095D9A0 /* timidity */,
+				8A01A37F1C32DA47006511F7 /* wildmidi */,
 				8AF27FD3139126C00095D9A0 /* win32 */,
 				8AF28002139126C00095D9A0 /* xlat */,
 				8AF27D0C139126C00095D9A0 /* __autostart.cpp */,
@@ -6603,6 +6652,7 @@
 				8AF27F6B139126C00095D9A0 /* music_softsynth_mididevice.cpp */,
 				8AF27F6C139126C00095D9A0 /* music_stream.cpp */,
 				8AF27F6D139126C00095D9A0 /* music_timidity_mididevice.cpp */,
+				8A01A3991C32DAC3006511F7 /* music_wildmidi_mididevice.cpp */,
 				8AF27F6E139126C00095D9A0 /* music_win_mididevice.cpp */,
 				8AF27F6F139126C00095D9A0 /* music_xmi_midiout.cpp */,
 				8A517FAC19600F4400FAAB33 /* oalsound.cpp */,
@@ -7374,6 +7424,7 @@
 				8A9F542514BB0F2900F3369B /* music_softsynth_mididevice.cpp in Sources */,
 				8A9F542614BB0F2900F3369B /* music_stream.cpp in Sources */,
 				8A9F542714BB0F2900F3369B /* music_timidity_mididevice.cpp in Sources */,
+				8A01A39B1C32DB02006511F7 /* music_wildmidi_mididevice.cpp in Sources */,
 				8A9F542914BB0F2900F3369B /* music_xmi_midiout.cpp in Sources */,
 				8A517FB719600F7F00FAAB33 /* oalsound.cpp in Sources */,
 				8A517FB919600F8E00FAAB33 /* sndfile_decoder.cpp in Sources */,
@@ -7417,6 +7468,12 @@
 				8A9F545514BB0F2900F3369B /* playmidi.cpp in Sources */,
 				8A9F545614BB0F2900F3369B /* resample.cpp in Sources */,
 				8A9F545714BB0F2900F3369B /* timidity.cpp in Sources */,
+				8A01A38D1C32DA6E006511F7 /* file_io.cpp in Sources */,
+				8A01A38E1C32DA6E006511F7 /* gus_pat.cpp in Sources */,
+				8A01A38F1C32DA6E006511F7 /* lock.cpp in Sources */,
+				8A01A3901C32DA6E006511F7 /* reverb.cpp in Sources */,
+				8A01A3911C32DA6E006511F7 /* wildmidi_lib.cpp in Sources */,
+				8A01A3921C32DA6E006511F7 /* wm_error.cpp in Sources */,
 				8A9F546214BB0F2900F3369B /* parse_xlat.cpp in Sources */,
 				8A9F546514BB0F2900F3369B /* actorptrselect.cpp in Sources */,
 				8A9F530514BB0F2900F3369B /* am_map.cpp in Sources */,
@@ -8017,6 +8074,7 @@
 				8AF2818C139126C10095D9A0 /* music_softsynth_mididevice.cpp in Sources */,
 				8AF2818D139126C10095D9A0 /* music_stream.cpp in Sources */,
 				8AF2818E139126C10095D9A0 /* music_timidity_mididevice.cpp in Sources */,
+				8A01A39A1C32DAFD006511F7 /* music_wildmidi_mididevice.cpp in Sources */,
 				8AF28190139126C10095D9A0 /* music_xmi_midiout.cpp in Sources */,
 				8A517FB819600F8700FAAB33 /* oalsound.cpp in Sources */,
 				8A517FBA19600F9200FAAB33 /* sndfile_decoder.cpp in Sources */,
@@ -8060,6 +8118,12 @@
 				8AF281C0139126C10095D9A0 /* playmidi.cpp in Sources */,
 				8AF281C2139126C10095D9A0 /* resample.cpp in Sources */,
 				8AF281C3139126C10095D9A0 /* timidity.cpp in Sources */,
+				8A01A3931C32DA75006511F7 /* file_io.cpp in Sources */,
+				8A01A3941C32DA75006511F7 /* gus_pat.cpp in Sources */,
+				8A01A3951C32DA75006511F7 /* lock.cpp in Sources */,
+				8A01A3961C32DA75006511F7 /* reverb.cpp in Sources */,
+				8A01A3971C32DA75006511F7 /* wildmidi_lib.cpp in Sources */,
+				8A01A3981C32DA75006511F7 /* wm_error.cpp in Sources */,
 				8AF281F0139126C10095D9A0 /* parse_xlat.cpp in Sources */,
 				8A938D1113B6039F002627DE /* actorptrselect.cpp in Sources */,
 				8AF2800A139126C00095D9A0 /* am_map.cpp in Sources */,
