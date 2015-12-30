@@ -1,3 +1,19 @@
+openal-soft-1.17.1:
+
+    Fixed building with JACK and without PulseAudio.
+
+    Fixed building on FreeBSD.
+
+    Fixed the ALSA backend's allow-resampler option.
+
+    Fixed handling of inexact ALSA period counts.
+
+    Altered device naming scheme on Windows backends to better match other
+    drivers.
+
+    Updated the CoreAudio backend to use the AudioComponent API. This clears up
+    deprecation warnings for OSX 10.11, although requires OSX 10.6 or newer.
+
 openal-soft-1.17.0:
 
     Implemented a JACK playback backend.
@@ -6,12 +22,13 @@ openal-soft-1.17.0:
 
     Implemented the ALC_SOFT_HRTF extension.
 
-    Implemented SSE2 and SSE4.1 cubic resamplers.
+    Implemented C, SSE3, and SSE4.1 based 4- and 8-point Sinc resamplers.
+
+    Implemented a C and SSE based band-limited Sinc resampler. This does 12- to
+    24-point Sinc resampling, and performs anti-aliasing.
 
     Implemented B-Format output support for the wave file writer. This creates
     FuMa-style first-order Ambisonics wave files (AMB format).
-
-    Implemented capture support for the MMDevAPI backend.
 
     Implemented a stereo-mode config option for treating stereo modes as either
     speakers or headphones.
@@ -35,17 +52,23 @@ openal-soft-1.17.0:
 
     Fixed returning the default capture device name.
 
+    Fixed mixing property calculations when deferring context updates.
+
     Altered the behavior of alcSuspendContext and alcProcessContext to better
     match certain Windows drivers.
 
-    Altered the panning algorithm for better side and back positioning cues
-    with surround sound output.
+    Altered the panning algorithm, utilizing Ambisonics for better side and
+    back positioning cues with surround sound output.
 
     Improved support for certain older Windows apps.
 
     Improved the alffplay example to support surround sound streams.
 
     Improved support for building as a sub-project.
+
+    Added an HRTF playback example.
+
+    Added a tone generator output test.
 
     Added a toolchain to help with cross-compiling to Android.
 
