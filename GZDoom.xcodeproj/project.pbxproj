@@ -79,13 +79,11 @@
 		49E9287913978BF600CCEBBC /* doom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 49E9287713978BF600CCEBBC /* doom.icns */; };
 		8A01A38D1C32DA6E006511F7 /* file_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3811C32DA47006511F7 /* file_io.cpp */; };
 		8A01A38E1C32DA6E006511F7 /* gus_pat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3831C32DA47006511F7 /* gus_pat.cpp */; };
-		8A01A38F1C32DA6E006511F7 /* lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3851C32DA47006511F7 /* lock.cpp */; };
 		8A01A3901C32DA6E006511F7 /* reverb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3871C32DA47006511F7 /* reverb.cpp */; };
 		8A01A3911C32DA6E006511F7 /* wildmidi_lib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */; };
 		8A01A3921C32DA6E006511F7 /* wm_error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A38B1C32DA47006511F7 /* wm_error.cpp */; };
 		8A01A3931C32DA75006511F7 /* file_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3811C32DA47006511F7 /* file_io.cpp */; };
 		8A01A3941C32DA75006511F7 /* gus_pat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3831C32DA47006511F7 /* gus_pat.cpp */; };
-		8A01A3951C32DA75006511F7 /* lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3851C32DA47006511F7 /* lock.cpp */; };
 		8A01A3961C32DA75006511F7 /* reverb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3871C32DA47006511F7 /* reverb.cpp */; };
 		8A01A3971C32DA75006511F7 /* wildmidi_lib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */; };
 		8A01A3981C32DA75006511F7 /* wm_error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A01A38B1C32DA47006511F7 /* wm_error.cpp */; };
@@ -185,6 +183,8 @@
 		8A74F38F13925284001F54B0 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F38E13925284001F54B0 /* IOKit.framework */; };
 		8A74F451139252F9001F54B0 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F450139252F9001F54B0 /* AudioUnit.framework */; };
 		8A74F4671392532C001F54B0 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F4661392532C001F54B0 /* Carbon.framework */; };
+		8A7A230B1C3426A5005CF47F /* pathexpander.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A7A23091C342678005CF47F /* pathexpander.cpp */; };
+		8A7A230C1C3426AD005CF47F /* pathexpander.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A7A23091C342678005CF47F /* pathexpander.cpp */; };
 		8A7C310518F16B490001B5A2 /* Spc_Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A7C310318F16B220001B5A2 /* Spc_Filter.cpp */; };
 		8A7C310618F182D40001B5A2 /* strtod.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF27C9A139121FA0095D9A0 /* strtod.c */; };
 		8A7C310718F1837C0001B5A2 /* strtord.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AF27CAC139121FA0095D9A0 /* strtord.c */; };
@@ -1345,8 +1345,6 @@
 		8A01A3821C32DA47006511F7 /* file_io.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = file_io.h; sourceTree = "<group>"; };
 		8A01A3831C32DA47006511F7 /* gus_pat.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gus_pat.cpp; sourceTree = "<group>"; };
 		8A01A3841C32DA47006511F7 /* gus_pat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gus_pat.h; sourceTree = "<group>"; };
-		8A01A3851C32DA47006511F7 /* lock.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lock.cpp; sourceTree = "<group>"; };
-		8A01A3861C32DA47006511F7 /* lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lock.h; sourceTree = "<group>"; };
 		8A01A3871C32DA47006511F7 /* reverb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = reverb.cpp; sourceTree = "<group>"; };
 		8A01A3881C32DA47006511F7 /* reverb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = reverb.h; sourceTree = "<group>"; };
 		8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = wildmidi_lib.cpp; sourceTree = "<group>"; };
@@ -1467,6 +1465,8 @@
 		8A74F38E13925284001F54B0 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		8A74F450139252F9001F54B0 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		8A74F4661392532C001F54B0 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		8A7A23091C342678005CF47F /* pathexpander.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pathexpander.cpp; sourceTree = "<group>"; };
+		8A7A230A1C342678005CF47F /* pathexpander.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pathexpander.h; sourceTree = "<group>"; };
 		8A7C310218F16B220001B5A2 /* gme_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gme_types.h; sourceTree = "<group>"; };
 		8A7C310318F16B220001B5A2 /* Spc_Filter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Spc_Filter.cpp; sourceTree = "<group>"; };
 		8A7C310418F16B220001B5A2 /* Spc_Filter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Spc_Filter.h; sourceTree = "<group>"; };
@@ -3836,8 +3836,6 @@
 				8A01A3821C32DA47006511F7 /* file_io.h */,
 				8A01A3831C32DA47006511F7 /* gus_pat.cpp */,
 				8A01A3841C32DA47006511F7 /* gus_pat.h */,
-				8A01A3851C32DA47006511F7 /* lock.cpp */,
-				8A01A3861C32DA47006511F7 /* lock.h */,
 				8A01A3871C32DA47006511F7 /* reverb.cpp */,
 				8A01A3881C32DA47006511F7 /* reverb.h */,
 				8A01A3891C32DA47006511F7 /* wildmidi_lib.cpp */,
@@ -6028,6 +6026,8 @@
 				8AF27EEF139126C00095D9A0 /* p_xlat.cpp */,
 				8AF27EF0139126C00095D9A0 /* parsecontext.cpp */,
 				8AF27EF1139126C00095D9A0 /* parsecontext.h */,
+				8A7A23091C342678005CF47F /* pathexpander.cpp */,
+				8A7A230A1C342678005CF47F /* pathexpander.h */,
 				8AF27EF2139126C00095D9A0 /* po_man.cpp */,
 				8AF27EF3139126C00095D9A0 /* po_man.h */,
 				8AF27EF4139126C00095D9A0 /* r_3dfloors.cpp */,
@@ -7470,7 +7470,6 @@
 				8A9F545714BB0F2900F3369B /* timidity.cpp in Sources */,
 				8A01A38D1C32DA6E006511F7 /* file_io.cpp in Sources */,
 				8A01A38E1C32DA6E006511F7 /* gus_pat.cpp in Sources */,
-				8A01A38F1C32DA6E006511F7 /* lock.cpp in Sources */,
 				8A01A3901C32DA6E006511F7 /* reverb.cpp in Sources */,
 				8A01A3911C32DA6E006511F7 /* wildmidi_lib.cpp in Sources */,
 				8A01A3921C32DA6E006511F7 /* wm_error.cpp in Sources */,
@@ -7585,6 +7584,7 @@
 				8A9F53EB14BB0F2900F3369B /* p_writemap.cpp in Sources */,
 				8A9F53EC14BB0F2900F3369B /* p_xlat.cpp in Sources */,
 				8A9F53ED14BB0F2900F3369B /* parsecontext.cpp in Sources */,
+				8A7A230B1C3426A5005CF47F /* pathexpander.cpp in Sources */,
 				8A9F53EE14BB0F2900F3369B /* po_man.cpp in Sources */,
 				8A9F53EF14BB0F2900F3369B /* r_3dfloors.cpp in Sources */,
 				8A9F53F014BB0F2900F3369B /* r_bsp.cpp in Sources */,
@@ -8120,7 +8120,6 @@
 				8AF281C3139126C10095D9A0 /* timidity.cpp in Sources */,
 				8A01A3931C32DA75006511F7 /* file_io.cpp in Sources */,
 				8A01A3941C32DA75006511F7 /* gus_pat.cpp in Sources */,
-				8A01A3951C32DA75006511F7 /* lock.cpp in Sources */,
 				8A01A3961C32DA75006511F7 /* reverb.cpp in Sources */,
 				8A01A3971C32DA75006511F7 /* wildmidi_lib.cpp in Sources */,
 				8A01A3981C32DA75006511F7 /* wm_error.cpp in Sources */,
@@ -8235,6 +8234,7 @@
 				8AF2814B139126C00095D9A0 /* p_writemap.cpp in Sources */,
 				8AF2814C139126C00095D9A0 /* p_xlat.cpp in Sources */,
 				8AF2814D139126C00095D9A0 /* parsecontext.cpp in Sources */,
+				8A7A230C1C3426AD005CF47F /* pathexpander.cpp in Sources */,
 				8AF2814E139126C00095D9A0 /* po_man.cpp in Sources */,
 				8AF2814F139126C00095D9A0 /* r_3dfloors.cpp in Sources */,
 				8AF28150139126C10095D9A0 /* r_bsp.cpp in Sources */,

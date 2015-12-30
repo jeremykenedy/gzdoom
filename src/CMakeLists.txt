@@ -986,6 +986,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	nodebuild_extract.cpp
 	nodebuild_gl.cpp
 	nodebuild_utility.cpp
+	pathexpander.cpp
 	p_3dfloors.cpp
 	p_3dmidtex.cpp
 	p_acs.cpp
@@ -1275,7 +1276,6 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	timidity/timidity.cpp
 	wildmidi/file_io.cpp
 	wildmidi/gus_pat.cpp
-	wildmidi/lock.cpp
 	wildmidi/reverb.cpp
 	wildmidi/wildmidi_lib.cpp
 	wildmidi/wm_error.cpp
