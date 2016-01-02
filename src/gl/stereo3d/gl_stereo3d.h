@@ -36,8 +36,8 @@
 #ifndef GL_STEREO3D_H_
 #define GL_STEREO3D_H_
 
+#include <cstring> // needed for memcpy on linux, which is needed by VSMatrix copy ctor
 #include "tarray.h"
-#include "gl/system/gl_system.h"
 
 
 /* stereoscopic 3D API */
@@ -59,7 +59,7 @@ class EyePose
 public:
 	EyePose() {}
 	virtual ~EyePose() {}
-	virtual void GetProjection(float fov, float aspectRatio, float fovRatio, GLdouble outMatrix[4][4]) const;
+	virtual void GetProjection(float fov, float aspectRatio, float fovRatio, float outMatrix[4][4]) const;
 	virtual Viewport GetViewport(const Viewport& fullViewport) const;
 	virtual void GetViewShift(float yaw, float outViewShift[3]) const;
 	virtual void SetUp() const {};

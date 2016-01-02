@@ -41,24 +41,23 @@ namespace s3d {
 
 
 /* virtual */
-void EyePose::GetProjection(float fov, float aspectRatio, float fovRatio, GLdouble m[4][4]) const
+void EyePose::GetProjection(float fov, float aspectRatio, float fovRatio, float m[4][4]) const
 {
 	// Lifted from gl_scene.cpp FGLRenderer::SetProjection()
-	float fovy = 2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovRatio));
-	const double zNear = 5.0;
-	const double zFar = 65536.0;
+	float fovy = (float)(2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovRatio)));
+	const float zNear = 5.0;
+	const float zFar = 65536.0;
 
-	double sine, cotangent, deltaZ;
 	double radians = fovy / 2 * M_PI / 180;
 
-	deltaZ = zFar - zNear;
-	sine = sin(radians);
+	float deltaZ = zFar - zNear;
+	double sine = sin(radians);
 	if ((deltaZ == 0) || (sine == 0) || (aspectRatio == 0)) {
 		return;
 	}
-	cotangent = cos(radians) / sine;
+	float cotangent = float(cos(radians) / sine);
 
-	memset(m, 0, 16*sizeof(GLdouble));
+	memset(m, 0, 16*sizeof(float));
 	m[0][0] = cotangent / aspectRatio;
 	m[1][1] = cotangent;
 	m[2][2] = -(zFar + zNear) / deltaZ;

@@ -47,7 +47,7 @@ public:
 	ShiftedEyePose(float shift) : shift(shift) {};
 	float getShift() const { return shift; }
 	void setShift(float shift) { this->shift = shift; }
-	virtual void GetProjection(float fov, float aspectRatio, float fovRatio, GLdouble outMatrix[4][4]) const;
+	virtual void GetProjection(float fov, float aspectRatio, float fovRatio, float outMatrix[4][4]) const;
 	virtual void GetViewShift(float yaw, float outViewShift[3]) const;
 protected:
 	float shift;
@@ -57,18 +57,18 @@ protected:
 class LeftEyePose : public ShiftedEyePose
 {
 public:
-	LeftEyePose(float ipd) : ShiftedEyePose(-0.5*ipd) {}
-	float getIpd() const { return -2.0*getShift(); }
-	void setIpd(float ipd) { setShift(-0.5*ipd); }
+	LeftEyePose(float ipd) : ShiftedEyePose( float(-0.5) * ipd) {}
+	float getIpd() const { return float(-2.0)*getShift(); }
+	void setIpd(float ipd) { setShift(float(-0.5)*ipd); }
 };
 
 
 class RightEyePose : public ShiftedEyePose
 {
 public:
-	RightEyePose(float ipd) : ShiftedEyePose(+0.5*ipd) {}
-	float getIpd() const { return +2.0*shift; }
-	void setIpd(float ipd) { setShift(+0.5*ipd); }
+	RightEyePose(float ipd) : ShiftedEyePose(float(+0.5)*ipd) {}
+	float getIpd() const { return float(+2.0)*shift; }
+	void setIpd(float ipd) { setShift(float(+0.5)*ipd); }
 };
 
 

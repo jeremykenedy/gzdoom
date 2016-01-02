@@ -46,7 +46,7 @@ namespace s3d {
 
 
 /* virtual */
-void ShiftedEyePose::GetProjection(float fov, float aspectRatio, float fovRatio, GLdouble m[4][4]) const
+void ShiftedEyePose::GetProjection(float fov, float aspectRatio, float fovRatio, float m[4][4]) const
 {
 	double zNear = 5.0;
 	double zFar = 65536.0;
@@ -64,7 +64,7 @@ void ShiftedEyePose::GetProjection(float fov, float aspectRatio, float fovRatio,
 	double top = fH;
 	double deltaZ = zFar - zNear;
 
-	memset(m, 0, 16 * sizeof(GLdouble)); // set all elements to zero, cleverly
+	memset(m, 0, 16 * sizeof(float)); // set all elements to zero, cleverly
 
 	// https://www.opengl.org/sdk/docs/man2/xhtml/glFrustum.xml
 	m[0][0] = 2 * zNear / (right - left);
