@@ -319,9 +319,7 @@ static void xbrzNx_common(const size_t scale, const size_t width, const size_t h
 	const size_t thresholdWidth  = gl_texture_hqresize_mt_width;
 	const size_t thresholdHeight = gl_texture_hqresize_mt_height;
 
-	if (   NULL != dispatch_get_global_queue
-		&& NULL != dispatch_apply
-		&& gl_texture_hqresize_multithread
+	if (gl_texture_hqresize_multithread
 		&& width  > thresholdWidth
 		&& height > thresholdHeight)
 	{
