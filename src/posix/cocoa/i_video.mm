@@ -805,7 +805,7 @@ void CocoaVideo::SetFullscreenMode(const int width, const int height)
 		[m_window setHidesOnDeactivate:YES];
 	}
 
-	[m_window setFrame:displayRect display:YES];
+	[m_window setFrame:screenFrame display:YES];
 	[m_window setFrameOrigin:NSMakePoint(0.0f, 0.0f)];
 }
 
@@ -2086,10 +2086,7 @@ NSSize I_GetContentViewSize(const NSWindow* const window)
 	const NSView* const view = [window contentView];
 	const NSSize frameSize   = [view frame].size;
 
-	// TODO: figure out why [NSView frame] returns different values in "fullscreen" and in window
-	// In "fullscreen" the result is multiplied by [NSScreen backingScaleFactor], but not in window
-
-	return (vid_hidpi && !fullscreen)
+	return (vid_hidpi)
 		? [view convertSizeToBacking:frameSize]
 		: frameSize;
 }
