@@ -2602,6 +2602,7 @@
 		8AE8757E1BAAFDB700717B78 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "thirdparty/openal-soft/lib/libcommon.a"; sourceTree = "<group>"; };
 		8AE8757F1BAAFDB700717B78 /* libopenal.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenal.a; path = "thirdparty/openal-soft/lib/libopenal.a"; sourceTree = "<group>"; };
 		8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
+		8AED322D1C3E7A5700B1A0AC /* decaldef.z */ = {isa = PBXFileReference; lastKnownFileType = text; path = decaldef.z; sourceTree = "<group>"; };
 		8AF278CA1390F0370095D9A0 /* libjpeg_gzdoom.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libjpeg_gzdoom.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AF2790B1390F0880095D9A0 /* jcomapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jcomapi.c; sourceTree = "<group>"; };
 		8AF2790C1390F0880095D9A0 /* jconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jconfig.h; sourceTree = "<group>"; };
@@ -3911,6 +3912,7 @@
 		8A2F67531AD0133000E377A0 /* filter */ = {
 			isa = PBXGroup;
 			children = (
+				8AED322C1C3E7A5700B1A0AC /* doom.freedoom */,
 				8A14E4C71AD91EF80034C7CD /* game-doomchex */,
 				8A14E4C91AD91EF80034C7CD /* game-heretic */,
 				8A14E4CC1AD91EF80034C7CD /* game-hexen */,
@@ -5339,6 +5341,14 @@
 				8AB53BBA18941A880079E426 /* xbrz_old.h */,
 			);
 			path = xbr;
+			sourceTree = "<group>";
+		};
+		8AED322C1C3E7A5700B1A0AC /* doom.freedoom */ = {
+			isa = PBXGroup;
+			children = (
+				8AED322D1C3E7A5700B1A0AC /* decaldef.z */,
+			);
+			path = doom.freedoom;
 			sourceTree = "<group>";
 		};
 		8AF2790A1390F0880095D9A0 /* jpeg-6b */ = {
