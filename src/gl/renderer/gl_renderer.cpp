@@ -52,7 +52,6 @@
 
 #include "gl/system/gl_interface.h"
 #include "gl/system/gl_framebuffer.h"
-#include "gl/system/gl_threads.h"
 #include "gl/renderer/gl_renderer.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/renderer/gl_renderstate.h"
@@ -73,8 +72,6 @@
 // Renderer interface
 //
 //===========================================================================
-
-EXTERN_CVAR(Bool, gl_render_segs)
 
 //-----------------------------------------------------------------------------
 //
@@ -110,7 +107,6 @@ void FGLRenderer::Initialize()
 	mOldFBID = 0;
 	SetupLevel();
 	mShaderManager = new FShaderManager;
-	//mThreadManager = new FGLThreadManager;
 }
 
 FGLRenderer::~FGLRenderer() 
@@ -118,7 +114,6 @@ FGLRenderer::~FGLRenderer()
 	gl_CleanModelData();
 	gl_DeleteAllAttachedLights();
 	FMaterial::FlushAll();
-	//if (mThreadManager != NULL) delete mThreadManager;
 	if (mShaderManager != NULL) delete mShaderManager;
 	if (mVBO != NULL) delete mVBO;
 	if (glpart2) delete glpart2;

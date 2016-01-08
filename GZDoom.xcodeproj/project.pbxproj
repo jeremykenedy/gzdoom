@@ -3202,7 +3202,6 @@
 		8AF27E47139126C00095D9A0 /* gl_menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gl_menu.cpp; sourceTree = "<group>"; };
 		8AF27E48139126C00095D9A0 /* gl_system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gl_system.h; sourceTree = "<group>"; };
 		8AF27E49139126C00095D9A0 /* gl_threads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gl_threads.cpp; sourceTree = "<group>"; };
-		8AF27E4A139126C00095D9A0 /* gl_threads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gl_threads.h; sourceTree = "<group>"; };
 		8AF27E4B139126C00095D9A0 /* gl_wipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gl_wipe.cpp; sourceTree = "<group>"; };
 		8AF27E4D139126C00095D9A0 /* gl_bitmap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gl_bitmap.cpp; sourceTree = "<group>"; };
 		8AF27E4E139126C00095D9A0 /* gl_bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gl_bitmap.h; sourceTree = "<group>"; };
@@ -6494,7 +6493,6 @@
 				8AF27E47139126C00095D9A0 /* gl_menu.cpp */,
 				8AF27E48139126C00095D9A0 /* gl_system.h */,
 				8AF27E49139126C00095D9A0 /* gl_threads.cpp */,
-				8AF27E4A139126C00095D9A0 /* gl_threads.h */,
 				8AF27E4B139126C00095D9A0 /* gl_wipe.cpp */,
 			);
 			path = system;
