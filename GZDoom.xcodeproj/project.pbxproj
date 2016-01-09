@@ -2597,6 +2597,12 @@
 		8AB930CC199FA6EF00EEF7AF /* hqnx_16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hqnx_16.h; sourceTree = "<group>"; };
 		8AB930CD199FA6EF00EEF7AF /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		8AB930CE199FA6EF00EEF7AF /* Image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Image.h; sourceTree = "<group>"; };
+		8AC7C1AE1C415FDE00D7D23E /* GuillotineBinPack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GuillotineBinPack.cpp; sourceTree = "<group>"; };
+		8AC7C1AF1C415FDE00D7D23E /* GuillotineBinPack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GuillotineBinPack.h; sourceTree = "<group>"; };
+		8AC7C1B01C415FDE00D7D23E /* Rect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rect.h; sourceTree = "<group>"; };
+		8AC7C1B11C415FDE00D7D23E /* SkylineBinPack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkylineBinPack.cpp; sourceTree = "<group>"; };
+		8AC7C1B21C415FDE00D7D23E /* SkylineBinPack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkylineBinPack.h; sourceTree = "<group>"; };
+		8AC7C1B31C415FDE00D7D23E /* tagitem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tagitem.h; sourceTree = "<group>"; };
 		8AD870F1140A4EC5007A06A9 /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = Credits.html; path = misc/resources/Credits.html; sourceTree = "<group>"; };
 		8AD89EA71BABEC14001BABE5 /* libGLEW.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGLEW.a; path = thirdparty/GLEW/lib/libGLEW.a; sourceTree = "<group>"; };
 		8AE8757E1BAAFDB700717B78 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "thirdparty/openal-soft/lib/libcommon.a"; sourceTree = "<group>"; };
@@ -5925,6 +5931,8 @@
 				8AF27DFA139126C00095D9A0 /* gi.h */,
 				8AF3DF4117782D6A00474776 /* gitinfo.cpp */,
 				8AF27E65139126C00095D9A0 /* gstrings.h */,
+				8AC7C1AE1C415FDE00D7D23E /* GuillotineBinPack.cpp */,
+				8AC7C1AF1C415FDE00D7D23E /* GuillotineBinPack.h */,
 				8AF27E66139126C00095D9A0 /* hu_scores.cpp */,
 				8AF27E67139126C00095D9A0 /* hu_stuff.h */,
 				8AF27E68139126C00095D9A0 /* i_cd.h */,
@@ -6064,6 +6072,7 @@
 				8AF27F0F139126C00095D9A0 /* r_things.h */,
 				8A8D68B513C84344001D368F /* r_utility.cpp */,
 				8A8D68B613C84344001D368F /* r_utility.h */,
+				8AC7C1B01C415FDE00D7D23E /* Rect.h */,
 				8AF27F1F139126C00095D9A0 /* s_advsound.cpp */,
 				8AF27F20139126C00095D9A0 /* s_environment.cpp */,
 				8AF27F21139126C00095D9A0 /* s_playlist.cpp */,
@@ -6077,6 +6086,8 @@
 				8AF27F2B139126C00095D9A0 /* sc_man_tokens.h */,
 				8AF27F53139126C00095D9A0 /* skins.cpp */,
 				8AF27F54139126C00095D9A0 /* skins.h */,
+				8AC7C1B11C415FDE00D7D23E /* SkylineBinPack.cpp */,
+				8AC7C1B21C415FDE00D7D23E /* SkylineBinPack.h */,
 				8AF27F70139126C00095D9A0 /* st_start.h */,
 				8AF27F71139126C00095D9A0 /* st_stuff.cpp */,
 				8AF27F72139126C00095D9A0 /* st_stuff.h */,
@@ -6090,6 +6101,7 @@
 				8AF27F7A139126C00095D9A0 /* strnatcmp.h */,
 				8AF27F7C139126C00095D9A0 /* tables.cpp */,
 				8AF27F7D139126C00095D9A0 /* tables.h */,
+				8AC7C1B31C415FDE00D7D23E /* tagitem.h */,
 				8AF27F7F139126C00095D9A0 /* tarray.h */,
 				8AF27F80139126C00095D9A0 /* teaminfo.cpp */,
 				8AF27F81139126C00095D9A0 /* teaminfo.h */,
