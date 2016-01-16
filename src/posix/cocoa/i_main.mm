@@ -49,6 +49,7 @@
 #include "m_argv.h"
 #include "m_misc.h"
 #include "s_sound.h"
+#include "st_console.h"
 #include "version.h"
 
 #undef Class
@@ -127,18 +128,7 @@ void Mac_I_FatalError(const char* const message)
 {
 	I_SetMainWindowVisible(false);
 
-	const CFStringRef errorString = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault,
-		message, kCFStringEncodingASCII, kCFAllocatorNull);
-
-	if (NULL != errorString)
-	{
-		CFOptionFlags dummy;
-
-		CFUserNotificationDisplayAlert( 0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-			CFSTR("Fatal Error"), errorString, CFSTR("Exit"), NULL, NULL, &dummy);
-
-		CFRelease(errorString);
-	}
+	FConsoleWindow::GetInstance().ShowFatalError(message);
 }
 
 
@@ -336,6 +326,9 @@ ApplicationController* appCtrl;
 											repeats:YES];
 	[[NSRunLoop currentRunLoop] addTimer:timer
 								 forMode:NSDefaultRunLoopMode];
+
+	FConsoleWindow::CreateInstance();
+	atterm(FConsoleWindow::DeleteInstance);
 
 	exit(OriginalMain(s_argc, s_argv));
 }

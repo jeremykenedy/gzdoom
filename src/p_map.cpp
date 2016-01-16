@@ -545,7 +545,7 @@ inline fixed_t secfriction(const sector_t *sec, int plane = sector_t::floor)
 
 inline fixed_t secmovefac(const sector_t *sec, int plane = sector_t::floor)
 {
-	if (sec->Flags & SECF_FRICTION) return sec->friction;
+	if (sec->Flags & SECF_FRICTION) return sec->movefactor;
 	fixed_t movefactor = Terrains[sec->GetTerrain(plane)].MoveFactor;
 	return movefactor != 0 ? movefactor : ORIG_FRICTION_FACTOR;
 }
@@ -1075,8 +1075,8 @@ bool PIT_CheckThing(AActor *thing, FCheckPosition &tm)
 				 abs(thing->y - tm.thing->y) < (thing->radius+tm.thing->radius))
 
 		{
-			fixed_t newdist = P_AproxDistance(thing->x - tm.x, thing->y - tm.y);
-			fixed_t olddist = P_AproxDistance(thing->x - tm.thing->x, thing->y - tm.thing->y);
+			fixed_t newdist = thing->AproxDistance(tm.x, tm.y, tm.thing);
+			fixed_t olddist = thing->AproxDistance(tm.thing);
 
 			if (newdist > olddist)
 			{
@@ -1754,7 +1754,7 @@ void P_FakeZMovement(AActor *mo)
 	{ // float down towards target if too close
 		if (!(mo->flags & MF_SKULLFLY) && !(mo->flags & MF_INFLOAT))
 		{
-			fixed_t dist = P_AproxDistance(mo->x - mo->target->x, mo->y - mo->target->y);
+			fixed_t dist = mo->AproxDistance(mo->target);
 			fixed_t delta = (mo->target->z + (mo->height >> 1)) - mo->z;
 			if (delta < 0 && dist < -(delta * 3))
 				mo->z -= mo->FloatSpeed;
@@ -3066,7 +3066,7 @@ bool P_BounceActor(AActor *mo, AActor *BlockingMobj, bool ontop)
 		if (!ontop)
 		{
 			fixed_t speed;
-			angle_t angle = R_PointToAngle2(BlockingMobj->x,BlockingMobj->y, mo->x, mo->y) + ANGLE_1*((pr_bounce() % 16) - 8);
+			angle_t angle = BlockingMobj->AngleTo(mo) + ANGLE_1*((pr_bounce() % 16) - 8);
 			speed = P_AproxDistance(mo->velx, mo->vely);
 			speed = FixedMul(speed, mo->wallbouncefactor); // [GZ] was 0.75, using wallbouncefactor seems more consistent
 			mo->angle = angle;
@@ -4084,7 +4084,7 @@ void P_TraceBleed(int damage, AActor *target, AActor *missile)
 		pitch = 0;
 	}
 	P_TraceBleed(damage, target->x, target->y, target->z + target->height / 2,
-		target, R_PointToAngle2(missile->x, missile->y, target->x, target->y),
+		target, missile->AngleTo(target),
 		pitch);
 }
 
@@ -4296,6 +4296,14 @@ void P_RailAttack(AActor *source, int damage, int offset_xy, fixed_t offset_z, i
 		else
 			SpawnShootDecal(source, trace);
 
+	}
+	if (trace.HitType == TRACE_HitFloor || trace.HitType == TRACE_HitCeiling)
+	{
+		AActor* puff = NULL;
+		if (puffclass != NULL && puffDefaults->flags3 & MF3_ALWAYSPUFF)
+		{
+			puff = P_SpawnPuff(source, puffclass, trace.X, trace.Y, trace.Z, (source->angle + angleoffset) - ANG90, 1, 0);
+		}
 	}
 	if (thepuff != NULL)
 	{
@@ -4853,7 +4861,7 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 								{
 									velz *= 0.8f;
 								}
-								angle_t ang = R_PointToAngle2(bombspot->x, bombspot->y, thing->x, thing->y) >> ANGLETOFINESHIFT;
+								angle_t ang = bombspot->AngleTo(thing) >> ANGLETOFINESHIFT;
 								thing->velx += fixed_t(finecosine[ang] * thrust);
 								thing->vely += fixed_t(finesine[ang] * thrust);
 								if (!(flags & RADF_NODAMAGE))
