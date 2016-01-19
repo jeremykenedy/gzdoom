@@ -603,14 +603,14 @@
 		8AB53BBC18941AD90079E426 /* xbrz_old.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz_old.cpp */; };
 		8AB930CF199FA70A00EEF7AF /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB930CD199FA6EF00EEF7AF /* Image.cpp */; };
 		8AB930D0199FA70E00EEF7AF /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB930CD199FA6EF00EEF7AF /* Image.cpp */; };
+		8ABDDCBA1C4ED7F800271DE5 /* gl_load.c in Sources */ = {isa = PBXBuildFile; fileRef = 8ABDDCB61C4ED7C900271DE5 /* gl_load.c */; };
+		8ABDDCBB1C4ED80100271DE5 /* gl_load.c in Sources */ = {isa = PBXBuildFile; fileRef = 8ABDDCB61C4ED7C900271DE5 /* gl_load.c */; };
 		8AC81C411391321300F49DC3 /* libjpeg_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF278CA1390F0370095D9A0 /* libjpeg_gzdoom.a */; };
 		8AC81C421391321300F49DC3 /* liblzma_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF2795A1390F1200095D9A0 /* liblzma_gzdoom.a */; };
 		8AC81C431391321300F49DC3 /* libgme_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27A541390F4F40095D9A0 /* libgme_gzdoom.a */; };
 		8AC81C441391321300F49DC3 /* libdumb_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27B251390F5DC0095D9A0 /* libdumb_gzdoom.a */; };
 		8AC81C451391321300F49DC3 /* libgdtoa_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27C1C1390F7E20095D9A0 /* libgdtoa_gzdoom.a */; };
 		8AD870F3140A4EC5007A06A9 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 8AD870F1140A4EC5007A06A9 /* Credits.html */; };
-		8AD89EA81BABEC14001BABE5 /* libGLEW.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AD89EA71BABEC14001BABE5 /* libGLEW.a */; };
-		8AD89EA91BABEC14001BABE5 /* libGLEW.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AD89EA71BABEC14001BABE5 /* libGLEW.a */; };
 		8AE875801BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
 		8AE875811BAAFDB700717B78 /* libopenal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757F1BAAFDB700717B78 /* libopenal.a */; };
 		8AE875821BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
@@ -2625,6 +2625,10 @@
 		8AB930CC199FA6EF00EEF7AF /* hqnx_16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hqnx_16.h; sourceTree = "<group>"; };
 		8AB930CD199FA6EF00EEF7AF /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		8AB930CE199FA6EF00EEF7AF /* Image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Image.h; sourceTree = "<group>"; };
+		8ABDDCB51C4ED7C900271DE5 /* gl_extlist.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gl_extlist.txt; sourceTree = "<group>"; };
+		8ABDDCB61C4ED7C900271DE5 /* gl_load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gl_load.c; sourceTree = "<group>"; };
+		8ABDDCB71C4ED7C900271DE5 /* gl_load.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gl_load.h; sourceTree = "<group>"; };
+		8ABDDCBC1C4ED85000271DE5 /* wglext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wglext.h; sourceTree = "<group>"; };
 		8AC7C1AE1C415FDE00D7D23E /* GuillotineBinPack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GuillotineBinPack.cpp; sourceTree = "<group>"; };
 		8AC7C1AF1C415FDE00D7D23E /* GuillotineBinPack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GuillotineBinPack.h; sourceTree = "<group>"; };
 		8AC7C1B01C415FDE00D7D23E /* Rect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rect.h; sourceTree = "<group>"; };
@@ -2632,7 +2636,6 @@
 		8AC7C1B21C415FDE00D7D23E /* SkylineBinPack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkylineBinPack.h; sourceTree = "<group>"; };
 		8AC7C1B31C415FDE00D7D23E /* tagitem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tagitem.h; sourceTree = "<group>"; };
 		8AD870F1140A4EC5007A06A9 /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = Credits.html; path = misc/resources/Credits.html; sourceTree = "<group>"; };
-		8AD89EA71BABEC14001BABE5 /* libGLEW.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGLEW.a; path = thirdparty/GLEW/lib/libGLEW.a; sourceTree = "<group>"; };
 		8AE8757E1BAAFDB700717B78 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "thirdparty/openal-soft/lib/libcommon.a"; sourceTree = "<group>"; };
 		8AE8757F1BAAFDB700717B78 /* libopenal.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenal.a; path = "thirdparty/openal-soft/lib/libopenal.a"; sourceTree = "<group>"; };
 		8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
@@ -3664,7 +3667,6 @@
 				8A9F547714BB0F2900F3369B /* libbz2.dylib in Frameworks */,
 				8A1D33E7154D6FD200BA2C16 /* libiconv.dylib in Frameworks */,
 				8A9F547814BB0F2900F3369B /* libz.dylib in Frameworks */,
-				8AD89EA81BABEC14001BABE5 /* libGLEW.a in Frameworks */,
 				8A9F547914BB0F2900F3369B /* libfmodex.dylib in Frameworks */,
 				8AE875801BAAFDB700717B78 /* libcommon.a in Frameworks */,
 				8AE875811BAAFDB700717B78 /* libopenal.a in Frameworks */,
@@ -3725,7 +3727,6 @@
 				8AF2794A1390F0C20095D9A0 /* libbz2.dylib in Frameworks */,
 				8A1D33E8154D6FF900BA2C16 /* libiconv.dylib in Frameworks */,
 				8AF27A491390F4910095D9A0 /* libz.dylib in Frameworks */,
-				8AD89EA91BABEC14001BABE5 /* libGLEW.a in Frameworks */,
 				8A74F2BA1392360F001F54B0 /* libfmodex.dylib in Frameworks */,
 				8AE875821BAAFDB700717B78 /* libcommon.a in Frameworks */,
 				8AE875831BAAFDB700717B78 /* libopenal.a in Frameworks */,
@@ -3823,7 +3824,6 @@
 				8AF279491390F0C20095D9A0 /* libbz2.dylib */,
 				8A1D33E6154D6FD200BA2C16 /* libiconv.dylib */,
 				8AF27A461390F47C0095D9A0 /* libz.dylib */,
-				8AD89EA71BABEC14001BABE5 /* libGLEW.a */,
 				8A74F2B91392360F001F54B0 /* libfmodex.dylib */,
 				8AE8757E1BAAFDB700717B78 /* libcommon.a */,
 				8AE8757F1BAAFDB700717B78 /* libopenal.a */,
@@ -6537,10 +6537,13 @@
 			isa = PBXGroup;
 			children = (
 				8AF27E42139126C00095D9A0 /* gl_cvars.h */,
+				8ABDDCB51C4ED7C900271DE5 /* gl_extlist.txt */,
 				8AF27E43139126C00095D9A0 /* gl_framebuffer.cpp */,
 				8AF27E44139126C00095D9A0 /* gl_framebuffer.h */,
 				8AF27E45139126C00095D9A0 /* gl_interface.cpp */,
 				8AF27E46139126C00095D9A0 /* gl_interface.h */,
+				8ABDDCB61C4ED7C900271DE5 /* gl_load.c */,
+				8ABDDCB71C4ED7C900271DE5 /* gl_load.h */,
 				8AF27E47139126C00095D9A0 /* gl_menu.cpp */,
 				8AF27E48139126C00095D9A0 /* gl_system.h */,
 				8AF27E49139126C00095D9A0 /* gl_threads.cpp */,
@@ -6822,6 +6825,7 @@
 				8AF27FF5139126C00095D9A0 /* rawinput.h */,
 				8AF27FF6139126C00095D9A0 /* resource.h */,
 				8AF27FF7139126C00095D9A0 /* st_start.cpp */,
+				8ABDDCBC1C4ED85000271DE5 /* wglext.h */,
 				8AF27FF8139126C00095D9A0 /* win32gliface.cpp */,
 				8AF27FF9139126C00095D9A0 /* win32gliface.h */,
 				8AF27FFA139126C00095D9A0 /* win32iface.h */,
@@ -7399,6 +7403,7 @@
 				8A213C4A1C0062F2002DD476 /* scoped_view_shifter.cpp in Sources */,
 				8A9F538914BB0F2900F3369B /* gl_framebuffer.cpp in Sources */,
 				8A9F538A14BB0F2900F3369B /* gl_interface.cpp in Sources */,
+				8ABDDCBA1C4ED7F800271DE5 /* gl_load.c in Sources */,
 				8A9F538B14BB0F2900F3369B /* gl_menu.cpp in Sources */,
 				8A9F538D14BB0F2900F3369B /* gl_wipe.cpp in Sources */,
 				8A9F538E14BB0F2900F3369B /* gl_bitmap.cpp in Sources */,
@@ -8053,6 +8058,7 @@
 				8A213C4F1C006300002DD476 /* scoped_view_shifter.cpp in Sources */,
 				8AF280E8139126C00095D9A0 /* gl_framebuffer.cpp in Sources */,
 				8AF280E9139126C00095D9A0 /* gl_interface.cpp in Sources */,
+				8ABDDCBB1C4ED80100271DE5 /* gl_load.c in Sources */,
 				8AF280EA139126C00095D9A0 /* gl_menu.cpp in Sources */,
 				8AF280EC139126C00095D9A0 /* gl_wipe.cpp in Sources */,
 				8AF280ED139126C00095D9A0 /* gl_bitmap.cpp in Sources */,

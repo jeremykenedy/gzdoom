@@ -104,8 +104,6 @@ if( WIN32 )
 		"E:/Software/Dev/FMOD/${WIN_TYPE}/api" 
 		# .. and this one for Graf Zahl
 		"D:/portable/FMOD SoundSystem 4.26/FMOD Programmers API WIN32/api"
-		# GZDoom for OS X
-		"../thirdparty/FMOD/include/4.26.36"
 		)
 	set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
 	set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
@@ -231,42 +229,6 @@ endif( NOT OPENGL_GLU_FOUND )
 
 set( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENGL_LIBRARIES} )
 include_directories( ${OPENGL_INCLUDE_DIR} )
-
-
-# check for GLEW
-find_path( GLEW_INCLUDE_DIR GL/glew.h
-	PATHS "/usr/include"
-	"/usr/local/include"
-	"../thirdparty/GLEW/include" )
-
-if( GLEW_INCLUDE_DIR )
-	message( STATUS "GLEW include files found at ${GLEW_INCLUDE_DIR}" )
-else( GLEW_INCLUDE_DIR )
-	message( SEND_ERROR "Could not find GLEW include files" )
-endif( GLEW_INCLUDE_DIR )
-
-if(WIN32)
-	if( X64 )
-		set( GLEW_LIBRARY_DIR "../thirdparty/GLEW/lib/x64" )
-	else( X64 )
-		set( GLEW_LIBRARY_DIR "../thirdparty/GLEW/lib/win32" )
-	endif( X64 )
-endif( WIN32 )
-
-# GLEW include directory
-include_directories( "${GLEW_INCLUDE_DIR}" )
-
-if( NOT WIN32 OR APPLE )
-	find_library( GLEW_LIBRARY libGLEW.so )
-else( NOT WIN32 OR APPLE )
-	find_library( GLEW_LIBRARY glew32 PATH ${GLEW_LIBRARY_DIR} )
-endif( NOT WIN32 OR APPLE )
-
-if( NOT GLEW_LIBRARY )
-	message( SEND_ERROR "Could not find GLEW library files" )
-endif( NOT GLEW_LIBRARY )
-	
-set( ZDOOM_LIBS ${ZDOOM_LIBS} ${GLEW_LIBRARY} )
 
 
 if( NOT NO_OPENAL )
@@ -1192,6 +1154,7 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	gl/system/gl_framebuffer.cpp
 	gl/system/gl_menu.cpp
 	gl/system/gl_wipe.cpp
+	gl/system/gl_load.c
 	gl/models/gl_models_md3.cpp
 	gl/models/gl_models_md2.cpp
 	gl/models/gl_models.cpp

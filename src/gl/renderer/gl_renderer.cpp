@@ -228,7 +228,7 @@ void FGLRenderer::EndOffscreen()
 {
 	if (gl.flags & RFL_FRAMEBUFFER)
 	{
-		glBindFramebufferEXT(GL_FRAMEBUFFER, mOldFBID);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mOldFBID);
 	}
 }
 
