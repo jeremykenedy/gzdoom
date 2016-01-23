@@ -223,13 +223,9 @@ endif( X64 )
 if( NOT OPENGL_FOUND )
 	message( FATAL_ERROR "OpenGL is required for building." )
 endif( NOT OPENGL_FOUND )
-if( NOT OPENGL_GLU_FOUND )
-	message( FATAL_ERROR "OpenGL GLU is required for building." )
-endif( NOT OPENGL_GLU_FOUND )
 
 set( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENGL_LIBRARIES} )
 include_directories( ${OPENGL_INCLUDE_DIR} )
-
 
 if( NOT NO_OPENAL )
     find_package( OpenAL )
@@ -1327,10 +1323,10 @@ if( MSVC )
 	endif( ZDOOM_GENERATE_MAPFILE )
 
 	if( NO_GENERATOR_EXPRESSIONS )
-	add_custom_command(TARGET zdoom POST_BUILD
-		COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$(TargetDir)$(TargetFileName)\"\;\#1
-		COMMENT "Adding manifest..."
-	)
+		add_custom_command(TARGET zdoom POST_BUILD
+			COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$(TargetDir)$(TargetFileName)\"\;\#1
+			COMMENT "Adding manifest..."
+		)
 	else( NO_GENERATOR_EXPRESSIONS )
 		add_custom_command(TARGET zdoom POST_BUILD
 			COMMAND "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\win32\\zdoom.exe.manifest\" -outputresource:\"$<TARGET_FILE:zdoom>\"\;\#1

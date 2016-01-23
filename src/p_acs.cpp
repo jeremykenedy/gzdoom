@@ -77,6 +77,7 @@
 #include "decallib.h"
 #include "p_terrain.h"
 #include "version.h"
+#include "p_effect.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -4464,6 +4465,7 @@ enum EACSFunctions
 	ACSF_GetMaxInventory,
 	ACSF_SetSectorDamage,
 	ACSF_SetSectorTerrain,
+	ACSF_SpawnParticle,
 	
 	/* Zandronum's - these must be skipped when we reach 99!
 	-100:ResetMap(0),
@@ -5988,7 +5990,35 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 			}
 			break;
-			
+		
+		case ACSF_SpawnParticle:
+		{
+			PalEntry color = args[0];
+			bool fullbright = argCount > 1 ? !!args[1] : false;
+			int lifetime = argCount > 2 ? args[2] : 35;
+			int size = argCount > 3 ? args[3] : 1;
+			fixed_t x = argCount > 4 ? args[4] : 0;
+			fixed_t y = argCount > 5 ? args[5] : 0;
+			fixed_t z = argCount > 6 ? args[6] : 0;
+			fixed_t xvel = argCount > 7 ? args[7] : 0;
+			fixed_t yvel = argCount > 8 ? args[8] : 0;
+			fixed_t zvel = argCount > 9 ? args[9] : 0;
+			fixed_t accelx = argCount > 10 ? args[10] : 0;
+			fixed_t accely = argCount > 11 ? args[11] : 0;
+			fixed_t accelz = argCount > 12 ? args[12] : 0;
+			int startalpha = argCount > 13 ? args[13] : 0xFF; // Byte trans			
+			int fadestep = argCount > 14 ? args[14] : -1;
+
+			startalpha = clamp<int>(startalpha, 0, 0xFF); // Clamp to byte
+			lifetime = clamp<int>(lifetime, 0, 0xFF); // Clamp to byte
+			fadestep = clamp<int>(fadestep, -1, 0xFF); // Clamp to byte inc. -1 (indicating automatic)
+			size = clamp<int>(size, 0, 0xFF); // Clamp to byte
+
+			if (lifetime != 0)
+				P_SpawnParticle(x, y, z, xvel, yvel, zvel, color, fullbright, startalpha, lifetime, size, fadestep, accelx, accely, accelz);
+		}
+		break;
+		
 		default:
 			break;
 	}

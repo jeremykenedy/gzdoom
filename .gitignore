@@ -37,6 +37,7 @@
 /jpeg-6b/x64/
 /lzma/x64/
 /zlib/x64/
+build_cmake
 
 # OS X
 /.deploy_image

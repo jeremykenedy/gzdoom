@@ -284,6 +284,31 @@ void P_ThinkParticles ()
 	}
 }
 
+void P_SpawnParticle(fixed_t x, fixed_t y, fixed_t z, fixed_t velx, fixed_t vely, fixed_t velz, PalEntry color, bool fullbright, BYTE startalpha, BYTE lifetime, BYTE size, int fadestep, fixed_t accelx, fixed_t accely, fixed_t accelz)
+{
+	particle_t *particle = NewParticle();
+
+	if (particle)
+	{
+		particle->x = x;
+		particle->y = y;
+		particle->z = z;
+		particle->velx = velx;
+		particle->vely = vely;
+		particle->velz = velz;
+		particle->color = ParticleColor(color);
+		particle->trans = startalpha;
+		if (fadestep < 0) fadestep = FADEFROMTTL(lifetime);
+		particle->fade = fadestep;
+		particle->ttl = lifetime;
+		particle->accx = accelx;
+		particle->accy = accely;
+		particle->accz = accelz;
+		particle->bright = fullbright;
+		particle->size = size;
+	}
+}
+
 //
 // P_RunEffects
 //
@@ -843,10 +868,11 @@ void P_DisconnectEffect (AActor *actor)
 		if (!p)
 			break;
 
-		fixedvec3 pos = actor->Vec3Offset(
-			((M_Random()-128)<<9) * (actor->radius>>FRACBITS),
-			((M_Random()-128)<<9) * (actor->radius>>FRACBITS),
-			(M_Random()<<8) * (actor->height>>FRACBITS));
+		
+		fixed_t xo = ((M_Random() - 128) << 9) * (actor->radius >> FRACBITS);
+		fixed_t yo = ((M_Random() - 128) << 9) * (actor->radius >> FRACBITS);
+		fixed_t zo = (M_Random() << 8) * (actor->height >> FRACBITS);
+		fixedvec3 pos = actor->Vec3Offset(xo, yo, zo);
 		p->x = pos.x;
 		p->y = pos.y;
 		p->z = pos.z;
