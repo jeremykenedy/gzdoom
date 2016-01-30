@@ -1261,7 +1261,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireBullets)
 	int bslope = 0;
 	int laflags = (flags & FBF_NORANDOMPUFFZ)? LAF_NORANDOMPUFFZ : 0;
 
-	if ((flags & FBF_USEAMMO) && weapon)
+	if ((flags & FBF_USEAMMO) && weapon && ACTION_CALL_FROM_WEAPON())
 	{
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true))
 			return;	// out of ammo
@@ -1450,7 +1450,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomPunch)
 	pitch = P_AimLineAttack (self, angle, range, &linetarget);
 
 	// only use ammo when actually hitting something!
-	if ((flags & CPF_USEAMMO) && linetarget && weapon)
+	if ((flags & CPF_USEAMMO) && linetarget && weapon && ACTION_CALL_FROM_WEAPON())
 	{
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true))
 			return;	// out of ammo
@@ -1548,7 +1548,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RailAttack)
 	AWeapon *weapon = self->player->ReadyWeapon;
 
 	// only use ammo when actually hitting something!
-	if (useammo)
+	if (useammo && weapon != NULL && ACTION_CALL_FROM_WEAPON())
 	{
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true))
 			return;	// out of ammo
@@ -2644,7 +2644,6 @@ enum SPFflag
 
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnParticle)
 {
-	//(color color1, int flags = 0, int lifetime = 35, int size = 1, float angle = 0, float xoff = 0, float yoff = 0, float zoff = 0, float velx = 0, float vely = 0, float velz = 0, float accelx = 0, float accely = 0, float accelz = 0, float startalphaf = 1, float fadestepf = -1);
 	ACTION_PARAM_START(15);
 	ACTION_PARAM_COLOR(color,		0);
 	ACTION_PARAM_INT(flags,			1);
@@ -2665,8 +2664,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnParticle)
 	
 	BYTE startalpha = (BYTE)Scale(clamp(startalphaf, 0, FRACUNIT), 255, FRACUNIT);
 	int fadestep = fadestepf < 0? -1 : Scale(clamp(fadestepf, 0, FRACUNIT), 255, FRACUNIT);
-	lifetime = clamp<int>(lifetime, 0, 0xFF); // Clamp to byte
-	size = clamp<int>(size, 0, 0xFF); // Clamp to byte
+	lifetime = clamp<int>(lifetime, 0, 255); // Clamp to byte
+	size = clamp<int>(size, 0, 65535); // Clamp to word
 
 	if (lifetime != 0)
 	{
@@ -3449,11 +3448,11 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckLOF)
 			}
 			else if (flags & CLOFF_AIM_VERT_NOOFFSET)
 			{
-				pitch += R_PointToAngle2 (0,0, xydist, target->Z() - pos.z + offsetheight + target->height / 2);
+				pitch -= R_PointToAngle2 (0,0, xydist, target->Z() - pos.z + offsetheight + target->height / 2);
 			}
 			else
 			{
-				pitch += R_PointToAngle2 (0,0, xydist, target->Z() - pos.z + target->height / 2);
+				pitch -= R_PointToAngle2 (0,0, xydist, target->Z() - pos.z + target->height / 2);
 			}
 		}
 		else if (flags & CLOFF_ALLOWNULL)
@@ -3473,7 +3472,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckLOF)
 		else return;
 
 		angle >>= ANGLETOFINESHIFT;
-		pitch = (0-pitch)>>ANGLETOFINESHIFT;
+		pitch >>= ANGLETOFINESHIFT;
 
 		vx = FixedMul (finecosine[pitch], finecosine[angle]);
 		vy = FixedMul (finecosine[pitch], finesine[angle]);
@@ -4976,6 +4975,133 @@ enum RadiusGiveFlags
 	RGF_EITHER		=	1 << 17,
 };
 
+static bool DoRadiusGive(AActor *self, AActor *thing, const PClass *item, int amount, fixed_t distance, int flags, const PClass *filter, FName species, fixed_t mindist)
+{
+	// [MC] We only want to make an exception for missiles here. Nothing else.
+	bool missilePass = !!((flags & RGF_MISSILES) && thing->isMissile());
+	if (thing == self)
+	{
+		if (!(flags & RGF_GIVESELF))
+			return false;
+	}
+	else if (thing->isMissile())
+	{
+		if (!missilePass)
+			return false;
+	}
+
+	//[MC] Check for a filter, species, and the related exfilter/expecies/either flag(s).
+	bool filterpass = DoCheckClass(thing, filter, !!(flags & RGF_EXFILTER)),
+		speciespass = DoCheckSpecies(thing, species, !!(flags & RGF_EXSPECIES));
+
+	if ((flags & RGF_EITHER) ? (!(filterpass || speciespass)) : (!(filterpass && speciespass)))
+	{
+		if (thing != self)	//Don't let filter and species obstruct RGF_GIVESELF.
+			return false;
+	}
+
+	//Check for target, master, and tracer flagging.
+	bool targetPass = true;
+	bool masterPass = true;
+	bool tracerPass = true;
+	bool ptrPass = false;
+	if ((thing != self) && (flags & (RGF_NOTARGET | RGF_NOMASTER | RGF_NOTRACER)))
+	{
+		if ((thing == self->target) && (flags & RGF_NOTARGET))
+			targetPass = false;
+		if ((thing == self->master) && (flags & RGF_NOMASTER))
+			masterPass = false;
+		if ((thing == self->tracer) && (flags & RGF_NOTRACER))
+			tracerPass = false;
+
+		ptrPass = (flags & RGF_INCLUSIVE) ? (targetPass || masterPass || tracerPass) : (targetPass && masterPass && tracerPass);
+
+		//We should not care about what the actor is here. It's safe to abort this actor.
+		if (!ptrPass)
+			return false;
+	}
+
+	//Next, actor flag checking. 
+	bool selfPass = !!((flags & RGF_GIVESELF) && thing == self);
+	bool corpsePass = !!((flags & RGF_CORPSES) && thing->flags & MF_CORPSE);
+	bool killedPass = !!((flags & RGF_KILLED) && thing->flags6 & MF6_KILLED);
+	bool monsterPass = !!((flags & RGF_MONSTERS) && thing->flags3 & MF3_ISMONSTER);
+	bool objectPass = !!((flags & RGF_OBJECTS) && (thing->player == NULL) && (!(thing->flags3 & MF3_ISMONSTER))
+		&& ((thing->flags & MF_SHOOTABLE) || (thing->flags6 & MF6_VULNERABLE)));
+	bool playerPass = !!((flags & RGF_PLAYERS) && (thing->player != NULL) && (thing->player->mo == thing));
+	bool voodooPass = !!((flags & RGF_VOODOO) && (thing->player != NULL) && (thing->player->mo != thing));
+	//Self calls priority over the rest of this.
+	if (!selfPass)
+	{
+		//If it's specifically a monster/object/player/voodoo... Can be either or...
+		if (monsterPass || objectPass || playerPass || voodooPass)
+		{
+			//...and is dead, without desire to give to the dead...
+			if (((thing->health <= 0) && !(corpsePass || killedPass)))
+			{
+				//Skip!
+				return false;
+			}
+		}
+	}
+
+	bool itemPass = !!((flags & RGF_ITEMS) && thing->IsKindOf(RUNTIME_CLASS(AInventory)));
+
+	if (selfPass || monsterPass || corpsePass || killedPass || itemPass || objectPass || missilePass || playerPass || voodooPass)
+	{
+
+		fixedvec3 diff = self->Vec3To(thing);
+		diff.z += (thing->height - self->height) / 2;
+		if (flags & RGF_CUBE)
+		{ // check if inside a cube
+			double dx = fabs((double)(diff.x));
+			double dy = fabs((double)(diff.y));
+			double dz = fabs((double)(diff.z));
+			double dist = (double)distance;
+			double min = (double)mindist;
+			if ((dx > dist || dy > dist || dz > dist) || (min && (dx < min && dy < min && dz < min)))
+			{
+				return false;
+			}
+		}
+		else
+		{ // check if inside a sphere
+			double distsquared = double(distance) * double(distance);
+			double minsquared = double(mindist) * double(mindist);
+			double lengthsquared = TVector3<double>(diff.x, diff.y, diff.z).LengthSquared();
+			if (lengthsquared > distsquared || (minsquared && (lengthsquared < minsquared)))
+			{
+				return false;
+			}
+		}
+
+		if ((flags & RGF_NOSIGHT) || P_CheckSight(thing, self, SF_IGNOREVISIBILITY | SF_IGNOREWATERBOUNDARY))
+		{ // OK to give; target is in direct path, or the monster doesn't care about it being in line of sight.
+			AInventory *gift = static_cast<AInventory *>(Spawn(item, 0, 0, 0, NO_REPLACE));
+			if (gift->IsKindOf(RUNTIME_CLASS(AHealth)))
+			{
+				gift->Amount *= amount;
+			}
+			else
+			{
+				gift->Amount = amount;
+			}
+			gift->flags |= MF_DROPPED;
+			gift->ClearCounters();
+			if (!gift->CallTryPickup(thing))
+			{
+				gift->Destroy();
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RadiusGive)
 {
 	ACTION_PARAM_START(7);
@@ -4998,129 +5124,50 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_RadiusGive)
 	{
 		amount = 1;
 	}
-	FBlockThingsIterator it(FBoundingBox(self->X(), self->Y(), distance));
-
 	AActor *thing;
 	bool given = false;
-	while ((thing = it.Next()))
+	if (flags & RGF_MISSILES)
 	{
-		//[MC] Check for a filter, species, and the related exfilter/expecies/either flag(s).
-		bool filterpass = DoCheckClass(thing, filter, !!(flags & RGF_EXFILTER)),
-			speciespass = DoCheckSpecies(thing, species, !!(flags & RGF_EXSPECIES));
-
-		if ((flags & RGF_EITHER) ? (!(filterpass || speciespass)) : (!(filterpass && speciespass)))
+		TThinkerIterator<AActor> it;
+		while ((thing = it.Next()))
 		{
-			if (thing != self)	//Don't let filter and species obstruct RGF_GIVESELF.
-				continue;
+			if (DoRadiusGive(self, thing, item, amount, distance, flags, filter, species, mindist))	given = true;
 		}
-
-		if (thing == self)
+	}
+	else
+	{
+		FBlockThingsIterator it(FBoundingBox(self->X(), self->Y(), distance));
+		while ((thing = it.Next()))
 		{
-			if (!(flags & RGF_GIVESELF))
-				continue;
-		}
-
-		//Check for target, master, and tracer flagging.
-		bool targetPass = true;
-		bool masterPass = true;
-		bool tracerPass = true;
-		bool ptrPass = false;
-		if ((thing != self) && (flags & (RGF_NOTARGET | RGF_NOMASTER | RGF_NOTRACER)))
-		{
-			if ((thing == self->target) && (flags & RGF_NOTARGET))
-				targetPass = false;
-			if ((thing == self->master) && (flags & RGF_NOMASTER))
-				masterPass = false;
-			if ((thing == self->tracer) && (flags & RGF_NOTRACER))
-				tracerPass = false;
-
-			ptrPass = (flags & RGF_INCLUSIVE) ? (targetPass || masterPass || tracerPass) : (targetPass && masterPass && tracerPass);
-
-			//We should not care about what the actor is here. It's safe to abort this actor.
-			if (!ptrPass)
-				continue;
-		}
-
-		//Next, actor flag checking. 
-		bool selfPass = !!((flags & RGF_GIVESELF) && thing == self);
-		bool corpsePass = !!((flags & RGF_CORPSES) && thing->flags & MF_CORPSE);
-		bool killedPass = !!((flags & RGF_KILLED) && thing->flags6 & MF6_KILLED);
-		bool monsterPass = !!((flags & RGF_MONSTERS) && thing->flags3 & MF3_ISMONSTER);
-		bool objectPass = !!((flags & RGF_OBJECTS) && (thing->player == NULL) && (!(thing->flags3 & MF3_ISMONSTER))
-											&& ((thing->flags & MF_SHOOTABLE) || (thing->flags6 & MF6_VULNERABLE)));
-		bool playerPass = !!((flags & RGF_PLAYERS) && (thing->player != NULL) && (thing->player->mo == thing));
-		bool voodooPass = !!((flags & RGF_VOODOO) && (thing->player != NULL) && (thing->player->mo != thing));
-		//Self calls priority over the rest of this.
-		if (!selfPass)
-		{
-			//If it's specifically a monster/object/player/voodoo... Can be either or...
-			if (monsterPass || objectPass || playerPass || voodooPass)
-			{
-				//...and is dead, without desire to give to the dead...
-				if (((thing->health <= 0) && !(corpsePass || killedPass)))
-				{
-					//Skip!
-					continue;
-				}
-			}
-		}
-
-		bool itemPass = !!((flags & RGF_ITEMS) && thing->IsKindOf(RUNTIME_CLASS(AInventory)));
-		bool missilePass = !!((flags & RGF_MISSILES) && thing->flags & MF_MISSILE);
-
-		if (selfPass || monsterPass || corpsePass || killedPass || itemPass || objectPass || missilePass || playerPass || voodooPass)
-		{
-
-			fixedvec3 diff = self->Vec3To(thing);
-			diff.z += (thing->height - self->height) / 2;
-			if (flags & RGF_CUBE)
-			{ // check if inside a cube
-				double dx = fabs((double)(diff.x));
-				double dy = fabs((double)(diff.y));
-				double dz = fabs((double)(diff.z));
-				double dist = (double)distance;
-				double min = (double)mindist;
-				if ((dx > dist || dy > dist || dz > dist) || (min && (dx < min && dy < min && dz < min)))
-				{
-					continue;
-				}
-			}
-			else
-			{ // check if inside a sphere
-				double distsquared = double(distance) * double(distance);
-				double minsquared = double(mindist) * double(mindist);
-				double lengthsquared = TVector3<double>(diff.x, diff.y, diff.z).LengthSquared();
-				if (lengthsquared > distsquared || (minsquared && (lengthsquared < minsquared)))
-				{
-					continue;
-				}
-			}
-
-			if ((flags & RGF_NOSIGHT) || P_CheckSight(thing, self, SF_IGNOREVISIBILITY | SF_IGNOREWATERBOUNDARY))
-			{ // OK to give; target is in direct path, or the monster doesn't care about it being in line of sight.
-				AInventory *gift = static_cast<AInventory *>(Spawn(item, 0, 0, 0, NO_REPLACE));
-				if (gift->IsKindOf(RUNTIME_CLASS(AHealth)))
-				{
-					gift->Amount *= amount;
-				}
-				else
-				{
-					gift->Amount = amount;
-				}
-				gift->flags |= MF_DROPPED;
-				gift->ClearCounters();
-				if (!gift->CallTryPickup(thing))
-				{
-					gift->Destroy();
-				}
-				else
-				{
-					given = true;
-				}
-			}
+			if (DoRadiusGive(self, thing, item, amount, distance, flags, filter, species, mindist))	given = true;
 		}
 	}
 	ACTION_SET_RESULT(given);
+}
+
+//===========================================================================
+//
+// A_CheckSpecies
+//
+//===========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckSpecies)
+{
+	ACTION_PARAM_START(3);
+	ACTION_PARAM_STATE(jump, 0);
+	ACTION_PARAM_NAME(species, 1);
+	ACTION_PARAM_INT(ptr, 2);
+
+	AActor *mobj = COPY_AAPTR(self, ptr);
+
+	ACTION_SET_RESULT(false);
+	//Needs at least one state jump to work. 
+	if (!mobj)
+	{
+		return;
+	}
+
+	if (jump && mobj->GetSpecies() == species)
+		ACTION_JUMP(jump);
 }
 
 
@@ -5996,6 +6043,13 @@ enum CPXFflags
 	CPXF_COUNTDEAD =		1 << 3,
 	CPXF_DEADONLY =			1 << 4,
 	CPXF_EXACT =			1 << 5,
+	CPXF_SETTARGET =		1 << 6,
+	CPXF_SETMASTER =		1 << 7,
+	CPXF_SETTRACER =		1 << 8,
+	CPXF_FARTHEST =			1 << 9,
+	CPXF_CLOSEST =			1 << 10,
+	CPXF_SETONPTR =			1 << 11,
+	CPXF_CHECKSIGHT =		1 << 12,
 };
 DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 {
@@ -6008,17 +6062,26 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 	ACTION_PARAM_INT(ptr, 5);
 
 	ACTION_SET_RESULT(false); //No inventory chain results please.
+
+	if (!jump)
+	{
+		if (!(flags & (CPXF_SETTARGET | CPXF_SETMASTER | CPXF_SETTRACER)))
+			return;
+	}
 	AActor *ref = COPY_AAPTR(self, ptr);
 
 	//We need these to check out.
-	if (!ref || !jump || !classname || distance <= 0)
+	if (!ref || !classname || (distance <= 0))
 		return;
 
 	int counter = 0;
 	bool result = false;
+	fixed_t closer = distance, farther = 0, current = distance;
+	const bool ptrWillChange = !!(flags & (CPXF_SETTARGET | CPXF_SETMASTER | CPXF_SETTRACER));
+	const bool ptrDistPref = !!(flags & (CPXF_CLOSEST | CPXF_FARTHEST));
 
 	TThinkerIterator<AActor> it;
-	AActor * mo;
+	AActor *mo, *dist = NULL;
 
 	//[MC] Process of elimination, I think, will get through this as quickly and 
 	//efficiently as possible. 
@@ -6037,12 +6100,35 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 		else if (classname != mo->GetClass())
 			continue;
 
-		//Make sure it's in range and respect the desire for Z or not.
-		if (ref->AproxDistance(mo) < distance &&
+		//[MC]Make sure it's in range and respect the desire for Z or not. The function forces it to use
+		//Z later for ensuring CLOSEST and FARTHEST flags are respected perfectly.
+		//Ripped from sphere checking in A_RadiusGive (along with a number of things).
+		if ((ref->AproxDistance(mo) < distance &&
 			((flags & CPXF_NOZ) ||
-			((ref->Z() > mo->Z() && ref->Top() < distance) ||
-			(ref->Z() <= mo->Z() && mo->Z() - ref->Top() < distance))))
+			((ref->Z() > mo->Z() && ref->Z() - mo->Top() < distance) ||
+			(ref->Z() <= mo->Z() && mo->Z() - ref->Top() < distance)))))
 		{
+			if ((flags & CPXF_CHECKSIGHT) && !(P_CheckSight(mo, ref, SF_IGNOREVISIBILITY | SF_IGNOREWATERBOUNDARY)))
+				continue;
+
+			if (ptrWillChange)
+			{
+				current = ref->AproxDistance(mo);
+
+				if ((flags & CPXF_CLOSEST) && (current < closer))
+				{
+					dist = mo;
+					closer = current;			//This actor's closer. Set the new standard.
+				}
+				else if ((flags & CPXF_FARTHEST) && (current > farther))
+				{
+					dist = mo;
+					farther = current;
+				}
+				else if (!dist) 
+					dist = mo; //Just get the first one and call it quits if there's nothing selected.
+			}
+
 			if (mo->flags6 & MF6_KILLED)
 			{
 				if (!(flags & (CPXF_COUNTDEAD | CPXF_DEADONLY)))
@@ -6060,8 +6146,29 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 			if (counter > count)
 			{
 				result = (flags & (CPXF_LESSOREQUAL | CPXF_EXACT)) ? false : true;
-				break;
+
+				//However, if we have one SET* flag and either the closest or farthest flags, keep the function going.
+				if (ptrWillChange && ptrDistPref)
+					continue;
+				else
+					break;
 			}
+		}
+	}
+
+	if (ptrWillChange && dist != NULL)
+	{
+		if (flags & CPXF_SETONPTR)
+		{
+			if (flags & CPXF_SETTARGET)	ref->target = dist;
+			if (flags & CPXF_SETMASTER)	ref->master = dist;
+			if (flags & CPXF_SETTRACER)	ref->tracer = dist;
+		}
+		else
+		{
+			if (flags & CPXF_SETTARGET)	self->target = dist;
+			if (flags & CPXF_SETMASTER)	self->master = dist;
+			if (flags & CPXF_SETTRACER)	self->tracer = dist;
 		}
 	}
 
@@ -6070,7 +6177,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 	else if (counter < count)
 		result = !!((flags & CPXF_LESSOREQUAL) && !(flags & CPXF_EXACT));
 
-
+	if (!jump) return;
 
 	if (result)
 	{
@@ -6137,3 +6244,114 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckBlock)
 		ACTION_JUMP(block);
 	}
 }
+
+//===========================================================================
+//
+// A_FaceMovementDirection(angle offset, bool pitch, ptr)
+//
+// Sets the actor('s pointer) to face the direction of travel.
+//===========================================================================
+enum FMDFlags
+{
+	FMDF_NOPITCH =			1 << 0,
+	FMDF_INTERPOLATE =		1 << 1,
+	FMDF_NOANGLE =			1 << 2,
+};
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FaceMovementDirection)
+{
+	ACTION_PARAM_START(5);
+	ACTION_PARAM_ANGLE(offset, 0);
+	ACTION_PARAM_ANGLE(anglelimit, 1);
+	ACTION_PARAM_ANGLE(pitchlimit, 2);
+	ACTION_PARAM_INT(flags, 3);
+	ACTION_PARAM_INT(ptr, 4);
+
+	AActor *mobj = COPY_AAPTR(self, ptr);
+
+	//Need an actor.
+	if (!mobj || ((flags & FMDF_NOPITCH) && (flags & FMDF_NOANGLE)))
+	{
+		ACTION_SET_RESULT(false);
+		return;
+	}
+	
+	//Don't bother calculating this if we don't have any horizontal movement.
+	if (!(flags & FMDF_NOANGLE) && (mobj->velx != 0 || mobj->vely != 0))
+	{
+		angle_t current = mobj->angle; 
+		const angle_t angle = R_PointToAngle2(0, 0, mobj->velx, mobj->vely);
+		//Done because using anglelimit directly causes a signed/unsigned mismatch.
+		const angle_t limit = anglelimit; 
+
+		//Code borrowed from A_Face*.
+		if (limit > 0 && (absangle(current - angle) > limit))
+		{
+			if (current < angle)
+			{
+				// [MC] This may appear backwards, but I assure any who
+				// reads this, it works.
+				if (current - angle > ANGLE_180)
+					current += limit + offset;
+				else
+					current -= limit + offset;
+				mobj->SetAngle(current, !!(flags & FMDF_INTERPOLATE));
+			}
+			else if (current > angle)
+			{
+				if (angle - current > ANGLE_180)
+					current -= limit + offset;
+				else
+					current += limit + offset;
+				mobj->SetAngle(current, !!(flags & FMDF_INTERPOLATE));
+			}
+			else
+				mobj->SetAngle(angle + ANGLE_180 + offset, !!(flags & FMDF_INTERPOLATE));
+			
+		}
+		else
+			mobj->SetAngle(angle + offset, !!(flags & FMDF_INTERPOLATE));
+	}
+
+	if (!(flags & FMDF_NOPITCH))
+	{
+		fixed_t current = mobj->pitch;
+		const FVector2 velocity(mobj->velx, mobj->vely);
+		const fixed_t pitch = R_PointToAngle2(0, 0, (fixed_t)velocity.Length(), -mobj->velz);
+		if (pitchlimit > 0)
+		{
+			// [MC] angle_t for pitchlimit was required because otherwise
+			// we would wind up with less than desirable turn rates that didn't
+			// match that of A_SetPitch. We want consistency. Also, I didn't know
+			// of a better way to convert from angle_t to fixed_t properly so I
+			// used this instead.
+			fixed_t plimit = fixed_t(pitchlimit);
+			
+			if (abs(current - pitch) > plimit)
+			{
+				fixed_t max = 0;
+				
+				if (current > pitch)
+				{
+					max = MIN(plimit, (current - pitch));
+					current -= max;
+				}
+				else //if (current > pitch)
+				{
+					max = MIN(plimit, (pitch - current));
+					current += max;
+				}
+				mobj->SetPitch(current, !!(flags & FMDF_INTERPOLATE));
+			}
+			else
+			{
+				mobj->SetPitch(pitch, !!(flags & FMDF_INTERPOLATE));
+			}
+			
+		}
+		else
+		{
+			mobj->SetPitch(pitch, !!(flags & FMDF_INTERPOLATE));
+		}
+	}
+}
+
