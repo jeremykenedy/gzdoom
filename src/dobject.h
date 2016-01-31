@@ -174,7 +174,13 @@ private: \
 #	pragma data_seg()
 #	define _DECLARE_TI(cls) __declspec(allocate(".creg$u")) ClassReg *cls::RegistrationInfoPtr = &cls::RegistrationInfo;
 #else
-#	define _DECLARE_TI(cls) ClassReg *cls::RegistrationInfoPtr __attribute__((section(SECTION_CREG))) = &cls::RegistrationInfo;
+
+#ifdef __IOS__  //Fuck! finally fixed this, IOS linker stripping out the classes! Emile.
+#	define _DECLARE_TI(cls) ClassReg *cls::RegistrationInfoPtr __attribute__((section(SECTION_CREG))) __attribute__((used)) = &cls::RegistrationInfo;
+#else
+#	define _DECLARE_TI(cls) ClassReg *cls::RegistrationInfoPtr __attribute__((section(SECTION_CREG)))  = &cls::RegistrationInfo;
+#endif
+
 #endif
 
 #define _IMP_PCLASS(cls,ptrs,create) \
@@ -198,7 +204,8 @@ private: \
 
 #define IMPLEMENT_CLASS(cls) \
 	_IMP_CREATE_OBJ(cls) \
-	_IMP_PCLASS(cls,NULL,cls::InPlaceConstructor) 
+        _IMP_PCLASS(cls,NULL,cls::InPlaceConstructor)
+        
 
 #define IMPLEMENT_ABSTRACT_CLASS(cls) \
 	_IMP_PCLASS(cls,NULL,NULL)

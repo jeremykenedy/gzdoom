@@ -440,6 +440,7 @@ bool TimidityPPMIDIDevice::LaunchTimidity ()
 	int forkres;
 	wordexp_t words = {};
 
+#ifndef __IOS__
 	switch (wordexp (CommandLine.GetChars(), &words, 0))
 	{
 	case 0: // all good
@@ -450,7 +451,8 @@ bool TimidityPPMIDIDevice::LaunchTimidity ()
 	default:
 		return false;
 	}
-
+#endif
+    
 	forkres = fork ();
 
 	if (forkres == 0)
@@ -481,8 +483,9 @@ bool TimidityPPMIDIDevice::LaunchTimidity ()
 		    fprintf(stderr,"Launching timidity failed\n");
 		}*/
 	}
-	
+#ifndef __IOS__
 	wordfree (&words);
+#endif
 	return ChildProcess != -1;
 #endif // _WIN32
 }

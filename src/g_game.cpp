@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <time.h>
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 #include <CoreServices/CoreServices.h>
 #endif
 
@@ -143,7 +143,7 @@ gamestate_t 	gamestate = GS_STARTUP;
 
 int 			paused;
 bool			pauseext;
-bool 			sendpause;				// send a pause event next tic 
+bool 			sendpause;				// send a pause event next tic
 bool			sendsave;				// send a save event next tic 
 bool			sendturn180;			// [RH] send a 180 degree turn next tic
 bool 			usergame;				// ok to save / end game
@@ -523,6 +523,10 @@ static inline int joyint(double val)
 	}
 }
 
+#ifdef __MOBILE__
+extern void Mobile_IN_Move(ticcmd_t* cmd );
+#endif
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -686,6 +690,10 @@ void G_BuildTiccmd (ticcmd_t *cmd)
 		forward += (int)((float)mousey * m_forward);
 	}
 
+#ifdef __MOBILE__
+    Mobile_IN_Move(cmd);
+#endif
+    
 	cmd->ucmd.pitch = LocalViewPitch >> 16;
 
 	if (SendLand)

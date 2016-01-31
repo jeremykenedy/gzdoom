@@ -149,6 +149,7 @@ int FRenderState::SetupShader(bool cameratexture, int &shaderindex, int &cm, flo
 
 bool FRenderState::ApplyShader()
 {
+#ifndef USE_GLES
 	bool useshaders = false;
 	FShader *activeShader = NULL;
 
@@ -266,6 +267,7 @@ bool FRenderState::ApplyShader()
 
 		return true;
 	}
+#endif
 	return false;
 }
 

@@ -432,7 +432,7 @@ bool SDLGLFB::IsValid ()
 
 void SDLGLFB::SetVSync( bool vsync )
 {
-#if defined (__APPLE__)
+#if defined (__APPLE__) && !defined(__IOS__)
 	const GLint value = vsync ? 1 : 0;
 	CGLSetParameter( CGLGetCurrentContext(), kCGLCPSwapInterval, &value );
 #endif

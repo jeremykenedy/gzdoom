@@ -348,7 +348,9 @@ public:
 	double vibratoTable[2][vibratoTableLength];
 
 	// First array used when AM = 0 and second array used when AM = 1.
-	double tremoloTable[2][tremoloTableLength];
+	//double tremoloTable[2][tremoloTableLength];
+    double tremoloTable[2][14000];
+    
 
 	static double calculateIncrement(double begin, double end, double period) {
 		return (end-begin)/OPL_SAMPLE_RATE * (1/period);

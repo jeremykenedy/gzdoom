@@ -67,10 +67,76 @@
 #include <fcntl.h>
 
 //GL headers
+#ifdef USE_GLES
+
+/*
+#include <GL/gl.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
+void glVertexAttrib1f(	GLuint index,
+                      GLfloat v0);
+
+*/
+#include <OpenGLES/ES1/gl.h>
+#include <OpenGLES/ES1/glext.h>
+#include "jwzgles.h"
+
+
+#define glGenFramebuffersEXT glGenFramebuffersOES
+#define glDeleteFramebuffersEXT glDeleteFramebuffersOES
+#define glBindFramebufferEXT glBindFramebufferOES
+
+#define GL_FRAMEBUFFER_BINDING_EXT GL_FRAMEBUFFER_BINDING_OES
+#define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
+#define GL_FRAMEBUFFER GL_FRAMEBUFFER_OES
+
+
+#define glGenRenderbuffersEXT glGenRenderbuffersOES
+#define glBindRenderbufferEXT glBindRenderbufferOES
+#define glDeleteRenderbuffersEXT glDeleteRenderbuffersOES
+#define glRenderbufferStorageEXT glRenderbufferStorageOES
+
+#define GL_RENDERBUFFER_EXT GL_RENDERBUFFER_OES
+#define GL_DEPTH24_STENCIL8_EXT GL_DEPTH24_STENCIL8_OES
+#define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
+#define GL_DEPTH_ATTACHMENT_EXT GL_DEPTH_ATTACHMENT_OES
+#define GL_STENCIL_ATTACHMENT_EXT GL_STENCIL_ATTACHMENT_OES
+
+#define glFramebufferTexture2DEXT glFramebufferTexture2DOES
+#define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
+
+
+#define glFlushMappedBufferRange glFlushMappedBufferRangeEXT
+#define glMapBufferRange glMapBufferRangeEXT
+#define glUnmapBuffer glUnmapBufferOES
+
+#define GL_MAP_WRITE_BIT 0
+#define GL_MAP_FLUSH_EXPLICIT_BIT 0
+#define GL_MAP_UNSYNCHRONIZED_BIT 0
+
+#define GL_ALPHA8 GL_ALPHA8_EXT
+#define GL_RGBA8 GL_RGBA8_OES
+
+//TODO
+#define GL_RGB5_A1 GL_RGBA
+#define GL_RGBA4 GL_RGBA
+#define GL_RGBA2 GL_RGBA
+// [BB] Added compressed texture formats.
+#define GL_COMPRESSED_RGBA_ARB GL_RGBA
+#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT GL_RGBA
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT GL_RGBA
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT GL_RGBA
+
+
+#else
+
 #include "gl_load.h"
 
 #if defined(__APPLE__)
 	#include <OpenGL/OpenGL.h>
+#endif
+
+
 #endif
 
 #ifdef _WIN32

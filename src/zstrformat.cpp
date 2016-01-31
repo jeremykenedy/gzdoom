@@ -1034,11 +1034,17 @@ int myvsnprintf(char *buffer, size_t count, const char *format, va_list argptr)
 
 int mysnprintf(char *buffer, size_t count, const char *format, ...)
 {
+#ifdef __IOS__
+    va_list argptr;
+    va_start(argptr, format);
+    return vsnprintf(buffer,count,format,argptr);
+#else
 	va_list argptr;
 	va_start(argptr, format);
 	int len = myvsnprintf(buffer, count, format, argptr);
 	va_end(argptr);
 	return len;
+#endif
 }
 
 }

@@ -265,7 +265,7 @@ void FFlatVertexBuffer::MapVBO()
 	if (map == NULL)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-		map = (FFlatVertex*)glMapBufferRange(GL_ARRAY_BUFFER, 0, vbo_shadowdata.Size() * sizeof(FFlatVertex), 
+		map = (FFlatVertex*)glMapBufferRange(GL_ARRAY_BUFFER, 0, vbo_shadowdata.Size() * sizeof(FFlatVertex),
 			GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|GL_MAP_UNSYNCHRONIZED_BIT);
 	}
 }
@@ -359,7 +359,9 @@ void FFlatVertexBuffer::BindVBO()
 		glTexCoordPointer(2,GL_FLOAT, sizeof(FFlatVertex), &VTO->u);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#ifndef USE_GLES
 		glDisableClientState(GL_INDEX_ARRAY);
+#endif
 	}
 }
 

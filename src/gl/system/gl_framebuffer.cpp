@@ -118,11 +118,13 @@ void OpenGLFrameBuffer::InitializeState()
 {
 	static bool first=true;
 
+#ifndef USE_GLES
 	if (first)
 	{
 		ogl_LoadFunctions();
 	}
-
+#endif
+    
 	gl_LoadExtensions();
 	Super::InitializeState();
 	if (first)
@@ -142,17 +144,24 @@ void OpenGLFrameBuffer::InitializeState()
 	glEnable(GL_DITHER);
 	glEnable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
+
 	glDisable(GL_POLYGON_OFFSET_FILL);
+#ifndef USE_GLES
 	glEnable(GL_POLYGON_OFFSET_LINE);
+#endif
 	glEnable(GL_BLEND);
+#ifndef USE_GLES
 	glEnable(GL_DEPTH_CLAMP_NV);
+#endif
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_LINE_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glAlphaFunc(GL_GEQUAL,0.5f);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+#ifndef USE_GLES
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+#endif
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	// This was to work around a bug in some older driver. Probably doesn't make sense anymore.

@@ -285,7 +285,9 @@ void FVoxelVertexBuffer::BindVBO()
 	glTexCoordPointer(2,GL_FLOAT, sizeof(FVoxelVertex), &VVO->u);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#ifndef USE_GLES
 	glEnableClientState(GL_INDEX_ARRAY);
+#endif
 }
 
 
@@ -524,7 +526,11 @@ void FVoxelModel::RenderFrame(FTexture * skin, int frame, int cm, int translatio
 	if (mVBO != NULL)
 	{
 		mVBO->BindVBO();
+#ifdef USE_GLES
+        glDrawElements(GL_QUADS, mIndices.Size(), GL_UNSIGNED_SHORT, 0);
+#else
 		glDrawElements(GL_QUADS, mIndices.Size(), mVBO->IsInt()? GL_UNSIGNED_INT:GL_UNSIGNED_SHORT, 0);
+#endif
 		GLRenderer->mVBO->BindVBO();
 		return;
 	}

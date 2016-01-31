@@ -71,9 +71,10 @@
 #include "m_fixed.h"
 #include "g_level.h"
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 #include <ApplicationServices/ApplicationServices.h>
 #endif // __APPLE__
+
 
 EXTERN_CVAR (String, language)
 
@@ -194,7 +195,7 @@ void STACK_ARGS I_FatalError (const char *error, ...)
 		index = vsnprintf (errortext, MAX_ERRORTEXT, error, argptr);
 		va_end (argptr);
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 		Mac_I_FatalError(errortext);
 #endif // __APPLE__		
 		
@@ -501,7 +502,7 @@ int I_PickIWad (WadStuff *wads, int numwads, bool showwin, int defaultiwad)
 	{
 		return I_PickIWad_Gtk (wads, numwads, showwin, defaultiwad);
 	}
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && !defined(__IOS__)
 	return I_PickIWad_Cocoa (wads, numwads, showwin, defaultiwad);
 #endif
 	
@@ -530,7 +531,7 @@ bool I_WriteIniFailed ()
 
 static const char *pattern;
 
-#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED < 1080
+#if defined(__APPLE__) && !defined(__IOS__) && MAC_OS_X_VERSION_MAX_ALLOWED < 1080
 static int matchfile (struct dirent *ent)
 #else
 static int matchfile (const struct dirent *ent)
@@ -601,7 +602,7 @@ int I_FindAttr (findstate_t *fileinfo)
 	return 0;
 }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 static PasteboardRef s_clipboard;
 
 static CFDataRef GetPasteboardData(const PasteboardItemID itemID, const CFStringRef flavorType)
@@ -634,7 +635,7 @@ void I_PutInClipboard (const char *str)
 		}
 		*/
 	}
-#elif defined __APPLE__
+#elif defined(__APPLE__) && !defined(__IOS__)
 	if (NULL == s_clipboard)
 	{
 		PasteboardCreate(kPasteboardClipboard, &s_clipboard);
@@ -672,7 +673,7 @@ FString I_GetFromClipboard (bool use_primary_selection)
 			}
 		}
 	}
-#elif defined __APPLE__
+#elif defined(__APPLE__) && !defined(__IOS__)
 	FString result;
 
 	if (NULL == s_clipboard)
@@ -764,3 +765,11 @@ TArray<FString> I_GetGogPaths()
     // GOG's Doom games are Windows only at the moment
     return TArray<FString>();
 }
+
+#ifdef __IOS__
+TArray<FString> I_GetSteamPath()
+{
+    // GOG's Doom games are Windows only at the moment
+    return TArray<FString>();
+}
+#endif

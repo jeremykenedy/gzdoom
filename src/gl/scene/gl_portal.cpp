@@ -199,7 +199,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 				glDepthMask(false);							// don't write to Z-buffer!
 				if (!NeedDepthBuffer()) doquery = false;		// too much overhead and nothing to gain.
 				else if (gl_noquery) doquery = false;
-
+#ifndef USE_GLES
 				// If occlusion query is supported let's use it to avoid rendering portals that aren't visible
 				if (!QueryObject) glGenQueries(1, &QueryObject);
 				if (QueryObject)
@@ -207,11 +207,11 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 					glBeginQuery(GL_SAMPLES_PASSED_ARB, QueryObject);
 				}
 				else doquery = false;	// some kind of error happened
-
+#endif
 				DrawPortalStencil();
-
+#ifndef USE_GLES
 				glEndQuery(GL_SAMPLES_PASSED_ARB);
-
+#endif
 				// Clear Z-buffer
 				glStencilFunc(GL_EQUAL, recursion + 1, ~0);		// draw sky into stencil
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);		// this stage doesn't modify the stencil
@@ -227,9 +227,9 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 				glDepthRange(0, 1);
 
 				GLuint sampleCount;
-
+#ifndef USE_GLES
 				glGetQueryObjectuiv(QueryObject, GL_QUERY_RESULT_ARB, &sampleCount);
-
+#endif
 				if (sampleCount == 0) 	// not visible
 				{
 					// restore default stencil op.
@@ -610,9 +610,9 @@ void GLSkyboxPortal::DrawContents()
 	extralight = 0;
 
 	PlaneMirrorMode=0;
-
+#ifndef USE_GLES
 	glDisable(GL_DEPTH_CLAMP_NV);
-
+#endif
 	fixedvec3 viewpos = origin->InterpolatedPosition(r_TicFrac);
 	viewx = viewpos.x;
 	viewy = viewpos.y;
@@ -642,7 +642,9 @@ void GLSkyboxPortal::DrawContents()
 	GLRenderer->DrawScene();
 	origin->flags&=~MF_JUSTHIT;
 	inskybox=false;
+#ifndef USE_GLES
 	glEnable(GL_DEPTH_CLAMP_NV);
+#endif
 	skyboxrecursion--;
 
 	PlaneMirrorMode=old_pm;

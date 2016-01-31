@@ -16,9 +16,15 @@
 
 #include <SDL.h>
 
+#ifdef USE_GLES
+
+#else
+
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #endif // __APPLE__
+
+#endif
 
 // MACROS ------------------------------------------------------------------
 
@@ -718,7 +724,7 @@ void SDLFB::ResetSDLRenderer ()
 
 void SDLFB::SetVSync (bool vsync)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 	if (CGLContextObj context = CGLGetCurrentContext())
 	{
 		// Apply vsync for native backend only (where OpenGL context is set)

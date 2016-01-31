@@ -275,7 +275,9 @@ void MessagePump (const SDL_Event &sev)
 		{
 			case SDL_WINDOWEVENT_FOCUS_GAINED:
 			case SDL_WINDOWEVENT_FOCUS_LOST:
-				S_SetSoundPaused(sev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED);
+#ifndef __IOS__ //else pauses always
+                S_SetSoundPaused(sev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED);
+#endif
 				break;
 		}
 		break;
@@ -463,7 +465,7 @@ void MessagePump (const SDL_Event &sev)
 void I_GetEvent ()
 {
 	SDL_Event sev;
-	
+
 	while (SDL_PollEvent (&sev))
 	{
 		MessagePump (sev);

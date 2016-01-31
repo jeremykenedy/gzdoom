@@ -8,9 +8,11 @@
 #endif
 #ifdef __APPLE__
 #include <TargetConditionals.h>
-#if TARGET_CPU_ARM || TARGET_CPU_ARM64
+#if TARGET_CPU_ARM || TARGET_CPU_ARM64 
+#ifndef __IOS__
 #include <arm_neon.h>
 #define RESAMPLER_NEON
+#endif
 #endif
 #endif
 

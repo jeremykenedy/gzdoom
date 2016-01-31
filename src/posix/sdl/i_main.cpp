@@ -237,6 +237,21 @@ void I_ShutdownJoysticks();
 
 int main (int argc, char **argv)
 {
+    
+    argc = 7;
+    argv = (char **)malloc((argc+1) * sizeof(char *));
+    argv[0] = "Doom";
+   argv[1] = "-width";
+      argv[2] = "1136";
+      argv[3] = "-height";
+      argv[4] = "640";
+    argv[5] = "-file";
+    argv[6] = "brutalv20b.pk3";
+    
+    
+  
+    
+    
 #if !defined (__APPLE__)
 	{
 		int s[4] = { SIGSEGV, SIGILL, SIGFPE, SIGBUS };
@@ -322,7 +337,7 @@ int main (int argc, char **argv)
 		if (error.GetMessage ())
 			fprintf (stderr, "%s\n", error.GetMessage ());
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 		Mac_I_FatalError(error.GetMessage());
 #endif // __APPLE__
 

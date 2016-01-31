@@ -108,6 +108,10 @@
 #include "r_renderer.h"
 #include "p_local.h"
 
+#ifdef __MOBILE__
+#include "touch_interface.h"
+#endif
+
 EXTERN_CVAR(Bool, hud_althud)
 void DrawHUD();
 
@@ -2210,6 +2214,8 @@ void D_DoomMain (void)
 	int argcount;	
 	FIWadManager *iwad_man;
 
+
+    
 	// +logfile gets checked too late to catch the full startup log in the logfile so do some extra check for it here.
 	FString logfile = Args->TakeValue("+logfile");
 	if (logfile.IsNotEmpty())
@@ -2365,6 +2371,7 @@ void D_DoomMain (void)
 
 		Printf ("V_Init: allocate screen.\n");
 		V_Init (!!restart);
+        
 
 		// Base systems have been inited; enable cvar callbacks
 		FBaseCVar::EnableCallbacks ();

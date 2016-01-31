@@ -1540,7 +1540,7 @@ void V_Init (bool restart)
 
 		if ( (i = Args->CheckValue ("-bits")) )
 			bits = atoi (i);
-
+        
 		if (width == 0)
 		{
 			if (height == 0)
@@ -1576,8 +1576,15 @@ void V_Init (bool restart)
 	BuildTransTable (GPalette.BaseColors);
 }
 
+extern "C" void jwzgles_reset (void);
+
 void V_Init2()
 {
+    
+#ifdef USE_GLES
+    jwzgles_reset ();
+#endif
+    
 	assert (screen->IsKindOf(RUNTIME_CLASS(DDummyFrameBuffer)));
 	int width = screen->GetWidth();
 	int height = screen->GetHeight();
@@ -1593,6 +1600,7 @@ void V_Init2()
 	I_InitGraphics();
 	I_ClosestResolution (&width, &height, 8);
 
+    
 	if (!Video->SetResolution (width, height, 8))
 		I_FatalError ("Could not set resolution to %d x %d x %d", width, height, 8);
 	else

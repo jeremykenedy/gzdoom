@@ -76,6 +76,7 @@ extern long gl_frameMS;
 
 bool FShader::Load(const char * name, const char * vert_prog_lump, const char * frag_prog_lump, const char * proc_prog_lump, const char * defines)
 {
+#ifndef USE_GLES
 	static char buffer[10000];
 	FString error;
 
@@ -195,6 +196,7 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 		glUseProgram(0);
 		return !!linked;
 	}
+#endif
 	return false;
 }
 
@@ -206,9 +208,11 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 FShader::~FShader()
 {
+#ifndef USE_GLES
 	glDeleteProgram(hShader);
 	glDeleteShader(hVertProg);
 	glDeleteShader(hFragProg);
+#endif
 }
 
 
@@ -220,8 +224,10 @@ FShader::~FShader()
 
 bool FShader::Bind(float Speed)
 {
+#ifndef USE_GLES
 	GLRenderer->mShaderManager->SetActiveShader(this);
 	if (timer_index >=0 && Speed > 0.f) glUniform1f(timer_index, gl_frameMS*Speed/1000.f);
+#endif
 	return true;
 }
 
@@ -382,8 +388,9 @@ FShaderContainer::~FShaderContainer()
 
 FShader *FShaderContainer::Bind(int cm, bool glowing, float Speed, bool lights)
 {
-	FShader *sh=NULL;
 
+	FShader *sh=NULL;
+#ifndef USE_GLES
 	if (cm == CM_FOGLAYER)
 	{
 		if (shader_fl)
@@ -422,7 +429,9 @@ FShader *FShaderContainer::Bind(int cm, bool glowing, float Speed, bool lights)
 			}
 		}
 	}
+#endif
 	return sh;
+
 }
 
 
@@ -603,12 +612,14 @@ int FShaderManager::Find(const char * shn)
 
 void FShaderManager::SetActiveShader(FShader *sh)
 {
+#ifndef USE_GLES
 	// shadermodel needs to be tested here because without it UseProgram will be NULL.
 	if (gl.shadermodel > 0 && mActiveShader != sh)
 	{
 		glUseProgram(sh == NULL? 0 : sh->GetHandle());
 		mActiveShader = sh;
 	}
+#endif
 }
 
 //==========================================================================

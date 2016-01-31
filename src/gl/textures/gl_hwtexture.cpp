@@ -71,8 +71,18 @@ unsigned int FHardwareTexture::lastbound[FHardwareTexture::MAX_TEXTURES];
 //===========================================================================
 int FHardwareTexture::GetTexDimension(int value)
 {
+#ifdef USE_GLES
+    int i=1;
+    
+    while (i<value) i+=i;
+    
+    if (i>2048) i = 2048; //Dont go above this size on mobiles!
+    
+    return i;
+#else
 	if (value > gl.max_texturesize) return gl.max_texturesize;
 	return value;
+#endif
 }
 
 
@@ -173,7 +183,7 @@ void FHardwareTexture::Resize(int width, int height, unsigned char *src_data, un
 	}
 }
 
-
+ extern "C" void mobile_init();
 //===========================================================================
 // 
 //	Loads the texture image into the hardware
@@ -190,6 +200,15 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 	bool deletebuffer=false;
 	bool use_mipmapping = TexFilter[gl_texture_filter].mipmapping;
 
+#ifdef __MOBILE__
+    static int temp = 0;
+    if (!temp)
+    {
+        mobile_init();
+        temp = 1;
+    }
+#endif
+    
 	if (alphatexture) texformat=GL_ALPHA8;
 	else if (forcenocompression) texformat = GL_RGBA8;
 	if (glTexID==0) glGenTextures(1,&glTexID);
@@ -228,6 +247,30 @@ void FHardwareTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned i
 				buffer=scaledbuffer;
 			}
 		}
+#ifdef USE_GLES
+        else if ((rw > w) || ( rh > h))
+        {
+            // The image must be copied to a larger buffer
+            unsigned char * scaledbuffer=(unsigned char *)calloc(4,rw * (rh+1));
+            if (scaledbuffer)
+            {
+                for(int y=0;y<h;y++)
+                {
+                    memcpy(scaledbuffer + rw * y * 4, buffer + w * y * 4, w * 4);
+                    // duplicate the last row to eliminate texture filtering artifacts on borders!
+                    if (rw>w)
+                        memcpy(	scaledbuffer + rw * y * 4 + w * 4,
+                               scaledbuffer + rw * y * 4 + w * 4 -4, 4);
+                }
+                // also duplicate the last line for the same reason!
+                memcpy(	scaledbuffer + rw * h * 4, 	scaledbuffer + rw * (h-1) * 4, w*4 + 4);
+                
+                deletebuffer=true;
+                buffer=scaledbuffer;
+            }
+        }
+#endif
+        
 	}
 	glTexImage2D(GL_TEXTURE_2D, 0, texformat, rw, rh, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 

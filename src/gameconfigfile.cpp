@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 #include <CoreServices/CoreServices.h>
 #endif
 
@@ -101,7 +101,7 @@ FGameConfigFile::FGameConfigFile ()
 		SetSection ("IWADSearch.Directories", true);
 		SetValueForKey ("Path", ".", true);
 		SetValueForKey ("Path", "$DOOMWADDIR", true);
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__IOS__)
 		char cpath[PATH_MAX];
 		FSRef folder;
 		
