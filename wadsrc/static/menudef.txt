@@ -910,6 +910,10 @@ OptionMenu "MiscOptions"
 		Option "Merge left+right Alt/Ctrl/Shift", 		"k_mergekeys", "OnOff"
 		Option "Alt-Enter toggles fullscreen",			"k_allowfullscreentoggle", "OnOff"
 	}
+	IfOption(Mac)
+	{
+		Option "Command-F toggles fullscreen",			"k_allowfullscreentoggle", "OnOff"
+	}
 	Option "Show IWAD selection dialog",			"queryiwad", "OnOff"
 	Option "Show outdated IWAD warning",			"check_outdated_iwad", "OnOff"
 	StaticText " "
@@ -1674,6 +1678,7 @@ OptionMenu ModReplayerOptions
 	Title "MODULE REPLAYER OPTIONS"
 	Option "Replayer engine",		"mod_dumb", "ModReplayers"
 	StaticText " "
+	Slider "Master Volume",			"mod_dumb_mastervolume", 1, 16, 0.5, 1
 	Option "Sample rate",			"mod_samplerate", "SampleRates", "mod_dumb"
 	Option "Quality",				"mod_interp", "ModQuality", "mod_dumb"
 	Option "Volume ramping",		"mod_volramp", "ModVolumeRamps", "mod_dumb"

@@ -59,6 +59,7 @@
 EXTERN_CVAR(Bool,am_follow)
 EXTERN_CVAR (Int, con_scaletext)
 EXTERN_CVAR (Bool, idmypos)
+EXTERN_CVAR (Int, screenblocks)
 
 EXTERN_CVAR (Bool, am_showtime)
 EXTERN_CVAR (Bool, am_showtotaltime)
@@ -870,7 +871,7 @@ static void DrawCoordinates(player_t * CPlayer)
 
 static void DrawTime()
 {
-	if (hud_showtime <= 0 || hud_showtime > 9)
+	if (!ST_IsTimeVisible())
 	{
 		return;
 	}
@@ -937,6 +938,21 @@ static void DrawTime()
 	DrawHudText(SmallFont, hud_timecolor, timeString, hudwidth - x, y, FRACUNIT);
 }
 
+static bool IsAltHUDTextVisible()
+{
+	return hud_althud
+		&& !automapactive
+		&& (SCREENHEIGHT == viewheight)
+		&& (11 == screenblocks);
+}
+
+bool ST_IsTimeVisible()
+{
+	return IsAltHUDTextVisible()
+		&& (hud_showtime > 0) 
+		&& (hud_showtime <= 9);
+}
+
 //---------------------------------------------------------------------------
 //
 // Draw in-game latency
@@ -945,9 +961,7 @@ static void DrawTime()
 
 static void DrawLatency()
 {
-	if (hud_showlag <= 0 ||
-		(hud_showlag == 1 && !netgame) ||
-		hud_showlag > 2)
+	if (!ST_IsLatencyVisible())
 	{
 		return;
 	}
@@ -977,9 +991,17 @@ static void DrawLatency()
 
 	const int characterCount = (int)strlen(tempstr);
 	const int width = SmallFont->GetCharWidth('0') * characterCount + 2; // small offset from screen's border
-	const int height = SmallFont->GetHeight() * 2;
+	const int height = SmallFont->GetHeight() * (ST_IsTimeVisible() ? 2 : 1);
 
 	DrawHudText(SmallFont, color, tempstr, hudwidth - width, height, FRACUNIT);
+}
+
+bool ST_IsLatencyVisible()
+{
+	return IsAltHUDTextVisible()
+		&& (hud_showlag > 0)
+		&& (hud_showlag != 1 || netgame)
+		&& (hud_showlag <= 2);
 }
 
 
