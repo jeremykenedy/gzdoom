@@ -64,6 +64,7 @@
 #include "a_keys.h"
 #include "c_dispatch.h"
 #include "r_sky.h"
+#include "portal.h"
 #ifndef NO_EDATA
 #include "edata.h"
 #endif
@@ -500,7 +501,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 //
 //============================================================================
 
-static void DoSectorDamage(AActor *actor, sector_t *sec, int amount, FName type, const PClass *protectClass, int flags)
+static void DoSectorDamage(AActor *actor, sector_t *sec, int amount, FName type, PClassActor *protectClass, int flags)
 {
 	if (!(actor->flags & MF_SHOOTABLE))
 		return;
@@ -523,7 +524,7 @@ static void DoSectorDamage(AActor *actor, sector_t *sec, int amount, FName type,
 	P_DamageMobj (actor, NULL, NULL, amount, type);
 }
 
-void P_SectorDamage(int tag, int amount, FName type, const PClass *protectClass, int flags)
+void P_SectorDamage(int tag, int amount, FName type, PClassActor *protectClass, int flags)
 {
 	FSectorTagIterator itr(tag);
 	int secnum;
@@ -1198,7 +1199,7 @@ void P_InitSectorSpecial(sector_t *sector, int special, bool nothinkers)
 		break;
 			
 	case dSector_DoorCloseIn30:
-		P_SpawnDoorCloseIn30 (sector);
+		new DDoor(sector, DDoor::doorWaitClose, FRACUNIT * 2, 0, 0, 30 * TICRATE);
 		break;
 			
 	case dDamage_End:
@@ -1214,7 +1215,7 @@ void P_InitSectorSpecial(sector_t *sector, int special, bool nothinkers)
 		break;
 
 	case dSector_DoorRaiseIn5Mins:
-		P_SpawnDoorRaiseIn5Mins (sector);
+		new DDoor (sector, DDoor::doorWaitRaise, 2*FRACUNIT, TICRATE*30/7, 5*60*TICRATE, 0);
 		break;
 
 	case dFriction_Low:
@@ -1465,6 +1466,10 @@ void P_SpawnSpecials (void)
 			}
 			break;
 
+		case Line_SetPortal:
+			P_SpawnLinePortal(&lines[i]);
+			break;
+
 		// [RH] ZDoom Static_Init settings
 		case Static_Init:
 			switch (lines[i].args[1])
@@ -1536,6 +1541,7 @@ void P_SpawnSpecials (void)
 	}
 	// [RH] Start running any open scripts on this map
 	FBehavior::StaticStartTypedScripts (SCRIPT_Open, NULL, false);
+	P_FinalizePortals();
 }
 
 // killough 2/28/98:
@@ -1807,15 +1813,16 @@ static void P_SpawnScrollers(void)
 
 		// Check for undefined parameters that are non-zero and output messages for them.
 		// We don't report for specials we don't understand.
-		if (special != 0)
+		FLineSpecial *spec = P_GetLineSpecialInfo(special);
+		if (spec != NULL)
 		{
-			int max = LineSpecialsInfo[special] != NULL ? LineSpecialsInfo[special]->map_args : countof(l->args);
+			int max = spec->map_args;
 			for (unsigned arg = max; arg < countof(l->args); ++arg)
 			{
 				if (l->args[arg] != 0)
 				{
 					Printf("Line %d (type %d:%s), arg %u is %d (should be 0)\n",
-						i, special, LineSpecialsInfo[special]->name, arg+1, l->args[arg]);
+						i, special, spec->name, arg+1, l->args[arg]);
 				}
 			}
 		}

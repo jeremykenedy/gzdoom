@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ -z "${SRCROOT}" ]; then
+	echo "Error: this script must be run by Xcode"
+	exit 1
+fi
+
+echo "Generating zcc-parse.c and zcc-parse.h..."
+
+rsync -av "${SRCROOT}/tools/lemon/lempar.c" "${CONFIGURATION_BUILD_DIR}"
+rsync -av "${SRCROOT}/src/zscript/zcc-parse.lemon" "${CONFIGURATION_BUILD_DIR}"
+
+cd "${CONFIGURATION_BUILD_DIR}"
+./lemon zcc-parse.lemon

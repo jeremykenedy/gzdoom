@@ -17,6 +17,7 @@
 #include "g_level.h"
 #include "r_data/colormaps.h"
 #include "gi.h"
+#include "portal.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -895,6 +896,7 @@ void ACustomSprite::BeginPlay ()
 		renderflags |= RF_XFLIP;
 	if (cstat & 8)
 		renderflags |= RF_YFLIP;
+
 	// set face/wall/floor flags
 	renderflags |= ActorRenderFlags::FromInt (((cstat >> 4) & 3) << 12);
 }
