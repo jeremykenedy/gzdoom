@@ -53,6 +53,8 @@
 #include "m_fixed.h"
 #include "vmbuilder.h"
 
+CVAR(Int, lax_typecast, -1, CVAR_NOSET)
+
 ExpEmit::ExpEmit(VMFunctionBuilder *build, int type)
 : RegNum(build->Registers[type].Get(1)), RegType(type), Konst(false), Fixed(false)
 {
@@ -389,6 +391,17 @@ FxExpression *FxIntCast::Resolve(FCompileContext &ctx)
 			return x;
 		}
 		return this;
+	}
+	else if (lax_typecast > 0 && basex->ValueType == VAL_Name)
+	{
+	    if (basex->isConstant())
+	    {
+	        ExpVal constval = static_cast<FxConstant *>(basex)->GetValue();
+	        FxExpression *x = new FxConstant(constval.GetName().GetIndex(), ScriptPosition);
+	        delete this;
+	        return x;
+	    }
+	    return this;
 	}
 	else
 	{
