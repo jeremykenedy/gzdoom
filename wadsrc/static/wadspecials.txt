@@ -9,6 +9,11 @@
 // (script_scanner_version must be set to 0 which is default)
 // the game will automatically switch to the signed character type
 
+// Note about lax_typecast keyword:
+// If one of the matching file is found during loading of WADs
+// and the automatic detection is enabled (lax_typecast CVAR is -1)
+// the game will enable relaxed typecasts
+
 
 // Master Levels from PSN Doom Classic Complete
 3479715	   84cb8640f599c4a17c8eb526f90d2b7a    master_levels    // masterlevels.wad
@@ -67,3 +72,8 @@
 // Outdated HACX PWAD(s), see http://doomwiki.org/wiki/HACX.WAD
 21951805    1511a7032ebc834a3884cf390d7f186e    outdated_iwad    // 1.0
 22102300    b7fd2f43f3382cf012dc6b097a3cb182    outdated_iwad    // 1.1
+
+// Adventure of Square
+// Wrong argument type in A_PlaySound() calls
+22540776    387bd51fcaf1915471a7e57889df192b    lax_typecast     // 1.0
+25970107    8efb8a775233c42938b26f9797826ba9    lax_typecast     // 1.2
