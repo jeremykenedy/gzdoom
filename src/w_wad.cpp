@@ -1163,7 +1163,7 @@ void FWadCollection::ApplyWadSpecials()
 {
 	const WadSpecialList specials = PrepareWadSpecials();
 
-	for (unsigned int wadIndex = 0, wadCount = Files.Size();
+	for (unsigned int wadIndex = 1, wadCount = Files.Size();
 		 wadIndex < wadCount;
 		 ++wadIndex)
 	{
