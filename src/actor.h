@@ -572,31 +572,11 @@ struct FStrifeDialogueNode;
 struct fixedvec3
 {
 	fixed_t x, y, z;
-
-	operator FVector3()
-	{
-		return FVector3(FIXED2FLOAT(x), FIXED2FLOAT(y), FIXED2FLOAT(z));
-	}
-
-	operator TVector3<double>()
-	{
-		return TVector3<double>(FIXED2DBL(x), FIXED2DBL(y), FIXED2DBL(z));
-	}
 };
 
 struct fixedvec2
 {
 	fixed_t x, y;
-
-	operator FVector2()
-	{
-		return FVector2(FIXED2FLOAT(x), FIXED2FLOAT(y));
-	}
-
-	operator TVector2<double>()
-	{
-		return TVector2<double>(FIXED2DBL(x), FIXED2DBL(y));
-	}
 };
 
 class DDropItem : public DObject
@@ -646,6 +626,8 @@ public:
 
 	// Returns true if this actor is within melee range of its target
 	bool CheckMeleeRange();
+
+	bool CheckNoDelay();
 
 	virtual void BeginPlay();			// Called immediately after the actor is created
 	virtual void PostBeginPlay();		// Called immediately before the actor's first tick
@@ -883,13 +865,13 @@ public:
 	// more precise, but slower version, being used in a few places
 	fixed_t Distance2D(AActor *other, bool absolute = false)
 	{
-		return xs_RoundToInt(FVector2(X() - other->X(), Y() - other->Y()).Length());
+		return xs_RoundToInt(TVector2<double>(X() - other->X(), Y() - other->Y()).Length());
 	}
 
 	// a full 3D version of the above
 	fixed_t Distance3D(AActor *other, bool absolute = false)
 	{
-		return xs_RoundToInt(FVector3(X() - other->X(), Y() - other->Y(), Z() - other->Z()).Length());
+		return xs_RoundToInt(TVector3<double>(X() - other->X(), Y() - other->Y(), Z() - other->Z()).Length());
 	}
 
 	angle_t AngleTo(AActor *other, bool absolute = false) const
@@ -1041,6 +1023,7 @@ public:
 	SDWORD			reactiontime;	// if non 0, don't attack yet; used by
 									// player to freeze a bit after teleporting
 	SDWORD			threshold;		// if > 0, the target will be chased
+	SDWORD			DefThreshold;	// [MC] Default threshold which the actor will reset its threshold to after switching targets
 									// no matter what (even if shot)
 	player_t		*player;		// only valid if type of APlayerPawn
 	TObjPtr<AActor>	LastLookActor;	// Actor last looked for (if TIDtoHate != 0)

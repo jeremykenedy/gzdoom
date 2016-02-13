@@ -63,10 +63,6 @@
 #define O_BINARY 0
 #endif
 
-#ifndef FIXED2FLOAT
-#define FIXED2FLOAT(f)			(((float)(f))/(float)65536)
-#endif
-
 #define NORM_PITCH				128
 #define NORM_PRIORITY			64
 #define NORM_SEP				0
@@ -1953,7 +1949,7 @@ static void S_SetListener(SoundListener &listener, AActor *listenactor)
 {
 	if (listenactor != NULL)
 	{
-		listener.angle = (float)(listenactor->angle) * ((float)PI / 2147483648.f);
+		listener.angle = ANGLE2RADF(listenactor->angle);
 		/*
 		listener.velocity.X = listenactor->velx * (TICRATE/65536.f);
 		listener.velocity.Y = listenactor->velz * (TICRATE/65536.f);

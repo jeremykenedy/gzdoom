@@ -1012,7 +1012,7 @@ void R_ProjectSprite (AActor *thing, int fakeside, F3DFloor *fakefloor, F3DFloor
 		if (voxelspin != 0)
 		{
 			double ang = double(I_FPSTime()) * voxelspin / 1000;
-			vis->angle -= angle_t(ang * (4294967296.f / 360));
+			vis->angle -= FLOAT2ANGLE(ang);
 		}
 
 		vis->vx = viewx;
@@ -1631,8 +1631,8 @@ void R_DrawRemainingPlayerSprites()
 			screen->DrawTexture(vis->pic,
 				viewwindowx + VisPSpritesX1[i],
 				viewwindowy + viewheight/2 - (vis->texturemid / 65536.0) * (vis->yscale / 65536.0) - 0.5,
-				DTA_DestWidthF, FIXED2FLOAT(vis->pic->GetWidth() * vis->xscale),
-				DTA_DestHeightF, FIXED2FLOAT(vis->pic->GetHeight() * vis->yscale),
+				DTA_DestWidthF, FIXED2DBL(vis->pic->GetWidth() * vis->xscale),
+				DTA_DestHeightF, FIXED2DBL(vis->pic->GetHeight() * vis->yscale),
 				DTA_Translation, TranslationToTable(vis->Translation),
 				DTA_FlipX, flip,
 				DTA_TopOffset, 0,

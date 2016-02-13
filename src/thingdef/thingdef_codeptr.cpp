@@ -219,6 +219,76 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, IsPointerEqual)
 
 //==========================================================================
 //
+// CountInv
+//
+// NON-ACTION function to return the inventory count of an item.
+//
+//==========================================================================
+
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, CountInv)
+{
+	if (numret > 0)
+	{
+		assert(ret != NULL);
+		PARAM_PROLOGUE;
+		PARAM_OBJECT(self, AActor);
+		PARAM_CLASS(itemtype, AInventory);
+		PARAM_INT_OPT(pick_pointer)		{ pick_pointer = AAPTR_DEFAULT; }
+
+		self = COPY_AAPTR(self, pick_pointer);
+		if (self == NULL || itemtype == NULL)
+		{
+			ret->SetInt(0);
+		}
+		else
+		{
+			AInventory *item = self->FindInventory(itemtype);
+			ret->SetInt(item ? item->Amount : 0);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+//==========================================================================
+//
+// GetDistance
+//
+// NON-ACTION function to get the distance in double.
+//
+//==========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, GetDistance)
+{
+	if (numret > 0)
+	{
+		assert(ret != NULL);
+		PARAM_PROLOGUE;
+		PARAM_OBJECT(self, AActor);
+		PARAM_BOOL(checkz);
+		PARAM_INT_OPT(ptr) { ptr = AAPTR_TARGET; }
+
+		AActor *target = COPY_AAPTR(self, ptr);
+
+		if (!target || target == self)
+		{
+			ret->SetFloat(0);
+		}
+		else
+		{
+			fixedvec3 diff = self->Vec3To(target);
+			if (checkz)
+				diff.z += (target->height - self->height) / 2;
+
+			const double length = TVector3<double>(FIXED2DBL(diff.x), FIXED2DBL(diff.y), (checkz) ? FIXED2DBL(diff.z) : 0).Length();
+			ret->SetFloat(length);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+//==========================================================================
+//
 // A_RearrangePointers
 //
 // Allow an actor to change its relationship to other actors by
@@ -1117,8 +1187,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 				{
 					if (CMF_OFFSETPITCH & flags)
 					{
-							FVector2 velocity (missile->velx, missile->vely);
-							pitch += R_PointToAngle2(0,0, (fixed_t)velocity.Length(), missile->velz);
+							TVector2<double> velocity (missile->velx, missile->vely);
+							pitch += R_PointToAngle2(0,0, xs_CRoundToInt(velocity.Length()), missile->velz);
 					}
 					ang = pitch >> ANGLETOFINESHIFT;
 					missilespeed = abs(FixedMul(finecosine[ang], missile->Speed));
@@ -1126,8 +1196,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CustomMissile)
 				}
 				else
 				{
-					FVector2 velocity (missile->velx, missile->vely);
-					missilespeed = (fixed_t)velocity.Length();
+					TVector2<double> velocity (missile->velx, missile->vely);
+					missilespeed = xs_CRoundToInt(velocity.Length());
 				}
 
 				if (CMF_SAVEPITCH & flags)
@@ -1533,8 +1603,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FireCustomMissile)
 			{
 				// This original implementation is to aim straight ahead and then offset
 				// the angle from the resulting direction. 
-				FVector3 velocity(misl->velx, misl->vely, 0);
-				fixed_t missilespeed = (fixed_t)velocity.Length();
+				TVector3<double> velocity(misl->velx, misl->vely, 0);
+				fixed_t missilespeed = xs_CRoundToInt(velocity.Length());
 				misl->angle += angle;
 				angle_t an = misl->angle >> ANGLETOFINESHIFT;
 				misl->velx = FixedMul (missilespeed, finecosine[an]);
@@ -3202,7 +3272,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CountdownArg)
 	PARAM_INT(argnum);
 	PARAM_STATE_OPT(state)	{ state = self->FindState(NAME_Death); }
 
-	if (argnum > 0 && argnum < (int)countof(self->args))
+	if (argnum >= 0 && argnum < (int)countof(self->args))
 	{
 		if (!self->args[argnum]--)
 		{
@@ -3277,7 +3347,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Burst)
 	// [RH] Do some stuff to make this more useful outside Hexen
 	if (self->flags4 & MF4_BOSSDEATH)
 	{
-		CALL_ACTION(A_BossDeath, self);
+		A_BossDeath(self);
 	}
 	A_Unblock(self, true);
 
@@ -6360,6 +6430,35 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetRipMax)
 	return 0;
 }
 
+//===========================================================================
+//
+// A_SetChaseThreshold(int threshold, bool def, int ptr)
+//
+// Sets the current chase threshold of the actor (pointer). If def is true,
+// changes the default threshold which the actor resets to once it switches
+// targets and doesn't have the +QUICKTORETALIATE flag.
+//===========================================================================
+DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SetChaseThreshold)
+{
+	PARAM_ACTION_PROLOGUE;
+	PARAM_INT(threshold);
+	PARAM_BOOL_OPT(def) { def = false; }
+	PARAM_INT_OPT(ptr) { ptr = AAPTR_DEFAULT; }
+
+
+	AActor *mobj = COPY_AAPTR(self, ptr);
+	if (!mobj)
+	{
+		ACTION_SET_RESULT(false);
+		return 0;
+	}
+	if (def)
+		mobj->DefThreshold = (threshold >= 0) ? threshold : 0;
+	else
+		mobj->threshold = (threshold >= 0) ? threshold : 0;
+	return 0;
+}
+
 //==========================================================================
 //
 // A_CheckProximity(jump, classname, distance, count, flags, ptr)
@@ -6390,8 +6489,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 	PARAM_CLASS(classname, AActor);
 	PARAM_FIXED(distance);
 	PARAM_INT_OPT(count) { count = 1; }
-	PARAM_INT(flags) { flags = 0; }
-	PARAM_INT(ptr) { ptr = AAPTR_DEFAULT; }
+	PARAM_INT_OPT(flags) { flags = 0; }
+	PARAM_INT_OPT(ptr) { ptr = AAPTR_DEFAULT; }
 
 	ACTION_SET_RESULT(false); //No inventory chain results please.
 
@@ -6423,10 +6522,14 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_CheckProximity)
 		if (mo == ref) //Don't count self.
 			continue;
 
+		// no unmorphed versions of currently morphed players.
+		if (mo->flags & MF_UNMORPHED)
+			continue;
+
 		//Check inheritance for the classname. Taken partly from CheckClass DECORATE function.
 		if (flags & CPXF_ANCESTOR)
 		{
-			if (!(mo->GetClass()->IsAncestorOf(classname)))
+			if (!(mo->IsKindOf(classname)))
 				continue;
 		}
 		//Otherwise, just check for the regular class name.
@@ -6648,8 +6751,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_FaceMovementDirection)
 	if (!(flags & FMDF_NOPITCH))
 	{
 		fixed_t current = mobj->pitch;
-		const FVector2 velocity(mobj->velx, mobj->vely);
-		const fixed_t pitch = R_PointToAngle2(0, 0, (fixed_t)velocity.Length(), -mobj->velz);
+		const TVector2<double> velocity(mobj->velx, mobj->vely);
+		const fixed_t pitch = R_PointToAngle2(0, 0, xs_CRoundToInt(velocity.Length()), -mobj->velz);
 		if (pitchlimit > 0)
 		{
 			// [MC] angle_t for pitchlimit was required because otherwise

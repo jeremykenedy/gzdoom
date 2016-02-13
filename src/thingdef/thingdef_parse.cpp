@@ -79,7 +79,7 @@ FxExpression *ParseParameter(FScanner &sc, PClassActor *cls, PType *type, bool c
 	}
 	else if (type == TypeSInt32 || type == TypeFloat64)
 	{
-		x = ParseExpression (sc, cls);
+		x = ParseExpression (sc, cls, constant);
 		if (constant && !x->isConstant())
 		{
 			sc.ScriptMessage("Default parameter must be constant.");
@@ -88,17 +88,11 @@ FxExpression *ParseParameter(FScanner &sc, PClassActor *cls, PType *type, bool c
 		// Do automatic coercion between ints and floats.
 		if (type == TypeSInt32)
 		{
-			if (x->ValueType != VAL_Int)
-			{
-				x = new FxIntCast(x);
-			}
+			x = new FxIntCast(x);
 		}
 		else
 		{
-			if (x->ValueType != VAL_Float)
-			{
-				x = new FxFloatCast(x);
-			}
+			x = new FxFloatCast(x);
 		}
 	}
 	else if (type == TypeName || type == TypeString)
@@ -190,7 +184,7 @@ static void ParseConstant (FScanner &sc, PSymbolTable *symt, PClassActor *cls)
 		sc.MustGetToken(TK_Identifier);
 		FName symname = sc.String;
 		sc.MustGetToken('=');
-		FxExpression *expr = ParseExpression (sc, cls);
+		FxExpression *expr = ParseExpression (sc, cls, true);
 		sc.MustGetToken(';');
 
 		if (!expr->isConstant())
@@ -248,7 +242,7 @@ static void ParseEnum (FScanner &sc, PSymbolTable *symt, PClassActor *cls)
 		FName symname = sc.String;
 		if (sc.CheckToken('='))
 		{
-			FxExpression *expr = ParseExpression (sc, cls);
+			FxExpression *expr = ParseExpression (sc, cls, true);
 			if (!expr->isConstant())
 			{
 				sc.ScriptMessage("'%s' must be constant", symname.GetChars());
@@ -536,7 +530,7 @@ static void ParseUserVariable (FScanner &sc, PSymbolTable *symt, PClassActor *cl
 
 	if (sc.CheckToken('['))
 	{
-		FxExpression *expr = ParseExpression(sc, cls);
+		FxExpression *expr = ParseExpression(sc, cls, true);
 		if (!expr->isConstant())
 		{
 			sc.ScriptMessage("Array size must be a constant");
@@ -831,7 +825,7 @@ static bool ParsePropertyParams(FScanner &sc, FPropertyInfo *prop, AActor *defau
 
 			case 'F':
 				sc.MustGetFloat();
-				conv.f = float(sc.Float);
+				conv.d = sc.Float;
 				break;
 
 			case 'Z':	// an optional string. Does not allow any numerical value.

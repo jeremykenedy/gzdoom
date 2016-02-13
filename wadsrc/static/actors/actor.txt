@@ -31,13 +31,19 @@ ACTOR Actor native //: Thinker
 	RipperLevel 0
 	RipLevelMin 0
 	RipLevelMax 0
+	DefThreshold 100
+	BloodType "Blood", "BloodSplatter", "AxeBlood"
+	ExplosionDamage 128
+	MissileHeight 32
+	
 
 	// Functions
 	native bool CheckClass(class<Actor> checkclass, int ptr_select = AAPTR_DEFAULT, bool match_superclass = false);
 	native bool IsPointerEqual(int ptr_select1, int ptr_select2);
+	native int	CountInv(class<Inventory> itemtype, int ptr_select = AAPTR_DEFAULT);
+	native float GetDistance(bool checkz, int ptr = AAPTR_DEFAULT);
 
 	// Action functions
-
 	// Meh, MBF redundant functions. Only for DeHackEd support.
 	action native A_Turn(float angle = 0);
 	action native A_LineEffect(int boomspecial = 0, int tag = 0);
@@ -144,7 +150,7 @@ ACTOR Actor native //: Thinker
 	action native A_SkullPop(class<PlayerChunk> skulltype = "BloodySkull");
 	action native A_CheckPlayerDone();
 
-	action native A_Wander();
+	action native A_Wander(int flags = 0);
 	action native A_Look2();
 	action native A_TossGib();
 	action native A_SentinelBob();
@@ -226,7 +232,7 @@ ACTOR Actor native //: Thinker
 	action native A_JumpIfInTargetInventory(class<Inventory> itemtype, int amount, state label, int forward_ptr = AAPTR_DEFAULT);
 	action native A_GiveToTarget(class<Inventory> itemtype, int amount = 0, int forward_ptr = AAPTR_DEFAULT);
 	action native A_TakeFromTarget(class<Inventory> itemtype, int amount = 0, int flags = 0, int forward_ptr = AAPTR_DEFAULT);
-	action native A_RadiusGive(class<Inventory> itemtype, int distance, int flags, int amount = 0, class<Actor> filter = "None", name species = "None", int mindist = 0);
+	action native A_RadiusGive(class<Inventory> itemtype, float distance, int flags, int amount = 0, class<Actor> filter = "None", name species = "None", int mindist = 0);
 	action native A_CheckSpecies(state jump, name species = "", int ptr = AAPTR_DEFAULT);
 	action native A_CountdownArg(int argnum, state targstate = "");
 	action native A_CustomMeleeAttack(int damage = 0, sound meleesound = "", sound misssound = "", name damagetype = "none", bool bleed = true);
@@ -307,6 +313,7 @@ ACTOR Actor native //: Thinker
 	action native A_SetRipperLevel(int level);
 	action native A_SetRipMin(int min);
 	action native A_SetRipMax(int max);
+	action native A_SetChaseThreshold(int threshold, bool def = false, int ptr = AAPTR_DEFAULT);
 	action native A_CheckProximity(state jump, class<Actor> classname, float distance, int count = 1, int flags = 0, int ptr = AAPTR_DEFAULT);
 	action native A_CheckBlock(state block, int flags = 0, int ptr = AAPTR_DEFAULT);
 	action native A_CheckSightOrRange(float distance, state label, bool two_dimension = false);

@@ -515,10 +515,10 @@ PClassPlayerPawn::PClassPlayerPawn()
 	ColorRangeEnd = 0;
 }
 
-void PClassPlayerPawn::Derive(PClass *newclass)
+void PClassPlayerPawn::DeriveData(PClass *newclass)
 {
 	assert(newclass->IsKindOf(RUNTIME_CLASS(PClassPlayerPawn)));
-	Super::Derive(newclass);
+	Super::DeriveData(newclass);
 	PClassPlayerPawn *newp = static_cast<PClassPlayerPawn *>(newclass);
 	size_t i;
 
@@ -579,6 +579,16 @@ bool PClassPlayerPawn::GetPainFlash(FName type, PalEntry *color) const
 		info = dyn_cast<PClassPlayerPawn>(info->ParentClass);
 	}
 	return false;
+}
+
+void PClassPlayerPawn::ReplaceClassRef(PClass *oldclass, PClass *newclass)
+{
+	Super::ReplaceClassRef(oldclass, newclass);
+	APlayerPawn *def = (APlayerPawn*)Defaults;
+	if (def != NULL)
+	{
+		if (def->FlechetteType == oldclass) def->FlechetteType = static_cast<PClassInventory *>(newclass);
+	}
 }
 
 //===========================================================================
@@ -2739,13 +2749,13 @@ void P_PredictionLerpReset()
 
 bool P_LerpCalculate(PredictPos from, PredictPos to, PredictPos &result, float scale)
 {
-	FVector3 vecFrom(FIXED2DBL(from.x), FIXED2DBL(from.y), FIXED2DBL(from.z));
-	FVector3 vecTo(FIXED2DBL(to.x), FIXED2DBL(to.y), FIXED2DBL(to.z));
-	FVector3 vecResult;
+	TVector3<double> vecFrom(FIXED2DBL(from.x), FIXED2DBL(from.y), FIXED2DBL(from.z));
+	TVector3<double> vecTo(FIXED2DBL(to.x), FIXED2DBL(to.y), FIXED2DBL(to.z));
+	TVector3<double> vecResult;
 	vecResult = vecTo - vecFrom;
 	vecResult *= scale;
 	vecResult = vecResult + vecFrom;
-	FVector3 delta = vecResult - vecTo;
+	TVector3<double> delta = vecResult - vecTo;
 
 	result.x = FLOAT2FIXED(vecResult.X);
 	result.y = FLOAT2FIXED(vecResult.Y);

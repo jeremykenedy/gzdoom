@@ -269,7 +269,7 @@ void FWadCollection::AddFile (const char *filename, FileReader *wadinfo)
 		}
 	}
 
-	Printf (" adding %s", filename);
+	if (!batchrun) Printf (" adding %s", filename);
 	startlump = NumLumps;
 
 	FResourceFile *resfile;

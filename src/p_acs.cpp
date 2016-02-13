@@ -4561,7 +4561,7 @@ bool GetVarAddrType(AActor *self, FName varname, int index, void *&addr, PType *
 {
 	PField *var = dyn_cast<PField>(self->GetClass()->Symbols.FindSymbol(varname, true));
 	PArray *arraytype;
-	BYTE *baddr = reinterpret_cast<BYTE *>(self);
+	BYTE *baddr = reinterpret_cast<BYTE *>(self) + var->Offset;
 
 	if (var == NULL || (var->Flags & VARF_Native))
 	{
@@ -7782,8 +7782,12 @@ scriptwait:
 						break;
 
 					case PRINTNAME_LEVEL:
-						work += level.MapName;
-						break;
+					{
+						FString uppername = level.MapName;
+						uppername.ToUpper();
+						work += uppername;
+						break; 
+					}
 
 					case PRINTNAME_SKILL:
 						work += G_SkillName();

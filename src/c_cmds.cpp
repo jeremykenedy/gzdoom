@@ -456,9 +456,9 @@ CCMD (exec)
 	}
 }
 
-void execLogfile(const char *fn)
+void execLogfile(const char *fn, bool append)
 {
-	if ((Logfile = fopen(fn, "w")))
+	if ((Logfile = fopen(fn, append? "a" : "w")))
 	{
 		const char *timestr = myasctime();
 		Printf("Log started: %s\n", timestr);
@@ -482,7 +482,7 @@ CCMD (logfile)
 
 	if (argv.argc() >= 2)
 	{
-		execLogfile(argv[1]);
+		execLogfile(argv[1], argv.argc() >=3? !!argv[2]:false);
 	}
 }
 
@@ -1084,7 +1084,7 @@ CCMD(currentpos)
 	if(mo)
 	{
 		Printf("Current player position: (%1.3f,%1.3f,%1.3f), angle: %1.3f, floorheight: %1.3f, sector:%d, lightlevel: %d\n",
-			FIXED2FLOAT(mo->X()), FIXED2FLOAT(mo->Y()), FIXED2FLOAT(mo->Z()), mo->angle/float(ANGLE_1), FIXED2FLOAT(mo->floorz), mo->Sector->sectornum, mo->Sector->lightlevel);
+			FIXED2DBL(mo->X()), FIXED2DBL(mo->Y()), FIXED2DBL(mo->Z()), ANGLE2DBL(mo->angle), FIXED2DBL(mo->floorz), mo->Sector->sectornum, mo->Sector->lightlevel);
 	}
 	else
 	{
@@ -1234,5 +1234,18 @@ CCMD(secret)
 			}
 			else inlevel = false;
 		}
+	}
+}
+
+CCMD(angleconvtest)
+{
+	Printf("Testing degrees to angle conversion:\n");
+	for (double ang = -5 * 180.; ang < 5 * 180.; ang += 45.)
+	{
+		angle_t ang1 = FLOAT2ANGLE(ang);
+		angle_t ang2 = (angle_t)(ang * (ANGLE_90 / 90.));
+		angle_t ang3 = (angle_t)(int)(ang * (ANGLE_90 / 90.));
+		Printf("Angle = %.5f: xs_RoundToInt = %08x, unsigned cast = %08x, signed cast = %08x\n",
+			ang, ang1, ang2, ang3);
 	}
 }

@@ -72,12 +72,15 @@ static FxExpression *ParseExpressionB (FScanner &sc, PClassActor *cls);
 static FxExpression *ParseExpressionA (FScanner &sc, PClassActor *cls);
 static FxExpression *ParseExpression0 (FScanner &sc, PClassActor *cls);
 
-FxExpression *ParseExpression (FScanner &sc, PClassActor *cls)
+FxExpression *ParseExpression (FScanner &sc, PClassActor *cls, bool mustresolve)
 {
 	FxExpression *data = ParseExpressionM (sc, cls);
 
-	FCompileContext ctx(cls);
-	data = data->Resolve(ctx);
+	if (mustresolve)
+	{
+		FCompileContext ctx(cls);
+		data = data->Resolve(ctx);
+	}
 
 	return data;
 }
@@ -464,7 +467,8 @@ static FxExpression *ParseExpression0 (FScanner &sc, PClassActor *cls)
 			PFunction *func = dyn_cast<PFunction>(cls->Symbols.FindSymbol(identifier, true));
 			try
 			{
-				if (func != NULL)
+				// There is an action function ACS_NamedExecuteWithResult which must be ignored here for this to work.
+				if (func != NULL && identifier != NAME_ACS_NamedExecuteWithResult)
 				{
 					sc.UnGet();
 					ParseFunctionParameters(sc, cls, *args, func, "", NULL);

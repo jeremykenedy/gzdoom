@@ -547,6 +547,28 @@ DEFINE_PROPERTY(painthreshold, I, Actor)
 //==========================================================================
 //
 //==========================================================================
+DEFINE_PROPERTY(defthreshold, I, Actor)
+{
+	PROP_INT_PARM(id, 0);
+	if (id < 0)
+		I_Error("DefThreshold cannot be negative.");
+	defaults->DefThreshold = id;
+}
+
+//==========================================================================
+//
+//==========================================================================
+DEFINE_PROPERTY(threshold, I, Actor)
+{
+	PROP_INT_PARM(id, 0);
+	if (id < 0)
+		I_Error("Threshold cannot be negative.");
+	defaults->threshold = id;
+}
+
+//==========================================================================
+//
+//==========================================================================
 DEFINE_PROPERTY(damage, X, Actor)
 {
 	PROP_EXP_PARM(id, 0);
@@ -1512,12 +1534,12 @@ DEFINE_PROPERTY(riplevelmax, I, Actor)
 //==========================================================================
 DEFINE_CLASS_PROPERTY(restrictedto, Ssssssssssssssssssss, Inventory)
 {
-	info->RestrictedToPlayerClass.Clear();
+	static_cast<PClassInventory*>(info)->RestrictedToPlayerClass.Clear();
 	for(int i = 0;i < PROP_PARM_COUNT;++i)
 	{
 		PROP_STRING_PARM(n, i);
 		if (*n != 0)
-			info->RestrictedToPlayerClass.Push(FindClassTentativePlayerPawn(n));
+			static_cast<PClassInventory*>(info)->RestrictedToPlayerClass.Push(FindClassTentativePlayerPawn(n));
 	}
 }
 
@@ -1526,12 +1548,12 @@ DEFINE_CLASS_PROPERTY(restrictedto, Ssssssssssssssssssss, Inventory)
 //==========================================================================
 DEFINE_CLASS_PROPERTY(forbiddento, Ssssssssssssssssssss, Inventory)
 {
-	info->ForbiddenToPlayerClass.Clear();
+	static_cast<PClassInventory*>(info)->ForbiddenToPlayerClass.Clear();
 	for(int i = 0;i < PROP_PARM_COUNT;++i)
 	{
 		PROP_STRING_PARM(n, i);
 		if (*n != 0)
-			info->ForbiddenToPlayerClass.Push(FindClassTentativePlayerPawn(n));
+			static_cast<PClassInventory*>(info)->ForbiddenToPlayerClass.Push(FindClassTentativePlayerPawn(n));
 	}
 }
 
@@ -2152,7 +2174,7 @@ DEFINE_CLASS_PROPERTY_PREFIX(powerup, color, C_f, Inventory)
 	}
 	if (PROP_PARM_COUNT > 2)
 	{
-		PROP_FLOAT_PARM(falpha, 2);
+		PROP_DOUBLE_PARM(falpha, 2);
 		alpha=int(falpha*255);
 	}
 	else alpha = 255/3;
@@ -2696,17 +2718,17 @@ DEFINE_CLASS_PROPERTY_PREFIX(player, damagescreencolor, Cfs, PlayerPawn)
 	}
 	else if (PROP_PARM_COUNT < 4)
 	{
-		PROP_FLOAT_PARM(a, 2);
+		PROP_DOUBLE_PARM(a, 2);
 
-		color.a = BYTE(255 * clamp(a, 0.f, 1.f));
+		color.a = BYTE(255 * clamp<double>(a, 0.f, 1.f));
 		defaults->DamageFade = color;
 	}
 	else
 	{
-		PROP_FLOAT_PARM(a, 2);
+		PROP_DOUBLE_PARM(a, 2);
 		PROP_STRING_PARM(type, 3);
 
-		color.a = BYTE(255 * clamp(a, 0.f, 1.f));
+		color.a = BYTE(255 * clamp<double>(a, 0.f, 1.f));
 		assert(info->IsKindOf(RUNTIME_CLASS(PClassPlayerPawn)));
 		static_cast<PClassPlayerPawn *>(info)->PainFlashes.Insert(type, color);
 	}
