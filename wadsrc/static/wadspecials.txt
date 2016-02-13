@@ -76,4 +76,7 @@
 // Adventure of Square
 // Wrong argument type in A_PlaySound() calls
 22540776    387bd51fcaf1915471a7e57889df192b    lax_typecast     // 1.0
+22648290    7b8f6d6234dfdd17defbe55b8d4e56fa    lax_typecast     // 1.1
+22640983    10c4ff18aa22b15613c196d4205123e8    lax_typecast     // 1.1.1
+22737446    097be606544234bfff7373a9526dbb78    lax_typecast     // 1.1.2
 25970107    8efb8a775233c42938b26f9797826ba9    lax_typecast     // 1.2
