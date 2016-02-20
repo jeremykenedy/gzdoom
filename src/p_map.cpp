@@ -34,10 +34,15 @@
 
 #include "doomdef.h"
 #include "p_local.h"
+#include "p_spec.h"
+#include "d_player.h"
+#include "p_maputl.h"
 #include "p_lnspec.h"
 #include "p_effect.h"
 #include "p_terrain.h"
 #include "p_trace.h"
+#include "p_checkposition.h"
+#include "r_utility.h"
 
 #include "s_sound.h"
 #include "decallib.h"
@@ -5532,6 +5537,7 @@ bool P_ChangeSector(sector_t *sector, int crunch, int amt, int floorOrCeil, bool
 					}
 				}
 			} while (n);
+			sec->CheckPortalPlane(!floorOrCeil);
 		}
 	}
 	P_Recalculate3DFloors(sector);			// Must recalculate the 3d floor and light lists
@@ -5594,6 +5600,8 @@ bool P_ChangeSector(sector_t *sector, int crunch, int amt, int floorOrCeil, bool
 			}
 		}
 	} while (n);	// repeat from scratch until all things left are marked valid
+
+	sector->CheckPortalPlane(floorOrCeil);	// check for portal obstructions after everything is done.
 
 	if (!cpos.nofit && !isreset /* && sector->MoreFlags & (SECF_UNDERWATERMASK)*/)
 	{

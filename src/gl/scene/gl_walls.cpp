@@ -47,6 +47,9 @@
 #include "vectors.h"
 #include "r_defs.h"
 #include "r_sky.h"
+#include "r_utility.h"
+#include "p_maputl.h"
+#include "doomdata.h"
 
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
@@ -209,8 +212,8 @@ void GLWall::PutWall(bool translucent)
 		portal = GLPortal::FindPortal(skybox);
 		if (!portal)
 		{
-			// either a regulat skybox or an Eternity-style horizon
-			if (skybox->special1 != SKYBOX_MAP) portal = new GLEEHorizonPortal(skybox);
+			// either a regular skybox or an Eternity-style horizon
+			if (skybox->special1 != SKYBOX_SKYVIEWPOINT) portal = new GLEEHorizonPortal(skybox);
 			else portal = new GLSkyboxPortal(skybox);
 		}
 		portal->AddLine(this);

@@ -31,6 +31,8 @@
 #include "i_system.h"
 #include "doomdef.h"
 #include "p_local.h"
+#include "p_maputl.h"
+#include "d_player.h"
 #include "m_bbox.h"
 #include "p_lnspec.h"
 #include "s_sound.h"
@@ -44,8 +46,12 @@
 #include "thingdef/thingdef.h"
 #include "d_dehacked.h"
 #include "g_level.h"
+#include "r_utility.h"
+#include "p_blockmap.h"
 #include "r_data/r_translate.h"
 #include "teaminfo.h"
+#include "p_spec.h"
+#include "p_checkposition.h"
 
 #include "gi.h"
 
@@ -2582,6 +2588,11 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 					abs(corpsehit->Y() - viletry.y) > maxdist)
 					continue;			// not actually touching
 				// Let's check if there are floors in between the archvile and its target
+
+				// if in a different section of the map, only consider possible if a line of sight exists.
+				if (corpsehit->Sector->PortalGroup != self->Sector->PortalGroup && !P_CheckSight(self, corpsehit))
+					continue;
+
 				sector_t *vilesec = self->Sector;
 				sector_t *corpsec = corpsehit->Sector;
 				// We only need to test if at least one of the sectors has a 3D floor.

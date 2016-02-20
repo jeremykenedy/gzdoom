@@ -29,6 +29,7 @@
 #include "m_random.h"
 #include "doomdef.h"
 #include "p_local.h"
+#include "p_maputl.h"
 #include "p_lnspec.h"
 #include "p_effect.h"
 #include "p_terrain.h"
@@ -66,6 +67,9 @@
 #include "farchive.h"
 #include "r_data/colormaps.h"
 #include "r_renderer.h"
+#include "po_man.h"
+#include "p_spec.h"
+#include "p_checkposition.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -452,7 +456,7 @@ void AActor::Serialize (FArchive &arc)
 	if (arc.IsLoading ())
 	{
 		touching_sectorlist = NULL;
-		LinkToWorld (Sector);
+		LinkToWorld (false, NULL, Sector);
 		AddToHash ();
 		SetShade (fillcolor);
 		if (player)
@@ -610,21 +614,22 @@ bool AActor::SetState (FState *newstate, bool nofunction)
 			}
 		}
 
-		if (!nofunction && newstate->CallAction(this, this))
+		if (!nofunction)
 		{
-			// Check whether the called action function resulted in destroying the actor
-			if (ObjectFlags & OF_EuthanizeMe)
+			FState *returned_state;
+			if (newstate->CallAction(this, this, &returned_state))
 			{
-				return false;
-			}
-			if (ObjectFlags & OF_StateChanged)
-			{ // The action was an A_Jump-style function that wants to change the next state.
-				ObjectFlags &= ~OF_StateChanged;
-				FState *saved = newstate;
-				newstate = state;
-				state = saved;	// we need this for comparison of sprites.
-				tics = 0;		 // make sure we loop and set the new state properly
-				continue;
+				// Check whether the called action function resulted in destroying the actor
+				if (ObjectFlags & OF_EuthanizeMe)
+				{
+					return false;
+				}
+				if (returned_state != NULL)
+				{ // The action was an A_Jump-style function that wants to change the next state.
+					newstate = returned_state;
+					tics = 0;		 // make sure we loop and set the new state properly
+					continue;
+				}
 			}
 		}
 		newstate = newstate->GetNextState();
@@ -3900,16 +3905,16 @@ bool AActor::CheckNoDelay()
 		{
 			// For immediately spawned objects with the NoDelay flag set for their
 			// Spawn state, explicitly call the current state's function.
-			if (state->CallAction(this, this))
+			FState *newstate;
+			if (state->CallAction(this, this, &newstate))
 			{
 				if (ObjectFlags & OF_EuthanizeMe)
 				{
 					return false;		// freed itself
 				}
-				if (ObjectFlags & OF_StateChanged)
+				if (newstate != NULL)
 				{
-					ObjectFlags &= ~OF_StateChanged;
-					return SetState(state);
+					return SetState(newstate);
 				}
 			}
 		}

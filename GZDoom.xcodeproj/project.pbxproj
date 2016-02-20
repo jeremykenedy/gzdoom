@@ -1528,6 +1528,11 @@
 		8A213C431C0062C3002DD476 /* scoped_color_mask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scoped_color_mask.h; sourceTree = "<group>"; };
 		8A213C441C0062C3002DD476 /* scoped_view_shifter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = scoped_view_shifter.cpp; sourceTree = "<group>"; };
 		8A213C451C0062C3002DD476 /* scoped_view_shifter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scoped_view_shifter.h; sourceTree = "<group>"; };
+		8A2763671C787B7500F1DC7A /* p_blockmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = p_blockmap.h; sourceTree = "<group>"; };
+		8A2763681C787B7500F1DC7A /* p_checkposition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = p_checkposition.h; sourceTree = "<group>"; };
+		8A2763691C787B7500F1DC7A /* p_maputl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = p_maputl.h; sourceTree = "<group>"; };
+		8A27636A1C787C3C00F1DC7A /* gitinfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gitinfo.h; sourceTree = "<group>"; };
+		8A27636B1C787C3C00F1DC7A /* sc_man_scanner.re */ = {isa = PBXFileReference; lastKnownFileType = text; path = sc_man_scanner.re; sourceTree = "<group>"; };
 		8A2C747616C66CB600ABD7C8 /* loadokt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = loadokt.c; sourceTree = "<group>"; };
 		8A2C747716C66CB600ABD7C8 /* loadokt2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = loadokt2.c; sourceTree = "<group>"; };
 		8A2C747816C66CB600ABD7C8 /* readokt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = readokt.c; sourceTree = "<group>"; };
@@ -6489,6 +6494,7 @@
 				8AF27DF9139126C00095D9A0 /* gi.cpp */,
 				8AF27DFA139126C00095D9A0 /* gi.h */,
 				8AF3DF4117782D6A00474776 /* gitinfo.cpp */,
+				8A27636A1C787C3C00F1DC7A /* gitinfo.h */,
 				8AF27E65139126C00095D9A0 /* gstrings.h */,
 				8AC7C1AE1C415FDE00D7D23E /* GuillotineBinPack.cpp */,
 				8AC7C1AF1C415FDE00D7D23E /* GuillotineBinPack.h */,
@@ -6549,8 +6555,10 @@
 				8AF27EBC139126C00095D9A0 /* p_3dmidtex.h */,
 				8AF27EBD139126C00095D9A0 /* p_acs.cpp */,
 				8AF27EBE139126C00095D9A0 /* p_acs.h */,
+				8A2763671C787B7500F1DC7A /* p_blockmap.h */,
 				8AF27EBF139126C00095D9A0 /* p_buildmap.cpp */,
 				8AF27EC0139126C00095D9A0 /* p_ceiling.cpp */,
+				8A2763681C787B7500F1DC7A /* p_checkposition.h */,
 				8AF27EC1139126C00095D9A0 /* p_conversation.cpp */,
 				8AF27EC2139126C00095D9A0 /* p_conversation.h */,
 				8AF27EC3139126C00095D9A0 /* p_doors.cpp */,
@@ -6568,6 +6576,7 @@
 				8AF27ECF139126C00095D9A0 /* p_local.h */,
 				8AF27ED0139126C00095D9A0 /* p_map.cpp */,
 				8AF27ED1139126C00095D9A0 /* p_maputl.cpp */,
+				8A2763691C787B7500F1DC7A /* p_maputl.h */,
 				8AF27ED2139126C00095D9A0 /* p_mobj.cpp */,
 				8AF27ED3139126C00095D9A0 /* p_pillar.cpp */,
 				8AF27ED4139126C00095D9A0 /* p_plats.cpp */,
@@ -6645,6 +6654,7 @@
 				8AF27F26139126C00095D9A0 /* s_sound.h */,
 				8AF27F27139126C00095D9A0 /* sc_man.cpp */,
 				8AF27F28139126C00095D9A0 /* sc_man.h */,
+				8A27636B1C787C3C00F1DC7A /* sc_man_scanner.re */,
 				8AF27F2B139126C00095D9A0 /* sc_man_tokens.h */,
 				8AF27F53139126C00095D9A0 /* skins.cpp */,
 				8AF27F54139126C00095D9A0 /* skins.h */,

@@ -40,7 +40,10 @@
 /jpeg-6b/x64/
 /lzma/x64/
 /zlib/x64/
-build_cmake
+/build_vc2013_64bit
+/build_vc2015
+/build_vc2015-32
+/build_vc2015-64
 
 # OS X
 /.deploy_image

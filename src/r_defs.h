@@ -60,6 +60,18 @@ enum
 extern size_t MaxDrawSegs;
 
 
+enum
+{
+	SKYBOX_ANCHOR = -1,
+	SKYBOX_SKYVIEWPOINT = 0,				// a regular skybox
+	SKYBOX_STACKEDSECTORTHING,	// stacked sectors with the thing method
+	SKYBOX_PORTAL,				// stacked sectors with Sector_SetPortal
+	SKYBOX_LINKEDPORTAL,		// linked portal (interactive)
+	SKYBOX_PLANE,				// EE-style plane portal (not implemented in SW renderer)
+	SKYBOX_HORIZON,				// EE-style horizon portal (not implemented in SW renderer)
+};
+
+
 //
 // INTERNAL MAP TYPES
 //	used by play and refresh
@@ -545,6 +557,7 @@ struct sector_t
 	DInterpolation *SetInterpolation(int position, bool attach);
 
 	ASkyViewpoint *GetSkyBox(int which);
+	void CheckPortalPlane(int plane);
 
 	enum
 	{
@@ -779,6 +792,11 @@ struct sector_t
 		Flags &= ~SECF_SPECIALFLAGS;
 	}
 
+	bool PortalBlocksView(int plane);
+	bool PortalBlocksSight(int plane);
+	bool PortalBlocksMovement(int plane);
+	bool PortalBlocksSound(int plane);
+
 	int GetTerrain(int pos) const;
 
 	void TransferSpecial(sector_t *model);
@@ -871,6 +889,7 @@ struct sector_t
 	// [RH] The sky box to render for this sector. NULL means use a
 	// regular sky.
 	TObjPtr<ASkyViewpoint> SkyBoxes[2];
+	int PortalGroup;
 
 	int							sectornum;			// for comparing sector copies
 
@@ -1244,6 +1263,19 @@ struct visstyle_t
 	fixed_t			alpha;
 	FRenderStyle	RenderStyle;
 };
+
+
+//----------------------------------------------------------------------------------
+//
+// The playsim can use different nodes than the renderer so this is
+// not the same as R_PointInSubsector
+//
+//----------------------------------------------------------------------------------
+subsector_t *P_PointInSubsector(fixed_t x, fixed_t y);
+inline sector_t *P_PointInSector(fixed_t x, fixed_t y)
+{
+	return P_PointInSubsector(x, y)->sector;
+}
 
 
 #endif
