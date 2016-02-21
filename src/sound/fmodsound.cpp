@@ -69,6 +69,15 @@ extern HWND Window;
 #error You are trying to compile with an unsupported version of FMOD.
 #endif
 
+#if defined HAVE_FMOD_STUDIO
+#ifndef FMOD_SOFTWARE
+#define FMOD_SOFTWARE 0
+#endif // FMOD_SOFTWARE
+#ifndef FMOD_INIT_ENABLE_PROFILE
+#define FMOD_INIT_ENABLE_PROFILE FMOD_INIT_PROFILE_ENABLE
+#endif // FMOD_INIT_ENABLE_PROFILE
+#endif // HAVE_FMOD_STUDIO
+
 // MACROS ------------------------------------------------------------------
 
 // killough 2/21/98: optionally use varying pitched sounds
@@ -110,7 +119,7 @@ CUSTOM_CVAR (Float, snd_waterlp, 250, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 }
 
 #ifndef NO_FMOD
-#if FMOD_VERSION < 0x43400
+#if FMOD_VERSION < 0x43400 && !defined HAVE_FMOD_STUDIO
 #define FMOD_OPENSTATE_PLAYING FMOD_OPENSTATE_STREAMING
 #endif
 
@@ -172,10 +181,14 @@ static const FEnumList OutputNames[] =
 	{ "ASIO",					FMOD_OUTPUTTYPE_ASIO },
 
 	// Linux
+#ifndef HAVE_FMOD_STUDIO
 	{ "OSS",					FMOD_OUTPUTTYPE_OSS },
+#endif // !HAVE_FMOD_STUDIO
 	{ "ALSA",					FMOD_OUTPUTTYPE_ALSA },
+#ifndef HAVE_FMOD_STUDIO
 	{ "ESD",					FMOD_OUTPUTTYPE_ESD },
-#if FMOD_VERSION >= 0x43400
+#endif // !HAVE_FMOD_STUDIO
+#if FMOD_VERSION >= 0x43400 || HAVE_FMOD_STUDIO
 	{ "PulseAudio",				FMOD_OUTPUTTYPE_PULSEAUDIO },
 	{ "Pulse",					FMOD_OUTPUTTYPE_PULSEAUDIO },
 #endif
@@ -195,7 +208,7 @@ static const FEnumList SpeakerModeNames[] =
 	{ "Surround",				FMOD_SPEAKERMODE_SURROUND },
 	{ "5.1",					FMOD_SPEAKERMODE_5POINT1 },
 	{ "7.1",					FMOD_SPEAKERMODE_7POINT1 },
-#if FMOD_VERSION < 0x44000
+#if FMOD_VERSION < 0x44000 && !defined HAVE_FMOD_STUDIO
 	{ "Prologic",				FMOD_SPEAKERMODE_PROLOGIC },
 #endif
 	{ "1",						FMOD_SPEAKERMODE_MONO },
@@ -225,11 +238,13 @@ static const FEnumList SoundFormatNames[] =
 	{ "PCM-24",					FMOD_SOUND_FORMAT_PCM24 },
 	{ "PCM-32",					FMOD_SOUND_FORMAT_PCM32 },
 	{ "PCM-Float",				FMOD_SOUND_FORMAT_PCMFLOAT },
+#ifndef HAVE_FMOD_STUDIO
 	{ "GCADPCM",				FMOD_SOUND_FORMAT_GCADPCM },
 	{ "IMAADPCM",				FMOD_SOUND_FORMAT_IMAADPCM },
 	{ "VAG",					FMOD_SOUND_FORMAT_VAG },
 	{ "XMA",					FMOD_SOUND_FORMAT_XMA },
 	{ "MPEG",					FMOD_SOUND_FORMAT_MPEG },
+#endif // !HAVE_FMOD_STUDIO
 	{ NULL, 0 }
 };
 
@@ -344,10 +359,17 @@ public:
 		Stream = stream;
 
 		// As this interface is for music, make it super-high priority.
+#ifdef HAVE_FMOD_STUDIO
+		if (FMOD_OK == stream->getDefaults(&frequency, NULL))
+		{
+			stream->setDefaults(frequency, 1);
+		}
+#else // !HAVE_FMOD_STUDIO
 		if (FMOD_OK == stream->getDefaults(&frequency, NULL, NULL, NULL))
 		{
 			stream->setDefaults(frequency, 1, 0, 0);
 		}
+#endif // HAVE_FMOD_STUDIO
 	}
 
 	bool Play(bool looping, float volume)
@@ -359,21 +381,30 @@ public:
 			looping = false;
 		}
 		Stream->setMode((looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF) | FMOD_SOFTWARE | FMOD_2D);
+#ifdef HAVE_FMOD_STUDIO
+		result = Owner->Sys->playSound(Stream, 0, true, &Channel);
+#else // !HAVE_FMOD_STUDIO
 		result = Owner->Sys->playSound(FMOD_CHANNEL_FREE, Stream, true, &Channel);
+#endif // HAVE_FMOD_STUDIO
 		if (result != FMOD_OK)
 		{
 			return false;
 		}
 		Channel->setChannelGroup(Owner->MusicGroup);
-		Channel->setSpeakerMix(1, 1, 1, 1, 1, 1, 1, 1);
 		Channel->setVolume(volume);
 		// Ensure reverb is disabled.
+#ifdef HAVE_FMOD_STUDIO
+		Channel->setReverbProperties(0, -10000);
+		Channel->setMixLevelsOutput(1, 1, 1, 1, 1, 1, 1, 1);
+#else // !HAVE_FMOD_STUDIO
 		FMOD_REVERB_CHANNELPROPERTIES reverb = { 0, };
 		if (FMOD_OK == Channel->getReverbProperties(&reverb))
 		{
 			reverb.Room = -10000;
 			Channel->setReverbProperties(&reverb);
 		}
+		Channel->setSpeakerMix(1, 1, 1, 1, 1, 1, 1, 1);
+#endif // HAVE_FMOD_STUDIO
 		Channel->setPaused(false);
 		Ended = false;
 		JustStarted = true;
@@ -417,7 +448,7 @@ public:
 		bool is;
 		FMOD_OPENSTATE openstate = FMOD_OPENSTATE_MAX;
 		bool starving;
-#if FMOD_VERSION >= 0x43400
+#if FMOD_VERSION >= 0x43400 || defined HAVE_FMOD_STUDIO
 		bool diskbusy;
 #endif
 
@@ -425,7 +456,7 @@ public:
 		{
 			return true;
 		}
-#if FMOD_VERSION < 0x43400
+#if FMOD_VERSION < 0x43400 && !defined HAVE_FMOD_STUDIO
 		if (FMOD_OK != Stream->getOpenState(&openstate, NULL, &starving))
 #else
 		if (FMOD_OK != Stream->getOpenState(&openstate, NULL, &starving, &diskbusy))
@@ -514,7 +545,7 @@ public:
 		unsigned int percentbuffered;
 		unsigned int position;
 		bool starving;
-#if FMOD_VERSION >= 0x43400
+#if FMOD_VERSION >= 0x43400 || defined HAVE_FMOD_STUDIO
 		bool diskbusy;
 #endif
 		float volume;
@@ -522,7 +553,7 @@ public:
 		bool paused;
 		bool isplaying;
 
-#if FMOD_VERSION < 0x43400
+#if FMOD_VERSION < 0x43400 && !defined HAVE_FMOD_STUDIO
 		if (FMOD_OK == Stream->getOpenState(&openstate, &percentbuffered, &starving))
 #else
 		if (FMOD_OK == Stream->getOpenState(&openstate, &percentbuffered, &starving, &diskbusy))

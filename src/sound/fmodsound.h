@@ -76,7 +76,12 @@ private:
 	QWORD_UNION DSPClock;
 	int OutputRate;
 
+#ifdef HAVE_FMOD_STUDIO
+	static FMOD_RESULT F_CALLBACK ChannelCallback(FMOD_CHANNELCONTROL *channel, FMOD_CHANNELCONTROL_TYPE controltype, void *data1, void *data2);
+#else // !HAVE_FMOD_STUDIO
 	static FMOD_RESULT F_CALLBACK ChannelCallback(FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type, void *data1, void *data2);
+#endif // HAVE_FMOD_STUDIO
+
 	static float F_CALLBACK RolloffCallback(FMOD_CHANNEL *channel, float distance);
 
 	bool HandleChannelDelay(FMOD::Channel *chan, FISoundChannel *reuse_chan, int flags, float freq) const;
@@ -89,7 +94,10 @@ private:
 
 	bool Init ();
 	void Shutdown ();
+
+#ifndef HAVE_FMOD_STUDIO
 	void DumpDriverCaps(FMOD_CAPS caps, int minfrequency, int maxfrequency);
+#endif // !HAVE_FMOD_STUDIO
 
 	int DrawChannelGroupOutput(FMOD::ChannelGroup *group, float *wavearray, int width, int height, int y, int mode);
 	int DrawSystemOutput(float *wavearray, int width, int height, int y, int mode);
@@ -118,10 +126,12 @@ private:
 	float LastWaterLP;
 	unsigned int OutputPlugin;
 
+#ifndef HAVE_FMOD_STUDIO
 	// Just for snd_status display
 	int Driver_MinFrequency;
 	int Driver_MaxFrequency;
 	FMOD_CAPS Driver_Caps;
+#endif // !HAVE_FMOD_STUDIO
 
 	friend class FMODStreamCapsule;
 };

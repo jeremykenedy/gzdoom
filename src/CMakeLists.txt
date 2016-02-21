@@ -243,6 +243,21 @@ if( NOT NO_FMOD )
 	if( FMOD_INCLUDE_DIR )
 		message( STATUS "FMOD include files found at ${FMOD_INCLUDE_DIR}" )
 		include_directories( "${FMOD_INCLUDE_DIR}" )
+
+		set( FMOD_COMMON_H_PATH ${FMOD_INCLUDE_DIR}/fmod_common.h )
+
+		if( EXISTS ${FMOD_COMMON_H_PATH} )
+			# Probably it's FMOD Studio, check its version
+			set( FMOD_VERSION_REGEX "^[ \t]*#[ \t]*define[ \t]+FMOD_VERSION[ \t]+(.*)[ \t]*$" )
+
+			file( STRINGS ${FMOD_COMMON_H_PATH} FMOD_VERSION REGEX ${FMOD_VERSION_REGEX})
+			string( REGEX REPLACE ${FMOD_VERSION_REGEX} "\\1" FMOD_VERSION ${FMOD_VERSION} )
+			string( COMPARE LESS ${FMOD_VERSION} "0x00040000" HAVE_FMOD_STUDIO )
+
+			if( HAVE_FMOD_STUDIO )
+				add_definitions( -DHAVE_FMOD_STUDIO=1 )
+			endif()
+		endif()
 	else()
 		message( STATUS "Could not find FMOD include files" )
 		set( NO_FMOD ON )
