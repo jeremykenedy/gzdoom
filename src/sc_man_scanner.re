@@ -54,6 +54,8 @@ std2:
 	/*!re2c
 		"/*"						{ goto comment; }	/* C comment */
 		"//" (any\"\n")* "\n"		{ goto newline; }	/* C++ comment */
+		("#region"|"#endregion") (any\"\n")* "\n"
+									{ goto newline; }	/* Region blocks [mxd] */
 
 		(["](([\\]["])|[^"])*["])	{ RET(TK_StringConst); }
 		'stop'						{ RET(TK_Stop); }
@@ -79,6 +81,8 @@ std2:
 	/*!re2c
 		"/*"						{ goto comment; }	/* C comment */
 		"//" (any\"\n")* "\n"		{ goto newline; }	/* C++ comment */
+		("#region"|"#endregion") (any\"\n")* "\n"
+									{ goto newline; }	/* Region blocks [mxd] */
 
 		/* C Keywords */
 		'break'						{ RET(TK_Break); }
@@ -268,6 +272,8 @@ std2:
 	/*!re2c
 		"/*"						{ goto comment; }	/* C comment */
 		("//"|";") (any\"\n")* "\n"	{ goto newline; }	/* C++/Hexen comment */
+		("#region"|"#endregion") (any\"\n")* "\n"
+									{ goto newline; }	/* Region blocks [mxd] */
 
 		WSP+						{ goto std1; }		/* whitespace */
 		"\n"						{ goto newline; }
@@ -286,6 +292,8 @@ std2:
 	/*!re2c
 		"/*"					{ goto comment; }	/* C comment */
 		"//" (any\"\n")* "\n"	{ goto newline; }	/* C++ comment */
+		("#region"|"#endregion") (any\"\n")* "\n"
+									{ goto newline; }	/* Region blocks [mxd] */
 
 		WSP+					{ goto std1; }		/* whitespace */
 		"\n"					{ goto newline; }
