@@ -41,7 +41,7 @@ template <class T> inline
 T abs(T value)
 {
 #ifdef XBRZ_CXX11
-    static_assert(std::is_signed<T>::value, "");
+    static_assert(std::numeric_limits<T>::is_signed, "");
 #endif // XBRZ_CXX11
     return value < 0 ? -value : value;
 }
