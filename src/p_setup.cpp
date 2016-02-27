@@ -69,7 +69,6 @@
 #include "po_man.h"
 #include "r_renderer.h"
 #include "r_data/colormaps.h"
-#include "portal.h"
 #include "p_blockmap.h"
 #include "r_utility.h"
 #include "p_spec.h"
@@ -3222,9 +3221,9 @@ static void P_GroupLines (bool buildmap)
 			}
 		}
 
-		// set the soundorg to the middle of the bounding box
-		sector->soundorg[0] = bbox.Right()/2 + bbox.Left()/2;
-		sector->soundorg[1] = bbox.Top()/2 + bbox.Bottom()/2;
+		// set the center to the middle of the bounding box
+		sector->centerspot.x = bbox.Right()/2 + bbox.Left()/2;
+		sector->centerspot.y = bbox.Top()/2 + bbox.Bottom()/2;
 
 		// For triangular sectors the above does not calculate good points unless the longest of the triangle's lines is perfectly horizontal and vertical
 		if (sector->linecount == 3)
@@ -3246,8 +3245,8 @@ static void P_GroupLines (bool buildmap)
 					if (DMulScale32 (v->y - Triangle[0]->y, dx,
 									Triangle[0]->x - v->x, dy) != 0)
 					{
-						sector->soundorg[0] = Triangle[0]->x / 3 + Triangle[1]->x / 3 + v->x / 3;
-						sector->soundorg[1] = Triangle[0]->y / 3 + Triangle[1]->y / 3 + v->y / 3;
+						sector->centerspot.x = Triangle[0]->x / 3 + Triangle[1]->x / 3 + v->x / 3;
+						sector->centerspot.y = Triangle[0]->y / 3 + Triangle[1]->y / 3 + v->y / 3;
 						break;
 					}
 				}
@@ -3393,12 +3392,12 @@ void P_FreeLevelData ()
 	FPolyObj::ClearAllSubsectorLinks(); // can't be done as part of the polyobj deletion process.
 	SN_StopAllSequences ();
 	DThinker::DestroyAllThinkers ();
+	P_ClearPortals();
 	tagManager.Clear();
 	level.total_monsters = level.total_items = level.total_secrets =
 		level.killed_monsters = level.found_items = level.found_secrets =
 		wminfo.maxfrags = 0;
 		
-	linePortals.Clear();
 	FBehavior::StaticUnloadModules ();
 	if (vertexes != NULL)
 	{

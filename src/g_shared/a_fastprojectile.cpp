@@ -27,11 +27,8 @@ void AFastProjectile::Tick ()
 	fixed_t zfrac;
 	int changexy;
 
-	PrevX = X();
-	PrevY = Y();
-	PrevZ = Z();
+	ClearInterpolation();
 	fixed_t oldz = Z();
-	PrevAngle = angle;
 
 	if (!(flags5 & MF5_NOTIMEFREEZE))
 	{
@@ -82,7 +79,7 @@ void AFastProjectile::Tick ()
 						if (tm.ceilingline &&
 							tm.ceilingline->backsector &&
 							tm.ceilingline->backsector->GetTexture(sector_t::ceiling) == skyflatnum &&
-							Z() >= tm.ceilingline->backsector->ceilingplane.ZatPoint (this))
+							Z() >= tm.ceilingline->backsector->ceilingplane.ZatPoint(PosRelative(tm.ceilingline)))
 						{
 							// Hack to prevent missiles exploding against the sky.
 							// Does not handle sky floors.

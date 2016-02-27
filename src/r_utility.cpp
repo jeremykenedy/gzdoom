@@ -34,7 +34,6 @@
 #include "doomstat.h"
 #include "m_random.h"
 #include "m_bbox.h"
-#include "portal.h"
 #include "r_sky.h"
 #include "st_stuff.h"
 #include "c_cvars.h"
@@ -57,7 +56,7 @@
 #include "farchive.h"
 #include "r_utility.h"
 #include "d_player.h"
-#include "portal.h"
+#include "p_local.h"
 
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -82,6 +81,7 @@ static TArray<InterpolationViewer> PastViewers;
 static FRandom pr_torchflicker ("TorchFlicker");
 static FRandom pr_hom;
 static bool NoInterpolateView;
+static TArray<fixedvec3> InterpolationPath;
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
@@ -575,6 +575,7 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 //	frac = tf;
 	if (NoInterpolateView)
 	{
+		InterpolationPath.Clear();
 		NoInterpolateView = false;
 		iview->oviewx = iview->nviewx;
 		iview->oviewy = iview->nviewy;
@@ -582,9 +583,69 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 		iview->oviewpitch = iview->nviewpitch;
 		iview->oviewangle = iview->nviewangle;
 	}
-	viewx = iview->oviewx + FixedMul (frac, iview->nviewx - iview->oviewx);
-	viewy = iview->oviewy + FixedMul (frac, iview->nviewy - iview->oviewy);
-	viewz = iview->oviewz + FixedMul (frac, iview->nviewz - iview->oviewz);
+	int oldgroup = R_PointInSubsector(iview->oviewx, iview->oviewy)->sector->PortalGroup;
+	int newgroup = R_PointInSubsector(iview->nviewx, iview->nviewy)->sector->PortalGroup;
+
+	if ((iview->oviewx != iview->nviewx || iview->oviewy != iview->nviewy) && InterpolationPath.Size() > 0)
+	{
+		viewx = iview->nviewx;
+		viewy = iview->nviewy;
+		viewz = iview->nviewz;
+
+		// Interpolating through line portals is a messy affair.
+		// What needs be done is to store the portal transitions of the camera actor as waypoints
+		// and then find out on which part of the path the current view lies.
+		// Needless to say, this doesn't work for chasecam mode.
+		if (!r_showviewer)
+		{
+			fixed_t pathlen = 0;
+			fixed_t zdiff = 0;
+			fixed_t totalzdiff = 0;
+			fixed_t oviewz = iview->oviewz;
+			fixed_t nviewz = iview->nviewz;
+			fixedvec3 oldpos = { iview->oviewx, iview->oviewy, 0 };
+			fixedvec3 newpos = { iview->nviewx, iview->nviewy, 0 };
+			InterpolationPath.Push(newpos);	// add this to  the array to simplify the loops below
+
+			for (unsigned i = 0; i < InterpolationPath.Size(); i += 2)
+			{
+				fixedvec3 &start = i == 0 ? oldpos : InterpolationPath[i - 1];
+				fixedvec3 &end = InterpolationPath[i];
+				pathlen += xs_CRoundToInt(TVector2<double>(end.x - start.x, end.y - start.y).Length());
+				totalzdiff += start.z;
+			}
+			fixed_t interpolatedlen = FixedMul(frac, pathlen);
+
+			for (unsigned i = 0; i < InterpolationPath.Size(); i += 2)
+			{
+				fixedvec3 &start = i == 0 ? oldpos : InterpolationPath[i - 1];
+				fixedvec3 &end = InterpolationPath[i];
+				fixed_t fraglen = xs_CRoundToInt(TVector2<double>(end.x - start.x, end.y - start.y).Length());
+				zdiff += start.z;
+				if (fraglen <= interpolatedlen)
+				{
+					interpolatedlen -= fraglen;
+				}
+				else
+				{
+					fixed_t fragfrac = FixedDiv(interpolatedlen, fraglen);
+					oviewz += zdiff;
+					nviewz -= totalzdiff - zdiff;
+					viewx = start.x + FixedMul(fragfrac, end.x - start.x);
+					viewy = start.y + FixedMul(fragfrac, end.y - start.y);
+					viewz = oviewz + FixedMul(frac, nviewz - oviewz);
+				}
+			}
+			InterpolationPath.Pop();
+		}
+	}
+	else
+	{
+		fixedvec2 disp = Displacements.getOffset(oldgroup, newgroup);
+		viewx = iview->oviewx + FixedMul(frac, iview->nviewx - iview->oviewx - disp.x);
+		viewy = iview->oviewy + FixedMul(frac, iview->nviewy - iview->oviewy - disp.y);
+		viewz = iview->oviewz + FixedMul(frac, iview->nviewz - iview->oviewz);
+	}
 	if (player != NULL &&
 		!(player->cheats & CF_INTERPVIEW) &&
 		player - players == consoleplayer &&
@@ -638,6 +699,34 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 	
 	// Due to interpolation this is not necessarily the same as the sector the camera is in.
 	viewsector = R_PointInSubsector(viewx, viewy)->sector;
+	bool moved = false;
+	while (!viewsector->PortalBlocksMovement(sector_t::ceiling))
+	{
+		AActor *point = viewsector->SkyBoxes[sector_t::ceiling];
+		if (viewz > point->threshold)
+		{
+			viewx += point->scaleX;
+			viewy += point->scaleY;
+			viewsector = R_PointInSubsector(viewx, viewy)->sector;
+			moved = true;
+		}
+		else break;
+	}
+	if (!moved)
+	{
+		while (!viewsector->PortalBlocksMovement(sector_t::floor))
+		{
+			AActor *point = viewsector->SkyBoxes[sector_t::floor];
+			if (viewz < point->threshold)
+			{
+				viewx += point->scaleX;
+				viewy += point->scaleY;
+				viewsector = R_PointInSubsector(viewx, viewy)->sector;
+				moved = true;
+			}
+			else break;
+		}
+	}
 }
 
 //==========================================================================
@@ -648,6 +737,7 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 
 void R_ResetViewInterpolation ()
 {
+	InterpolationPath.Clear();
 	NoInterpolateView = true;
 }
 
@@ -688,6 +778,7 @@ static InterpolationViewer *FindPastViewer (AActor *actor)
 	InterpolationViewer iview = { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	iview.ViewActor = actor;
 	iview.otic = -1;
+	InterpolationPath.Clear();
 	return &PastViewers[PastViewers.Push (iview)];
 }
 
@@ -699,6 +790,7 @@ static InterpolationViewer *FindPastViewer (AActor *actor)
 
 void R_FreePastViewers ()
 {
+	InterpolationPath.Clear();
 	PastViewers.Clear ();
 }
 
@@ -712,6 +804,7 @@ void R_FreePastViewers ()
 
 void R_ClearPastViewer (AActor *actor)
 {
+	InterpolationPath.Clear();
 	for (unsigned int i = 0; i < PastViewers.Size(); ++i)
 	{
 		if (PastViewers[i].ViewActor == actor)
@@ -751,6 +844,7 @@ void R_RebuildViewInterpolation(player_t *player)
 	iview->oviewz = iview->nviewz;
 	iview->oviewpitch = iview->nviewpitch;
 	iview->oviewangle = iview->nviewangle;
+	InterpolationPath.Clear();
 }
 
 //==========================================================================
@@ -762,6 +856,29 @@ void R_RebuildViewInterpolation(player_t *player)
 bool R_GetViewInterpolationStatus()
 {
 	return NoInterpolateView;
+}
+
+
+//==========================================================================
+//
+// R_ClearInterpolationPath
+//
+//==========================================================================
+
+void R_ClearInterpolationPath()
+{
+	InterpolationPath.Clear();
+}
+
+//==========================================================================
+//
+// R_AddInterpolationPoint
+//
+//==========================================================================
+
+void R_AddInterpolationPoint(const fixedvec3 &vec)
+{
+	InterpolationPath.Push(vec);
 }
 
 //==========================================================================

@@ -58,6 +58,7 @@ enum
 };
 
 extern size_t MaxDrawSegs;
+struct FDisplacement;
 
 
 enum
@@ -273,6 +274,16 @@ struct secplane_t
 		return ic < 0 ? d : -d;
 	}
 
+	fixed_t ZatPoint(const fixedvec2 &spot) const
+	{
+		return FixedMul(ic, -d - DMulScale16(a, spot.x, b, spot.y));
+	}
+
+	fixed_t ZatPoint(const fixedvec3 &spot) const
+	{
+		return FixedMul(ic, -d - DMulScale16(a, spot.x, b, spot.y));
+	}
+
 	// Returns the value of z at (x,y)
 	fixed_t ZatPoint (fixed_t x, fixed_t y) const
 	{
@@ -360,9 +371,29 @@ struct secplane_t
 		return -TMulScale16 (a, x, y, b, z, c);
 	}
 
+	fixed_t PointToDist(fixedvec2 xy, fixed_t z) const
+	{
+		return -TMulScale16(a, xy.x, xy.y, b, z, c);
+	}
+
 	fixed_t PointToDist (const vertex_t *v, fixed_t z) const
 	{
 		return -TMulScale16 (a, v->x, b, v->y, z, c);
+	}
+
+	void SetAtHeight(fixed_t height, int ceiling)
+	{
+		a = b = 0;
+		if (ceiling)
+		{
+			c = ic = -FRACUNIT;
+			d = height;
+		}
+		else
+		{
+			c = ic = FRACUNIT;
+			d = -height;
+		}
 	}
 
 	bool CopyPlaneIfValid (secplane_t *dest, const secplane_t *opp) const;
@@ -755,17 +786,6 @@ struct sector_t
 		return pos == floor? floorplane:ceilingplane;
 	}
 
-	fixed_t HighestCeiling(AActor *a) const
-	{
-		return ceilingplane.ZatPoint(a);
-	}
-
-	fixed_t LowestFloor(AActor *a) const
-	{
-		return floorplane.ZatPoint(a);
-	}
-
-
 	bool isSecret() const
 	{
 		return !!(Flags & SECF_SECRET);
@@ -792,10 +812,41 @@ struct sector_t
 		Flags &= ~SECF_SPECIALFLAGS;
 	}
 
-	bool PortalBlocksView(int plane);
-	bool PortalBlocksSight(int plane);
-	bool PortalBlocksMovement(int plane);
-	bool PortalBlocksSound(int plane);
+	bool PortalBlocksView(int plane)
+	{
+		if (SkyBoxes[plane] == NULL) return true;
+		if (SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return false;
+		return !!(planes[plane].Flags & (PLANEF_NORENDER | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
+	}
+
+	bool PortalBlocksSight(int plane)
+	{
+		if (SkyBoxes[plane] == NULL || SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return true;
+		return !!(planes[plane].Flags & (PLANEF_NORENDER | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
+	}
+
+	bool PortalBlocksMovement(int plane)
+	{
+		if (SkyBoxes[plane] == NULL || SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return true;
+		return !!(planes[plane].Flags & (PLANEF_NOPASS | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
+	}
+
+	bool PortalBlocksSound(int plane)
+	{
+		if (SkyBoxes[plane] == NULL || SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return true;
+		return !!(planes[plane].Flags & (PLANEF_BLOCKSOUND | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
+	}
+
+	// These may only be called if the portal has been validated
+	fixedvec2 FloorDisplacement()
+	{
+		return Displacements.getOffset(PortalGroup, SkyBoxes[sector_t::floor]->Sector->PortalGroup);
+	}
+
+	fixedvec2 CeilingDisplacement()
+	{
+		return Displacements.getOffset(PortalGroup, SkyBoxes[sector_t::ceiling]->Sector->PortalGroup);
+	}
 
 	int GetTerrain(int pos) const;
 
@@ -804,10 +855,36 @@ struct sector_t
 	void SetSpecial(const secspecial_t *spec);
 	bool PlaneMoving(int pos);
 
+	// Portal-aware height calculation
+	fixed_t HighestCeilingAt(fixed_t x, fixed_t y, sector_t **resultsec = NULL);
+	fixed_t LowestFloorAt(fixed_t x, fixed_t y, sector_t **resultsec = NULL);
+
+	fixed_t HighestCeilingAt(AActor *a, sector_t **resultsec = NULL)
+	{
+		return HighestCeilingAt(a->X(), a->Y(), resultsec);
+	}
+
+	fixed_t LowestFloorAt(AActor *a, sector_t **resultsec = NULL)
+	{
+		return LowestFloorAt(a->X(), a->Y(), resultsec);
+	}
+
+	fixed_t NextHighestCeilingAt(fixed_t x, fixed_t y, fixed_t z, int flags = 0, sector_t **resultsec = NULL, F3DFloor **resultffloor = NULL);
+	fixed_t NextLowestFloorAt(fixed_t x, fixed_t y, fixed_t z, int flags = 0, fixed_t steph = 0, sector_t **resultsec = NULL, F3DFloor **resultffloor = NULL);
+
+	fixed_t NextHighestCeilingAt(AActor *a, fixed_t z, int flags = 0, sector_t **resultsec = NULL, F3DFloor **resultffloor = NULL)
+	{
+		return NextHighestCeilingAt(a->X(), a->Y(), z, flags, resultsec, resultffloor);
+	}
+
+	fixed_t NextLowestFloorAt(AActor *a, fixed_t z, int flags, sector_t **resultsec = NULL, F3DFloor **resultffloor = NULL)
+	{
+		return NextLowestFloorAt(a->X(), a->Y(), z, flags, a->MaxStepHeight, resultsec, resultffloor);
+	}
 
 	// Member variables
-	fixed_t		CenterFloor () const { return floorplane.ZatPoint (soundorg[0], soundorg[1]); }
-	fixed_t		CenterCeiling () const { return ceilingplane.ZatPoint (soundorg[0], soundorg[1]); }
+	fixed_t		CenterFloor () const { return floorplane.ZatPoint (centerspot); }
+	fixed_t		CenterCeiling () const { return ceilingplane.ZatPoint (centerspot); }
 
 	// [RH] store floor and ceiling planes instead of heights
 	secplane_t	floorplane, ceilingplane;
@@ -825,7 +902,7 @@ struct sector_t
 	int			sky;
 	FNameNoInit	SeqName;		// Sound sequence name. Setting seqType non-negative will override this.
 
-	fixed_t		soundorg[2];	// origin for any sounds played by the sector
+	fixedvec2	centerspot;		// origin for any sounds played by the sector
 	int 		validcount;		// if == validcount, already checked
 	AActor* 	thinglist;		// list of mobjs in sector
 
@@ -888,7 +965,7 @@ struct sector_t
 
 	// [RH] The sky box to render for this sector. NULL means use a
 	// regular sky.
-	TObjPtr<ASkyViewpoint> SkyBoxes[2];
+	TObjPtr<AActor> SkyBoxes[2];
 	int PortalGroup;
 
 	int							sectornum;			// for comparing sector copies
@@ -1105,12 +1182,32 @@ struct line_t
 	unsigned	portalindex;
 	TObjPtr<ASkyViewpoint> skybox;
 
+	FLinePortal *getPortal() const
+	{
+		return portalindex >= linePortals.Size() ? (FLinePortal*)NULL : &linePortals[portalindex];
+	}
+
 	// returns true if the portal is crossable by actors
-	bool isLinePortal() const;
+	bool isLinePortal() const
+	{
+		return portalindex >= linePortals.Size() ? false : !!(linePortals[portalindex].mFlags & PORTF_PASSABLE);
+	}
+
 	// returns true if the portal needs to be handled by the renderer
-	bool isVisualPortal() const;
-	line_t *getPortalDestination() const;
-	int getPortalAlignment() const;
+	bool isVisualPortal() const
+	{
+		return portalindex >= linePortals.Size() ? false : !!(linePortals[portalindex].mFlags & PORTF_VISIBLE);
+	}
+
+	line_t *getPortalDestination() const
+	{
+		return portalindex >= linePortals.Size() ? (line_t*)NULL : linePortals[portalindex].mDestination;
+	}
+
+	int getPortalAlignment() const
+	{
+		return portalindex >= linePortals.Size() ? 0 : linePortals[portalindex].mAlign;
+	}
 };
 
 // phares 3/14/98
@@ -1275,6 +1372,36 @@ subsector_t *P_PointInSubsector(fixed_t x, fixed_t y);
 inline sector_t *P_PointInSector(fixed_t x, fixed_t y)
 {
 	return P_PointInSubsector(x, y)->sector;
+}
+
+inline fixedvec3 AActor::PosRelative(const AActor *other) const
+{
+	return __pos + Displacements.getOffset(Sector->PortalGroup, other->Sector->PortalGroup);
+}
+
+inline fixedvec3 AActor::PosRelative(sector_t *sec) const
+{
+	return __pos + Displacements.getOffset(Sector->PortalGroup, sec->PortalGroup);
+}
+
+inline fixedvec3 AActor::PosRelative(line_t *line) const
+{
+	return __pos + Displacements.getOffset(Sector->PortalGroup, line->frontsector->PortalGroup);
+}
+
+inline fixedvec3 PosRelative(const fixedvec3 &pos, line_t *line, sector_t *refsec = NULL)
+{
+	return pos + Displacements.getOffset(refsec->PortalGroup, line->frontsector->PortalGroup);
+}
+
+inline void AActor::ClearInterpolation()
+{
+	PrevX = X();
+	PrevY = Y();
+	PrevZ = Z();
+	PrevAngle = angle;
+	if (Sector) PrevPortalGroup = Sector->PortalGroup;
+	else PrevPortalGroup = 0;
 }
 
 

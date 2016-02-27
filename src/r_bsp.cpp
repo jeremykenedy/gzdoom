@@ -56,7 +56,6 @@
 #include "r_sky.h"
 #include "po_man.h"
 #include "r_data/colormaps.h"
-#include "portal.h"
 
 seg_t*			curline;
 side_t* 		sidedef;
@@ -1184,9 +1183,9 @@ void R_Subsector (subsector_t *sub)
 				fakeFloor->validcount = validcount;
 				R_3D_NewClip();
 			}
-			fakeHeight = fakeFloor->top.plane->ZatPoint(frontsector->soundorg[0], frontsector->soundorg[0]);
+			fakeHeight = fakeFloor->top.plane->ZatPoint(frontsector->centerspot);
 			if (fakeHeight < viewz &&
-				fakeHeight > frontsector->floorplane.ZatPoint(frontsector->soundorg[0], frontsector->soundorg[1]))
+				fakeHeight > frontsector->floorplane.ZatPoint(frontsector->centerspot))
 			{
 				fake3D = FAKE3D_FAKEFLOOR;
 				tempsec = *fakeFloor->model;
@@ -1246,9 +1245,9 @@ void R_Subsector (subsector_t *sub)
 				fakeFloor->validcount = validcount;
 				R_3D_NewClip();
 			}
-			fakeHeight = fakeFloor->bottom.plane->ZatPoint(frontsector->soundorg[0], frontsector->soundorg[1]);
+			fakeHeight = fakeFloor->bottom.plane->ZatPoint(frontsector->centerspot);
 			if (fakeHeight > viewz &&
-				fakeHeight < frontsector->ceilingplane.ZatPoint(frontsector->soundorg[0], frontsector->soundorg[1]))
+				fakeHeight < frontsector->ceilingplane.ZatPoint(frontsector->centerspot))
 			{
 				fake3D = FAKE3D_FAKECEILING;
 				tempsec = *fakeFloor->model;

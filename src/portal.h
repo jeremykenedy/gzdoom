@@ -3,11 +3,7 @@
 
 #include "basictypes.h"
 #include "v_video.h"
-#include "r_defs.h"
-#include "actor.h"
-#include "p_local.h"
 #include "m_bbox.h"
-#include "a_sharedglobal.h"
 
 struct FPortalGroupArray;
 //============================================================================
@@ -30,15 +26,21 @@ struct FPortalGroupArray;
 
 struct FDisplacement
 {
-	fixed_t x, y;
+	fixedvec2 pos;
 	bool isSet;
 	BYTE indirect;	// just for illustration.
+
 };
 
 struct FDisplacementTable
 {
 	TArray<FDisplacement> data;
 	int size;
+
+	FDisplacementTable()
+	{
+		Create(1);
+	}
 
 	void Create(int numgroups)
 	{
@@ -51,9 +53,68 @@ struct FDisplacementTable
 	{
 		return data[x + size*y];
 	}
+
+	fixedvec2 getOffset(int x, int y) const
+	{
+		if (x == y)
+		{
+			fixedvec2 nulvec = { 0,0 };
+			return nulvec;	// shortcut for the most common case
+		}
+		return data[x + size*y].pos;
+	}
 };
 
 extern FDisplacementTable Displacements;
+
+
+//============================================================================
+//
+// A blockmap that only contains crossable portals
+// This is used for quick checks if a vector crosses through one.
+//
+//============================================================================
+
+struct FPortalBlock
+{
+	bool neighborContainsLines;	// this is for skipping the traverser and exiting early if we can quickly decide that there's no portals nearby.
+	TArray<line_t*> portallines;
+
+	FPortalBlock()
+	{
+		neighborContainsLines = false;
+	}
+};
+
+struct FPortalBlockmap
+{
+	TArray<FPortalBlock> data;
+	int dx, dy;
+	bool containsLines;
+
+	void Create(int blockx, int blocky)
+	{
+		data.Resize(blockx*blocky);
+		dx = blockx;
+		dy = blocky;
+	}
+
+	void Clear()
+	{
+		data.Clear();
+		data.ShrinkToFit();
+		dx = dy = 0;
+		containsLines = false;
+	}
+
+	FPortalBlock &operator()(int x, int y)
+	{
+		return data[x + dx*y];
+	}
+};
+
+extern FPortalBlockmap PortalBlockmap;
+
 
 //============================================================================
 //
@@ -116,11 +177,12 @@ struct FLinePortal
 
 extern TArray<FLinePortal> linePortals;
 
+void P_ClearPortals();
 void P_SpawnLinePortal(line_t* line);
 void P_FinalizePortals();
 bool P_ChangePortal(line_t *ln, int thisid, int destid);
 void P_CreateLinkedPortals();
-bool P_CollectConnectedGroups(AActor *actor, fixed_t newx, fixed_t newy, FPortalGroupArray &out);
+bool P_CollectConnectedGroups(int startgroup, const fixedvec3 &position, fixed_t upperz, fixed_t checkradius, FPortalGroupArray &out);
 void P_CollectLinkedPortals();
 inline int P_NumPortalGroups()
 {
@@ -135,98 +197,7 @@ void P_TranslatePortalVXVY(line_t* src, line_t* dst, fixed_t& vx, fixed_t& vy);
 void P_TranslatePortalAngle(line_t* src, line_t* dst, angle_t& angle);
 void P_TranslatePortalZ(line_t* src, line_t* dst, fixed_t& z);
 void P_NormalizeVXVY(fixed_t& vx, fixed_t& vy);
-
-//============================================================================
-//
-// basically, this is a teleporting tracer function,
-// which can be used by itself (to calculate portal-aware offsets, say, for projectiles)
-// or to teleport normal tracers (like hitscan, railgun, autoaim tracers)
-//
-//============================================================================
-
-class PortalTracer
-{
-public:
-	PortalTracer(fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy);
-
-	// trace to next portal
-	bool TraceStep();
-	// trace to last available portal on the path
-	void TraceAll() { while (TraceStep()) continue; }
-
-	int depth;
-	fixed_t startx;
-	fixed_t starty;
-	fixed_t intx;
-	fixed_t inty;
-	fixed_t intxIn;
-	fixed_t intyIn;
-	fixed_t endx;
-	fixed_t endy;
-	angle_t angle;
-	fixed_t z;
-	fixed_t frac;
-	line_t* in;
-	line_t* out;
-	fixed_t vx;
-	fixed_t vy;
-};
-
-/* new code */
 fixed_t P_PointLineDistance(line_t* line, fixed_t x, fixed_t y);
-
-//============================================================================
-//
-// some wrappers around the portal data.
-//
-//============================================================================
-
-
-// returns true if the portal is crossable by actors
-inline bool line_t::isLinePortal() const
-{
-	return portalindex >= linePortals.Size() ? false : !!(linePortals[portalindex].mFlags & PORTF_PASSABLE);
-}
-
-// returns true if the portal needs to be handled by the renderer
-inline bool line_t::isVisualPortal() const
-{
-	return portalindex >= linePortals.Size() ? false : !!(linePortals[portalindex].mFlags & PORTF_VISIBLE);
-}
-
-inline line_t *line_t::getPortalDestination() const
-{
-	return portalindex >= linePortals.Size() ? (line_t*)NULL : linePortals[portalindex].mDestination;
-}
-
-inline int line_t::getPortalAlignment() const
-{
-	return portalindex >= linePortals.Size() ? 0 : linePortals[portalindex].mAlign;
-}
-
-inline bool sector_t::PortalBlocksView(int plane)
-{
-	if (SkyBoxes[plane] == NULL) return true;
-	if (SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return false;
-	return !!(planes[plane].Flags & (PLANEF_NORENDER | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
-}
-
-inline bool sector_t::PortalBlocksSight(int plane)
-{
-	if (SkyBoxes[plane] == NULL || SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return true;
-	return !!(planes[plane].Flags & (PLANEF_NORENDER | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
-}
-
-inline bool sector_t::PortalBlocksMovement(int plane)
-{
-	if (SkyBoxes[plane] == NULL || SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return true;
-	return !!(planes[plane].Flags & (PLANEF_NOPASS | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
-}
-
-inline bool sector_t::PortalBlocksSound(int plane)
-{
-	if (SkyBoxes[plane] == NULL || SkyBoxes[plane]->special1 != SKYBOX_LINKEDPORTAL) return true;
-	return !!(planes[plane].Flags & (PLANEF_BLOCKSOUND | PLANEF_DISABLED | PLANEF_OBSTRUCTED));
-}
+fixedvec2 P_GetOffsetPosition(AActor *actor, fixed_t dx, fixed_t dy);
 
 #endif

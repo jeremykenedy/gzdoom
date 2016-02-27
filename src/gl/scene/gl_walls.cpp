@@ -124,6 +124,7 @@ void GLWall::PutWall(bool translucent)
 		3,		//RENDERWALL_COLOR,            // translucent
 		2,		//RENDERWALL_FFBLOCK           // depends on render and texture settings
 		4,		//RENDERWALL_COLORLAYER        // color layer needs special handling
+		4,		//RENDERWALL_LINETOLINE
 	};
 	
 	if (gltexture && gltexture->GetTransparent() && passflag[type] == 2)
@@ -245,6 +246,12 @@ void GLWall::PutWall(bool translucent)
 			type=RENDERWALL_MIRRORSURFACE;
 			gl_drawinfo->drawlists[GLDL_TRANSLUCENTBORDER].AddWall(this);
 		}
+		break;
+
+	case RENDERWALL_LINETOLINE:
+		portal=GLPortal::FindPortal(l2l);
+		if (!portal) portal=new GLLineToLinePortal(l2l);
+		portal->AddLine(this);
 		break;
 
 	case RENDERWALL_SKY:
@@ -1603,7 +1610,19 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 		// sector's sky
 		SkyNormal(frontsector, v1, v2);
 
-		if (seg->linedef->skybox == NULL)
+		if (seg->linedef->isVisualPortal())
+		{
+			GLLineToLineInfo llinfo;
+			ztop[0] = zceil[0];
+			ztop[1] = zceil[1];
+			zbottom[0] = zfloor[0];
+			zbottom[1] = zfloor[1];
+			llinfo.init(seg->linedef);
+			l2l = UniqueLineToLines.Get(&llinfo);
+			type = RENDERWALL_LINETOLINE;
+			PutWall(0);
+		}
+		else if (seg->linedef->skybox == NULL && !seg->linedef->isVisualPortal())
 		{
 			// normal texture
 			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);
@@ -1716,7 +1735,19 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 				fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
 		}
 
-		if (backsector->e->XFloor.ffloors.Size() || frontsector->e->XFloor.ffloors.Size())
+		if (seg->linedef->isVisualPortal() && seg->sidedef == seg->linedef->sidedef[0])
+		{
+			GLLineToLineInfo llinfo;
+			ztop[0] = FIXED2FLOAT(bch1);
+			ztop[1] = FIXED2FLOAT(bch2);
+			zbottom[0] = FIXED2FLOAT(bfh1);
+			zbottom[1] = FIXED2FLOAT(bfh2);
+			llinfo.init(seg->linedef);
+			l2l = UniqueLineToLines.Get(&llinfo);
+			type = RENDERWALL_LINETOLINE;
+			PutWall(0);
+		}
+		else if (backsector->e->XFloor.ffloors.Size() || frontsector->e->XFloor.ffloors.Size())
 		{
 			DoFFloorBlocks(seg, frontsector, backsector, fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
 		}

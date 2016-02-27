@@ -130,6 +130,7 @@ void GLSkyInfo::init(int sky1, PalEntry FadeColor)
 
 }
 
+
 //==========================================================================
 //
 //  Calculate sky texture for ceiling or floor
@@ -188,7 +189,7 @@ void GLWall::SkyPlane(sector_t *sector, int plane, bool allowreflect)
 //
 //==========================================================================
 
-void GLWall::SkyLine(line_t *line)
+void GLWall::SkyLine(sector_t *fs, line_t *line)
 {
 	ASkyViewpoint * skyboxx = line->skybox;
 	GLSkyInfo skyinfo;
@@ -230,7 +231,7 @@ void GLWall::SkyNormal(sector_t * fs,vertex_t * v1,vertex_t * v2)
 		ztop[1] = zceil[1];
 		zbottom[0] = zfloor[0];
 		zbottom[1] = zfloor[1];
-		SkyLine(seg->linedef);
+		SkyLine(fs, seg->linedef);
 	}
 
 	ztop[0]=zfloor[0];

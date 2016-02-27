@@ -473,10 +473,7 @@ void AActor::Serialize (FArchive &arc)
 				Speed = GetDefault()->Speed;
 			}
 		}
-		PrevX = X();
-		PrevY = Y();
-		PrevZ = Z();
-		PrevAngle = angle;
+		ClearInterpolation();
 		UpdateWaterLevel(Z(), false);
 	}
 }
@@ -2187,7 +2184,7 @@ explode:
 					if (tm.ceilingline &&
 						tm.ceilingline->backsector &&
 						tm.ceilingline->backsector->GetTexture(sector_t::ceiling) == skyflatnum &&
-						mo->Z() >= tm.ceilingline->backsector->ceilingplane.ZatPoint(mo))
+						mo->Z() >= tm.ceilingline->backsector->ceilingplane.ZatPoint(mo->PosRelative(tm.ceilingline)))
 					{
 						// Hack to prevent missiles exploding against the sky.
 						// Does not handle sky floors.
@@ -3288,6 +3285,50 @@ void AActor::SetRoll(angle_t r, bool interpolate)
 	}
 }
 
+
+void AActor::CheckPortalTransition(bool islinked)
+{
+	bool moved = false;
+	while (!Sector->PortalBlocksMovement(sector_t::ceiling))
+	{
+		AActor *port = Sector->SkyBoxes[sector_t::ceiling];
+		if (Z() > port->threshold)
+		{
+			fixedvec3 oldpos = Pos();
+			if (islinked && !moved) UnlinkFromWorld();
+			SetXYZ(PosRelative(port->Sector));
+			PrevX += X() - oldpos.x;
+			PrevY += Y() - oldpos.y;
+			PrevZ += Z() - oldpos.z;
+			Sector = P_PointInSector(X(), Y());
+			PrevPortalGroup = Sector->PortalGroup;
+			moved = true;
+		}
+		else break;
+	}
+	if (!moved)
+	{
+		while (!Sector->PortalBlocksMovement(sector_t::floor))
+		{
+			AActor *port = Sector->SkyBoxes[sector_t::floor];
+			if (Z() < port->threshold && floorz < port->threshold)
+			{
+				fixedvec3 oldpos = Pos();
+				if (islinked && !moved) UnlinkFromWorld();
+				SetXYZ(PosRelative(port->Sector));
+				PrevX += X() - oldpos.x;
+				PrevY += Y() - oldpos.y;
+				PrevZ += Z() - oldpos.z;
+				Sector = P_PointInSector(X(), Y());
+				PrevPortalGroup = Sector->PortalGroup;
+				moved = true;
+			}
+			else break;
+		}
+	}
+	if (islinked && moved) LinkToWorld();
+}
+
 //
 // P_MobjThinker
 //
@@ -3326,10 +3367,7 @@ void AActor::Tick ()
 
 	// This is necessary to properly interpolate movement outside this function
 	// like from an ActorMover
-	PrevX = X();
-	PrevY = Y();
-	PrevZ = Z();
-	PrevAngle = angle;
+	ClearInterpolation();
 
 	if (flags5 & MF5_NOINTERACTION)
 	{
@@ -3355,7 +3393,7 @@ void AActor::Tick ()
 		UnlinkFromWorld ();
 		flags |= MF_NOBLOCKMAP;
 		SetXYZ(Vec3Offset(velx, vely, velz));
-		SetMovement(velx, vely, velz);
+		CheckPortalTransition(false);
 		LinkToWorld ();
 	}
 	else
@@ -3559,7 +3597,7 @@ void AActor::Tick ()
 
 			for (node = touching_sectorlist; node; node = node->m_tnext)
 			{
-				const sector_t *sec = node->m_sector;
+				sector_t *sec = node->m_sector;
 				fixed_t scrollx, scrolly;
 
 				if (level.Scrolls != NULL)
@@ -3641,7 +3679,8 @@ void AActor::Tick ()
 				{
 					continue;
 				}
-				height = sec->floorplane.ZatPoint (this);
+				fixedvec3 pos = PosRelative(sec);
+				height = sec->floorplane.ZatPoint (pos);
 				if (Z() > height)
 				{
 					if (heightsec == NULL)
@@ -3649,7 +3688,7 @@ void AActor::Tick ()
 						continue;
 					}
 
-					waterheight = heightsec->floorplane.ZatPoint (this);
+					waterheight = heightsec->floorplane.ZatPoint (pos);
 					if (waterheight > height && Z() >= waterheight)
 					{
 						continue;
@@ -3690,7 +3729,7 @@ void AActor::Tick ()
 			floorplane = P_FindFloorPlane(floorsector, X(), Y(), floorz);
 
 			if (floorplane.c < STEEPSLOPE &&
-				floorplane.ZatPoint (this) <= floorz)
+				floorplane.ZatPoint (PosRelative(floorsector)) <= floorz)
 			{
 				const msecnode_t *node;
 				bool dopush = true;
@@ -3702,7 +3741,7 @@ void AActor::Tick ()
 						const sector_t *sec = node->m_sector;
 						if (sec->floorplane.c >= STEEPSLOPE)
 						{
-							if (floorplane.ZatPoint (this) >= Z() - MaxStepHeight)
+							if (floorplane.ZatPoint (PosRelative(node->m_sector)) >= Z() - MaxStepHeight)
 							{
 								dopush = false;
 								break;
@@ -3820,6 +3859,8 @@ void AActor::Tick ()
 		{
 			Crash();
 		}
+
+		CheckPortalTransition(true);
 
 		UpdateWaterLevel (oldz);
 
@@ -4111,9 +4152,6 @@ AActor *AActor::StaticSpawn (PClassActor *type, fixed_t ix, fixed_t iy, fixed_t 
 		actor->Conversation = NULL;
 	}
 
-	actor->PrevX = ix;
-	actor->PrevY = iy;
-	actor->PrevZ = iz;
 	actor->SetXYZ(ix, iy, iz);
 	actor->picnum.SetInvalid();
 	actor->health = actor->SpawnHealth();
@@ -4149,6 +4187,7 @@ AActor *AActor::StaticSpawn (PClassActor *type, fixed_t ix, fixed_t iy, fixed_t 
 
 	// set subsector and/or block links
 	actor->LinkToWorld (SpawningMapThing);
+	actor->ClearInterpolation();
 
 	actor->dropoffz =			// killough 11/98: for tracking dropoffs
 	actor->floorz = actor->Sector->floorplane.ZatPoint (ix, iy);
@@ -4478,15 +4517,16 @@ void AActor::AdjustFloorClip ()
 	const msecnode_t *m;
 
 	// possibly standing on a 3D-floor
-	if (Sector->e->XFloor.ffloors.Size() && Z()>Sector->floorplane.ZatPoint(this)) floorclip=0;
+	if (Sector->e->XFloor.ffloors.Size() && Z() > Sector->floorplane.ZatPoint(this)) floorclip = 0;
 
 	// [RH] clip based on shallowest floor player is standing on
 	// If the sector has a deep water effect, then let that effect
 	// do the floorclipping instead of the terrain type.
 	for (m = touching_sectorlist; m; m = m->m_tnext)
 	{
+		fixedvec3 pos = PosRelative(m->m_sector);
 		sector_t *hsec = m->m_sector->GetHeightSec();
-		if (hsec == NULL && m->m_sector->floorplane.ZatPoint (this) == Z())
+		if (hsec == NULL && m->m_sector->floorplane.ZatPoint (pos) == Z())
 		{
 			fixed_t clip = Terrains[m->m_sector->GetTerrain(sector_t::floor)].FootClip;
 			if (clip < shallowestclip)
@@ -5356,7 +5396,7 @@ void P_BloodSplatter (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 	}
 	if (bloodtype >= 1)
 	{
-		P_DrawSplash2 (40, x, y, z, R_PointToAngle2 (x, y, originator->X(), originator->Y()), 2, bloodcolor);
+		P_DrawSplash2 (40, x, y, z, 0u - originator->AngleTo(x, y), 2, bloodcolor);
 	}
 }
 
@@ -5396,7 +5436,7 @@ void P_BloodSplatter2 (fixed_t x, fixed_t y, fixed_t z, AActor *originator)
 	}
 	if (bloodtype >= 1)
 	{
-		P_DrawSplash2 (100, x, y, z, R_PointToAngle2 (0, 0, originator->X() - x, originator->Y() - y), 2, bloodcolor);
+		P_DrawSplash2 (100, x, y, z, 0u - originator->AngleTo(x, y), 2, bloodcolor);
 	}
 }
 
@@ -5524,9 +5564,9 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 		fixed_t planez = rover->top.plane->ZatPoint(x, y);
 			if (z > planez - FRACUNIT / 2 && z < planez + FRACUNIT / 2)	// allow minor imprecisions
 		{
-				if (rover->flags & (FF_SOLID | FF_SWIMMABLE))
+			if (rover->flags & (FF_SOLID | FF_SWIMMABLE))
 			{
-					terrainnum = rover->model->GetTerrain(rover->top.isceiling);
+				terrainnum = rover->model->GetTerrain(rover->top.isceiling);
 				goto foundone;
 			}
 		}
@@ -5639,9 +5679,11 @@ bool P_HitFloor (AActor *thing)
 		return false;
 
 	// don't splash if landing on the edge above water/lava/etc....
+	fixedvec3 pos;
 	for (m = thing->touching_sectorlist; m; m = m->m_tnext)
 	{
-		if (thing->Z() == m->m_sector->floorplane.ZatPoint(thing))
+		pos = thing->PosRelative(m->m_sector);
+		if (thing->Z() == m->m_sector->floorplane.ZatPoint(pos.x, pos.y))
 		{
 			break;
 		}
@@ -5653,9 +5695,9 @@ bool P_HitFloor (AActor *thing)
 			if (!(rover->flags & FF_EXISTS)) continue;
 			if (rover->flags & (FF_SOLID|FF_SWIMMABLE))
 			{
-				if (rover->top.plane->ZatPoint(thing) == thing->Z())
+				if (rover->top.plane->ZatPoint(pos.x, pos.y) == thing->Z())
 				{
-					return P_HitWater (thing, m->m_sector);
+					return P_HitWater (thing, m->m_sector, pos.x, pos.y, pos.z);
 				}
 			}
 		}
@@ -5665,7 +5707,7 @@ bool P_HitFloor (AActor *thing)
 		return false;
 	}
 
-	return P_HitWater (thing, m->m_sector);
+	return P_HitWater (thing, m->m_sector, pos.x, pos.y, pos.z);
 }
 
 //---------------------------------------------------------------------------
@@ -5678,12 +5720,15 @@ bool P_HitFloor (AActor *thing)
 
 void P_CheckSplash(AActor *self, fixed_t distance)
 {
-	if (self->Z() <= self->floorz + (distance<<FRACBITS) && self->floorsector == self->Sector && self->Sector->GetHeightSec() == NULL)
+	sector_t *floorsec;
+	self->Sector->LowestFloorAt(self, &floorsec);
+	if (self->Z() <= self->floorz + (distance<<FRACBITS) && self->floorsector == floorsec && self->Sector->GetHeightSec() == NULL && floorsec->heightsec == NULL)
 	{
 		// Explosion splashes never alert monsters. This is because A_Explode has
 		// a separate parameter for that so this would get in the way of proper 
 		// behavior.
-		P_HitWater (self, self->Sector, self->X(), self->Y(), self->floorz, false, false);
+		fixedvec3 pos = self->PosRelative(floorsec);
+		P_HitWater (self, floorsec, pos.x, pos.y, self->floorz, false, false);
 	}
 }
 
@@ -5770,6 +5815,7 @@ bool P_CheckMissileSpawn (AActor* th, fixed_t maxdist)
 			return false;
 		}
 	}
+	th->ClearInterpolation();
 	return true;
 }
 

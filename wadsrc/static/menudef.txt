@@ -366,7 +366,7 @@ OptionValue "Gender"
 
 ListMenu "PlayerMenu"
 {
-	StaticTextCentered 160, 6, "$PLYRMNU_PLAYERSETUP"
+	StaticTextCentered 160, 6, "$MNU_PLAYERSETUP"
 	Font "SmallFont"
 	Linespacing 14
 	Position 48, 36
@@ -652,11 +652,11 @@ OptionValue Fuzziness
 
 OptionMenu "OpenGLOptions"
 {
-	Title "OPENGL OPTIONS"
-	Submenu "Dynamic Light Options",	"GLLightOptions"
-	Submenu "Texture Options", 			"GLTextureGLOptions"
+	Title "$GLMNU_TITLE"
+	Submenu "$GLMNU_DYNLIGHT",	"GLLightOptions"
+	Submenu "$GLMNU_TEXOPT", 			"GLTextureGLOptions"
 	Submenu "Shader Options", 			"GLShaderOptions"
-	Submenu "Preferences", 				"GLPrefOptions"
+	Submenu "$GLMNU_PREFS", 				"GLPrefOptions"
 }
 
 OptionValue VRMode
@@ -672,15 +672,15 @@ OptionMenu "VideoOptions"
 {
 	Title "$DSPLYMNU_TITLE"
 	
-	Submenu "OpenGL Options", 			"OpenGLOptions"
+	Submenu "$DSPLYMNU_GLOPT", 			"OpenGLOptions"
 	Submenu "$DSPLYMNU_SCOREBOARD", 			"ScoreboardOptions"
 	Submenu "Vertical Sync Options",	"VSyncOptions"
 	StaticText " "
 	Slider "$DSPLYMNU_SCREENSIZE",				"screenblocks", 3.0, 12.0, 1.0, 0
 
-	Slider "Gamma correction",			"Gamma",						0.75, 3.0, 0.05, 2
-	Slider "Brightness",				"vid_brightness",				-0.8,0.8, 0.05
-	Slider "Contrast",					"vid_contrast",	   				0.1, 3.0, 0.1
+	Slider "$DSPLYMNU_GAMMA",			"Gamma",						0.75, 3.0, 0.05, 2
+	Slider "$DSPLYMNU_BRIGHTNESS",				"vid_brightness",				-0.8,0.8, 0.05
+	Slider "$DSPLYMNU_CONTRAST",					"vid_contrast",	   				0.1, 3.0, 0.1
 
 	Option "$DSPLYMNU_CAPFPS",					"cl_capfps", "OffOn"
 
@@ -1149,7 +1149,7 @@ OptionMenu MessageOptions
 	Option "$MSGMNU_CENTEREDMESSAGES",			"msgmidcolor", "TextColors"
 	StaticText " "
 	Option "$MSGMNU_SCREENSHOTMESSAGES",		"screenshot_quiet",	"OffOn"
-	Option "$MSGMNU_LONGSAVEMESSAGES",	"		longsavemessages",	"OnOff"
+	Option "$MSGMNU_LONGSAVEMESSAGES",			"longsavemessages",	"OnOff"
 }
 
 //-------------------------------------------------------------------------------------------
@@ -1330,6 +1330,7 @@ OptionMenu "CompatibilityOptions"
 	Option "$CMPTMNU_STAIRS",						"compat_stairs", "YesNo"
 	Option "$CMPTMNU_FLOORMOVE",					"compat_floormove", "YesNo"
 	Option "$CMPTMNU_POINTONLINE",					"compat_pointonline", "YesNo"
+	Option "$CMPTMNU_MULTIEXIT",					"compat_multiexit", "YesNo"
 	
 	StaticText " "
 	StaticText "$CMPTMNU_PHYSICSBEHAVIOR",1
