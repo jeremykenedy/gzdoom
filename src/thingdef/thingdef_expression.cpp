@@ -3189,7 +3189,7 @@ FxFunctionCall::~FxFunctionCall()
 
 FxExpression *FxFunctionCall::Resolve(FCompileContext& ctx)
 {
-	for (int i = 0; i < countof(FxFlops); ++i)
+	for (size_t i = 0; i < countof(FxFlops); ++i)
 	{
 		if (MethodName == FxFlops[i].Name)
 		{
@@ -3527,10 +3527,10 @@ ExpEmit FxVMFunctionCall::Emit(VMFunctionBuilder *build, bool tailcall)
 //
 //==========================================================================
 
-FxFlopFunctionCall::FxFlopFunctionCall(int index, FArgumentList *args, const FScriptPosition &pos)
+FxFlopFunctionCall::FxFlopFunctionCall(size_t index, FArgumentList *args, const FScriptPosition &pos)
 : FxExpression(pos)
 {
-	assert(index >= 0 && index < countof(FxFlops) && "FLOP index out of range");
+	assert(index < countof(FxFlops) && "FLOP index out of range");
 	Index = index;
 	ArgList = args;
 }
