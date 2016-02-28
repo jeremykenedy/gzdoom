@@ -9342,6 +9342,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					HAVE_CONFIG_H,
+					HAVE_STDINT_H,
 				);
 				HEADER_SEARCH_PATHS = tools/re2c;
 				LLVM_LTO = NO;
@@ -9498,6 +9499,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					HAVE_CONFIG_H,
+					HAVE_STDINT_H,
 				);
 				HEADER_SEARCH_PATHS = tools/re2c;
 				PRODUCT_NAME = re2c;
