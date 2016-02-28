@@ -35,7 +35,7 @@ std2:
 	L	= [a-zA-Z_];
 	H	= [a-fA-F0-9];
 	E	= [Ee] [+-]? D+;
-	FS	= [fF];
+	FS	= [fFlL];
 	IS	= [uUlL];
 	ESC	= [\\] ([abcfnrtv?'"\\] | "x" H+ | O+);
 
