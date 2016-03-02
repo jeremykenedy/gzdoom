@@ -86,7 +86,6 @@ static void PrintLastError ();
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
 EXTERN_CVAR(Int, script_scanner_version);
-EXTERN_CVAR(Int, lax_typecast);
 
 extern bool show_outdated_iwad_warning;
 
@@ -1037,11 +1036,6 @@ void IssueOutdatedIWADWarning(const int)
 	show_outdated_iwad_warning = true;
 }
 
-void LaxTypecast(int)
-{
-	lax_typecast = 1;
-}
-
 void ParseMD5Checksum(FScanner& sc, WadSpecial& special)
 {
 	sc.MustGetString();
@@ -1112,14 +1106,6 @@ void ParseSpecialToken(FScanner& sc, WadSpecial& special)
 	{
 		special.function = check_outdated_iwad ?
 			IssueOutdatedIWADWarning
-			: NULL;
-	}
-	else if (0 == stricmp(sc.String, "lax_typecast"))
-	{
-		// Use relaxed typecasts only when automatic detection is enabled
-
-		special.function = -1 == lax_typecast
-			? LaxTypecast
 			: NULL;
 	}
 	else

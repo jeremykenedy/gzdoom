@@ -54,8 +54,6 @@
 #include "vmbuilder.h"
 #include "v_text.h"
 
-CVAR(Int, lax_typecast, -1, CVAR_NOSET)
-
 struct FLOP
 {
 	ENamedName Name;
@@ -438,17 +436,6 @@ FxExpression *FxIntCast::Resolve(FCompileContext &ctx)
 			return x;
 		}
 		return this;
-	}
-	else if (lax_typecast > 0 && basex->ValueType == VAL_Name)
-	{
-	    if (basex->isConstant())
-	    {
-	        ExpVal constval = static_cast<FxConstant *>(basex)->GetValue();
-	        FxExpression *x = new FxConstant(constval.GetName().GetIndex(), ScriptPosition);
-	        delete this;
-	        return x;
-	    }
-	    return this;
 	}
 	else
 	{
