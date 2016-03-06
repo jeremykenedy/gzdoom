@@ -80,7 +80,7 @@ struct InterpolationViewer
 static TArray<InterpolationViewer> PastViewers;
 static FRandom pr_torchflicker ("TorchFlicker");
 static FRandom pr_hom;
-static bool NoInterpolateView;
+bool NoInterpolateView;	// GL needs access to this.
 static TArray<fixedvec3a> InterpolationPath;
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
@@ -434,7 +434,7 @@ void R_SetWindow (int windowSize, int fullWidth, int fullHeight, int stHeight)
 
 	centery = viewheight/2;
 	centerx = viewwidth/2;
-	if (WidescreenRatio & 4)
+	if (Is54Aspect(WidescreenRatio))
 	{
 		centerxwide = centerx;
 	}

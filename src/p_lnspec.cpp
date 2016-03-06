@@ -76,6 +76,10 @@
 */
 static const BYTE ChangeMap[8] = { 0, 1, 5, 3, 7, 2, 6, 0 };
 
+int LS_Sector_SetPlaneReflection(line_t *ln, AActor *it, bool backSide, int arg0, int arg1, int arg2, int arg3, int arg4);
+int LS_SetGlobalFogParameter(line_t *ln, AActor *it, bool backSide, int arg0, int arg1, int arg2, int arg3, int arg4);
+
+
 #define FUNC(a) static int a (line_t *ln, AActor *it, bool backSide, \
 	int arg0, int arg1, int arg2, int arg3, int arg4)
 
@@ -1115,6 +1119,10 @@ FUNC(LS_ThrustThing)
 	}
 	else if (it)
 	{
+		if (level.flags2 & LEVEL2_HEXENHACK && backSide)
+		{
+			return false;
+		}
 		ThrustThingHelper (it, BYTEANGLE(arg0), arg1, arg2);
 		return true;
 	}
@@ -3552,9 +3560,9 @@ static lnSpecFunc LineSpecials[] =
 	/* 154 */ LS_Teleport_NoStop,
 	/* 155 */ LS_NOP,
 	/* 156 */ LS_NOP,
-	/* 157 */ LS_NOP,		// SetGlobalFogParameter // in GZDoom
+	/* 157 */ LS_SetGlobalFogParameter,
 	/* 158 */ LS_FS_Execute,
-	/* 159 */ LS_NOP,		// Sector_SetPlaneReflection in GZDoom
+	/* 159 */ LS_Sector_SetPlaneReflection,
 	/* 160 */ LS_NOP,		// Sector_Set3DFloor
 	/* 161 */ LS_NOP,		// Sector_SetContents
 	/* 162 */ LS_NOP,		// Reserved Doom64 branch
