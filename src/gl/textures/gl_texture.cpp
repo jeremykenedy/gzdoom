@@ -35,6 +35,8 @@
 **
 */
 
+#include <initializer_list>
+
 #include "gl/system/gl_system.h"
 #include "c_cvars.h"
 #include "w_wad.h"
@@ -532,68 +534,85 @@ void FTexture::CheckTrans(unsigned char * buffer, int size, int trans)
 //
 //===========================================================================
 
-#ifdef WORDS_BIGENDIAN
-#define MSB 0
-#define SOME_MASK 0xffffff00
-#else
-#define MSB 3
-#define SOME_MASK 0x00ffffff
-#endif
-
-#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((DWORD*)l1)[0] = ((DWORD*)l1)[ofs]&SOME_MASK), trans=true ) : false)
-
-bool FTexture::SmoothEdges(unsigned char * buffer,int w, int h)
+static __forceinline bool SmoothPixel(unsigned char*& buffer, const std::initializer_list<int>& offsets)
 {
-	int x,y;
-	bool trans=buffer[MSB]==0; // If I set this to false here the code won't detect textures 
-	// that only contain transparent pixels.
-	bool semitrans = false;
-	unsigned char * l1;
+#ifdef __BIG_ENDIAN__
+	static const int MSB = 0;
+	static const DWORD SOME_MASK = 0xffffff00;
+#else // !__BIG_ENDIAN__
+	static const int MSB = 3;
+	static const DWORD SOME_MASK = 0x00ffffff;
+#endif // __BIG_ENDIAN__
 
-	if (h<=1 || w<=1) return false;  // makes (a) no sense and (b) doesn't work with this code!
+	bool transparent = false;
 
-	l1=buffer;
-
-
-	if (l1[MSB]==0 && !CHKPIX(1)) CHKPIX(w);
-	else if (l1[MSB]<255) semitrans=true;
-	l1+=4;
-	for(x=1;x<w-1;x++, l1+=4)
+	if (0 == buffer[MSB])
 	{
-		if (l1[MSB]==0 &&  !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-		else if (l1[MSB]<255) semitrans=true;
-	}
-	if (l1[MSB]==0 && !CHKPIX(-1)) CHKPIX(w);
-	else if (l1[MSB]<255) semitrans=true;
-	l1+=4;
-
-	for(y=1;y<h-1;y++)
-	{
-		if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(1)) CHKPIX(w);
-		else if (l1[MSB]<255) semitrans=true;
-		l1+=4;
-		for(x=1;x<w-1;x++, l1+=4)
+		for (int offset : offsets)
 		{
-			if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1) && !CHKPIX(1) && !CHKPIX(-w-1) && !CHKPIX(-w+1) && !CHKPIX(w-1) && !CHKPIX(w+1)) CHKPIX(w);
-			else if (l1[MSB]<255) semitrans=true;
+			if (0xFF != buffer[offset * 4 + MSB])
+			{
+				continue;
+			}
+
+			DWORD* const pixels = reinterpret_cast<DWORD*>(buffer);
+			pixels[0] = pixels[offset] & SOME_MASK;
+
+			transparent = true;
+			break;
 		}
-		if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(w);
-		else if (l1[MSB]<255) semitrans=true;
-		l1+=4;
 	}
-
-	if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(1);
-	else if (l1[MSB]<255) semitrans=true;
-	l1+=4;
-	for(x=1;x<w-1;x++, l1+=4)
+	else if (buffer[MSB] < 0xFF)
 	{
-		if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(1);
-		else if (l1[MSB]<255) semitrans=true;
+		transparent = true;
 	}
-	if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(-1);
-	else if (l1[MSB]<255) semitrans=true;
 
-	return trans || semitrans;
+	buffer += 4;
+
+	return transparent;
+}
+
+bool FTexture::SmoothEdges(unsigned char* buffer, int w, int h)
+{
+#ifdef __BIG_ENDIAN__
+	static const size_t MSB = 0;
+	static const DWORD SOME_MASK = 0xffffff00;
+#else // !__BIG_ENDIAN__
+	static const size_t MSB = 3;
+	static const DWORD SOME_MASK = 0x00ffffff;
+#endif // __BIG_ENDIAN__
+
+	if (h <= 1 || w <= 1)
+	{
+		// Makes no sense and doesn't work with this code!
+		return false;
+	}
+
+	bool transparent = SmoothPixel(buffer, { 1, w });
+	for (int x = 1; x < w - 1; ++x)
+	{
+		transparent |= SmoothPixel(buffer, { -1, 1, w });
+	}
+	transparent |= SmoothPixel(buffer, { -1, w });
+
+	for (int y = 1; y < h - 1; ++y)
+	{
+		transparent |= SmoothPixel(buffer, { -w, 1, w });
+		for (int x = 1; x < w - 1; ++x)
+		{
+			transparent |= SmoothPixel(buffer, { -w, -1, 1, -w - 1, -w + 1, w - 1, w + 1, w });
+		}
+		transparent |= SmoothPixel(buffer, { -w, -1, w });
+	}
+
+	transparent |= SmoothPixel(buffer, { -w, 1 });
+	for (int x = 1; x < w - 1; ++x)
+	{
+		transparent |= SmoothPixel(buffer, { -w, -1, 1 });
+	}
+	transparent |= SmoothPixel(buffer, { -w, -1 });
+
+	return transparent;
 }
 
 //===========================================================================
