@@ -9265,8 +9265,21 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				LD_NO_PIE = YES;
+				LINK_WITH_STANDARD_LIBRARIES = NO;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-nostdinc++",
+					"-Ithirdparty/libc++/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lSystem",
+					"-lcrt1.o",
+					"-Lthirdparty/libc++/lib",
+					"-lc++",
+					"-lc++abi",
+				);
 				USE_HEADERMAP = NO;
 			};
 			name = MaxOptim;
@@ -9661,8 +9674,21 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-nostdinc++",
+					"-Ithirdparty/libc++/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lSystem",
+					"-lcrt1.o",
+					"-Lthirdparty/libc++/lib",
+					"-lc++",
+					"-lc++abi",
+				);
 				USE_HEADERMAP = NO;
 			};
 			name = Debug;
@@ -9682,8 +9708,21 @@
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-nostdinc++",
+					"-Ithirdparty/libc++/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lSystem",
+					"-lcrt1.o",
+					"-Lthirdparty/libc++/lib",
+					"-lc++",
+					"-lc++abi",
+				);
 				USE_HEADERMAP = NO;
 			};
 			name = Release;
