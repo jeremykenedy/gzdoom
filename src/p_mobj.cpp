@@ -456,7 +456,7 @@ void AActor::Serialize (FArchive &arc)
 	if (arc.IsLoading ())
 	{
 		touching_sectorlist = NULL;
-		LinkToWorld (false, NULL, Sector);
+		LinkToWorld (false, Sector);
 		AddToHash ();
 		SetShade (fillcolor);
 		if (player)
@@ -1728,7 +1728,7 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax, bool preci
 	AActor *target;
 	fixed_t speed;
 
-	speed = !usecurspeed ? actor->Speed : xs_CRoundToInt(TVector3<double>(actor->velx, actor->vely, actor->velz).Length());
+	speed = !usecurspeed ? actor->Speed : xs_CRoundToInt(DVector3(actor->velx, actor->vely, actor->velz).Length());
 	target = actor->tracer;
 	if (target == NULL || !actor->CanSeek(target))
 	{
@@ -1787,7 +1787,7 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax, bool preci
 		if (!(actor->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER)))
 		{ // Need to seek vertically
 			fixedvec2 vec = actor->Vec2To(target);
-			double dist = MAX(1.0, TVector2<double>(vec.x, vec.y).Length());
+			double dist = MAX(1.0, DVector2(vec.x, vec.y).Length());
 			// Aim at a player's eyes and at the middle of the actor for everything else.
 			fixed_t aimheight = target->height/2;
 			if (target->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
@@ -1983,7 +1983,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 
 	FCheckPosition tm(!!(mo->flags2 & MF2_RIP));
 
-
+	angle_t oldangle = mo->angle;
 	do
 	{
 		if (i_compatflags & COMPATF_WALLRUN) pushtime++;
@@ -2139,7 +2139,7 @@ fixed_t P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 								//dest->x - source->x
 								fixedvec3 vect = mo->Vec3To(origin);
 								vect.z += origin->height / 2;
-								TVector3<double> velocity(vect.x, vect.y, vect.z);
+								DVector3 velocity(vect.x, vect.y, vect.z);
 								velocity.Resize(speed);
 								mo->velx = (fixed_t)(velocity.X);
 								mo->vely = (fixed_t)(velocity.Y);
@@ -2213,13 +2213,25 @@ explode:
 				// If the new position does not match the desired position, the player
 				// must have gone through a teleporter, so stop moving right now if it
 				// was a regular teleporter. If it was a line-to-line or fogless teleporter,
-				// the move should continue, but startx and starty need to change.
+				// the move should continue, but startx, starty and xmove, ymove need to change.
 				if (mo->velx == 0 && mo->vely == 0)
 				{
 					step = steps;
 				}
 				else
 				{
+					angle_t anglediff = (mo->angle - oldangle) >> ANGLETOFINESHIFT;
+
+					if (anglediff != 0)
+					{
+						fixed_t xnew = FixedMul(xmove, finecosine[anglediff]) - FixedMul(ymove, finesine[anglediff]);
+						fixed_t ynew = FixedMul(xmove, finesine[anglediff]) + FixedMul(ymove, finecosine[anglediff]);
+
+						xmove = xnew;
+						ymove = ynew;
+						oldangle = mo->angle;	// in case more moves are needed this needs to be updated.
+					}
+
 					startx = mo->X() - Scale (xmove, step, steps);
 					starty = mo->Y() - Scale (ymove, step, steps);
 				}
@@ -4603,6 +4615,10 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	fixed_t spawn_x, spawn_y, spawn_z;
 	angle_t spawn_angle;
 
+	if (mthing == NULL)
+	{
+		return NULL;
+	}
 	// not playing?
 	if ((unsigned)playernum >= (unsigned)MAXPLAYERS || !playeringame[playernum])
 		return NULL;
@@ -5812,7 +5828,7 @@ bool P_CheckMissileSpawn (AActor* th, fixed_t maxdist)
 	if (maxdist > 0)
 	{
 		// move a little forward so an angle can be computed if it immediately explodes
-		TVector3<double> advance(FIXED2DBL(th->velx), FIXED2DBL(th->vely), FIXED2DBL(th->velz));
+		DVector3 advance(FIXED2DBL(th->velx), FIXED2DBL(th->vely), FIXED2DBL(th->velz));
 		double maxsquared = FIXED2DBL(maxdist);
 		maxsquared *= maxsquared;
 
@@ -5822,7 +5838,7 @@ bool P_CheckMissileSpawn (AActor* th, fixed_t maxdist)
 		{
 			advance *= 0.5f;
 		}
-		while (TVector2<double>(advance).LengthSquared() >= maxsquared);
+		while (DVector2(advance).LengthSquared() >= maxsquared);
 		th->SetXYZ(
 			th->X() + FLOAT2FIXED(advance.X),
 			th->Y() + FLOAT2FIXED(advance.Y),
@@ -5984,7 +6000,7 @@ AActor *P_SpawnMissileXYZ (fixed_t x, fixed_t y, fixed_t z,
 	// Answer: No, because this way, you can set up sets of parallel missiles.
 
 	fixedvec3 fixvel = source->Vec3To(dest);
-	TVector3<double> velocity(fixvel.x, fixvel.y, fixvel.z);
+	DVector3 velocity(fixvel.x, fixvel.y, fixvel.z);
 	// Floor and ceiling huggers should never have a vertical component to their velocity
 	if (th->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER))
 	{
@@ -6272,7 +6288,7 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	vz = -finesine[pitch>>ANGLETOFINESHIFT];
 	speed = MissileActor->Speed;
 
-	TVector3<double> vec(vx, vy, vz);
+	DVector3 vec(vx, vy, vz);
 
 	if (MissileActor->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER))
 	{

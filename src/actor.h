@@ -851,14 +851,14 @@ public:
 	fixed_t Distance2D(AActor *other, bool absolute = false)
 	{
 		fixedvec3 otherpos = absolute ? other->Pos() : other->PosRelative(this);
-		return xs_RoundToInt(TVector2<double>(X() - otherpos.x, Y() - otherpos.y).Length());
+		return xs_RoundToInt(DVector2(X() - otherpos.x, Y() - otherpos.y).Length());
 	}
 
 	// a full 3D version of the above
 	fixed_t Distance3D(AActor *other, bool absolute = false)
 	{
 		fixedvec3 otherpos = absolute ? other->Pos() : other->PosRelative(this);
-		return xs_RoundToInt(TVector3<double>(X() - otherpos.x, Y() - otherpos.y, Z() - otherpos.z).Length());
+		return xs_RoundToInt(DVector3(X() - otherpos.x, Y() - otherpos.y, Z() - otherpos.z).Length());
 	}
 
 	angle_t AngleTo(AActor *other, bool absolute = false)
@@ -1167,7 +1167,7 @@ private:
 	bool FixMapthingPos();
 
 public:
-	void LinkToWorld (bool spawningmapthing=false, FPortalGroupArray *groups = NULL, sector_t *sector = NULL);
+	void LinkToWorld (bool spawningmapthing=false, sector_t *sector = NULL);
 	void UnlinkFromWorld ();
 	void AdjustFloorClip ();
 	virtual void SetOrigin (fixed_t x, fixed_t y, fixed_t z, bool moving = false);
