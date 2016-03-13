@@ -693,6 +693,7 @@
 		8AC81C441391321300F49DC3 /* libdumb_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27B251390F5DC0095D9A0 /* libdumb_gzdoom.a */; };
 		8AC81C451391321300F49DC3 /* libgdtoa_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27C1C1390F7E20095D9A0 /* libgdtoa_gzdoom.a */; };
 		8AD870F3140A4EC5007A06A9 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 8AD870F1140A4EC5007A06A9 /* Credits.html */; };
+		8AE271341C959DB8006389F1 /* i_main_except.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AE271331C959DA0006389F1 /* i_main_except.cpp */; };
 		8AE875801BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
 		8AE875811BAAFDB700717B78 /* libopenal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757F1BAAFDB700717B78 /* libopenal.a */; };
 		8AE875821BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
@@ -2884,6 +2885,7 @@
 		8AC7C1B21C415FDE00D7D23E /* SkylineBinPack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkylineBinPack.h; sourceTree = "<group>"; };
 		8AC7C1B31C415FDE00D7D23E /* tagitem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tagitem.h; sourceTree = "<group>"; };
 		8AD870F1140A4EC5007A06A9 /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = Credits.html; path = misc/resources/Credits.html; sourceTree = "<group>"; };
+		8AE271331C959DA0006389F1 /* i_main_except.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = i_main_except.cpp; sourceTree = "<group>"; };
 		8AE8757E1BAAFDB700717B78 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "thirdparty/openal-soft/lib/libcommon.a"; sourceTree = "<group>"; };
 		8AE8757F1BAAFDB700717B78 /* libopenal.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenal.a; path = "thirdparty/openal-soft/lib/libopenal.a"; sourceTree = "<group>"; };
 		8AE875981BAAFF8F00717B78 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
@@ -7411,6 +7413,7 @@
 				8AF562881A530C4E000F0B60 /* i_common.h */,
 				8AF562891A530C4E000F0B60 /* i_input.mm */,
 				8AF5628A1A530C4E000F0B60 /* i_joystick.cpp */,
+				8AE271331C959DA0006389F1 /* i_main_except.cpp */,
 				8AF5628B1A530C4E000F0B60 /* i_main.mm */,
 				8A34AEBD1C4A420D0007C31A /* i_system.mm */,
 				8AF5628E1A530C4E000F0B60 /* i_timer.cpp */,
@@ -8000,6 +8003,7 @@
 				8AF562B51A530CCD000F0B60 /* critsec.cpp in Sources */,
 				8AF562B61A530CCD000F0B60 /* i_input.mm in Sources */,
 				8AF562B71A530CCD000F0B60 /* i_joystick.cpp in Sources */,
+				8AE271341C959DB8006389F1 /* i_main_except.cpp in Sources */,
 				8AF562B81A530CCD000F0B60 /* i_main.mm in Sources */,
 				8A34AEC31C4A43070007C31A /* i_system.mm in Sources */,
 				8AF562B91A530CCD000F0B60 /* i_timer.cpp in Sources */,
