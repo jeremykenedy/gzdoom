@@ -1757,7 +1757,6 @@
 		8A7F25191C673674001B71A3 /* zcc-parse.lemon */ = {isa = PBXFileReference; lastKnownFileType = text; path = "zcc-parse.lemon"; sourceTree = "<group>"; };
 		8A7F251A1C673674001B71A3 /* zcc_compile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = zcc_compile.cpp; sourceTree = "<group>"; };
 		8A7F251B1C673674001B71A3 /* zcc_compile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zcc_compile.h; sourceTree = "<group>"; };
-		8A7F251C1C673674001B71A3 /* zcc_errors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zcc_errors.h; sourceTree = "<group>"; };
 		8A7F251D1C673674001B71A3 /* zcc_expr.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = zcc_expr.cpp; sourceTree = "<group>"; };
 		8A7F251E1C673674001B71A3 /* zcc_exprlist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zcc_exprlist.h; sourceTree = "<group>"; };
 		8A7F251F1C673674001B71A3 /* zcc_parser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = zcc_parser.cpp; sourceTree = "<group>"; };
@@ -4497,7 +4496,6 @@
 				8A7F25191C673674001B71A3 /* zcc-parse.lemon */,
 				8A7F251A1C673674001B71A3 /* zcc_compile.cpp */,
 				8A7F251B1C673674001B71A3 /* zcc_compile.h */,
-				8A7F251C1C673674001B71A3 /* zcc_errors.h */,
 				8A7F251D1C673674001B71A3 /* zcc_expr.cpp */,
 				8A7F251E1C673674001B71A3 /* zcc_exprlist.h */,
 				8A7F251F1C673674001B71A3 /* zcc_parser.cpp */,
