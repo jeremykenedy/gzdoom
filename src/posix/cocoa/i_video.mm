@@ -1830,7 +1830,6 @@ void CocoaOpenGLFrameBuffer::DrawRenderTarget()
 
 	m_gammaProgram.Bind(0.0f);
 	BoundTextureDraw2D(Width, Height);
-	glUseProgram(0);
 
 	glViewport(0, 0, Width, Height);
 }
