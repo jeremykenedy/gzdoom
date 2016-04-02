@@ -1013,6 +1013,11 @@ void FGLRenderer::RenderView (player_t* player)
 	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true, true);
 	EndDrawScene(viewsector);
 
+	if (NULL != afterRenderView)
+	{
+		afterRenderView();
+	}
+
 	All.Unclock();
 }
 
