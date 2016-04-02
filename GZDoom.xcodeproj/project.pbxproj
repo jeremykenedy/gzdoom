@@ -681,6 +681,10 @@
 		8AA9A1971660E80A007F75A4 /* OPL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AA9A1951660E80A007F75A4 /* OPL3.cpp */; };
 		8AA9A1981660E8DC007F75A4 /* OPL3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AA9A1951660E80A007F75A4 /* OPL3.cpp */; };
 		8AA9A1991660E8E5007F75A4 /* opl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AA9A1921660E80A007F75A4 /* opl.cpp */; };
+		8AAC3E3E1CAFA69A0005AEC8 /* p_pusher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AAC3E3C1CAFA6670005AEC8 /* p_pusher.cpp */; };
+		8AAC3E3F1CAFA69E0005AEC8 /* p_scroll.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AAC3E3D1CAFA6670005AEC8 /* p_scroll.cpp */; };
+		8AAC3E401CAFA6A90005AEC8 /* p_pusher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AAC3E3C1CAFA6670005AEC8 /* p_pusher.cpp */; };
+		8AAC3E411CAFA6AD0005AEC8 /* p_scroll.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AAC3E3D1CAFA6670005AEC8 /* p_scroll.cpp */; };
 		8AB53BBB18941AD10079E426 /* xbrz_old.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz_old.cpp */; };
 		8AB53BBC18941AD90079E426 /* xbrz_old.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53BB918941A880079E426 /* xbrz_old.cpp */; };
 		8AB930CF199FA70A00EEF7AF /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AB930CD199FA6EF00EEF7AF /* Image.cpp */; };
@@ -2867,6 +2871,8 @@
 		8AA9A1931660E80A007F75A4 /* opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opl.h; sourceTree = "<group>"; };
 		8AA9A1941660E80A007F75A4 /* opl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opl.h; sourceTree = "<group>"; };
 		8AA9A1951660E80A007F75A4 /* OPL3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OPL3.cpp; sourceTree = "<group>"; };
+		8AAC3E3C1CAFA6670005AEC8 /* p_pusher.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = p_pusher.cpp; sourceTree = "<group>"; };
+		8AAC3E3D1CAFA6670005AEC8 /* p_scroll.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = p_scroll.cpp; sourceTree = "<group>"; };
 		8AB53BB818941A880079E426 /* xbrz_config_old.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xbrz_config_old.h; sourceTree = "<group>"; };
 		8AB53BB918941A880079E426 /* xbrz_old.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xbrz_old.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		8AB53BBA18941A880079E426 /* xbrz_old.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xbrz_old.h; sourceTree = "<group>"; };
@@ -6583,8 +6589,10 @@
 				8A34AECE1C4A44A00007C31A /* p_portals.cpp */,
 				8AF27ED5139126C00095D9A0 /* p_pspr.cpp */,
 				8AF27ED6139126C00095D9A0 /* p_pspr.h */,
+				8AAC3E3C1CAFA6670005AEC8 /* p_pusher.cpp */,
 				8AF27ED7139126C00095D9A0 /* p_saveg.cpp */,
 				8AF27ED8139126C00095D9A0 /* p_saveg.h */,
+				8AAC3E3D1CAFA6670005AEC8 /* p_scroll.cpp */,
 				8AF27ED9139126C00095D9A0 /* p_sectors.cpp */,
 				8AF27EDA139126C00095D9A0 /* p_setup.cpp */,
 				8AF27EDB139126C00095D9A0 /* p_setup.h */,
@@ -8198,7 +8206,9 @@
 				8A9F53D914BB0F2900F3369B /* p_plats.cpp in Sources */,
 				8A34AED01C4A44DB0007C31A /* p_portals.cpp in Sources */,
 				8A9F53DA14BB0F2900F3369B /* p_pspr.cpp in Sources */,
+				8AAC3E3E1CAFA69A0005AEC8 /* p_pusher.cpp in Sources */,
 				8A9F53DB14BB0F2900F3369B /* p_saveg.cpp in Sources */,
+				8AAC3E3F1CAFA69E0005AEC8 /* p_scroll.cpp in Sources */,
 				8A9F53DC14BB0F2900F3369B /* p_sectors.cpp in Sources */,
 				8A9F53DD14BB0F2900F3369B /* p_setup.cpp in Sources */,
 				8A9F53DE14BB0F2900F3369B /* p_sight.cpp in Sources */,
@@ -8908,7 +8918,9 @@
 				8AF28139139126C00095D9A0 /* p_plats.cpp in Sources */,
 				8A34AECF1C4A44CE0007C31A /* p_portals.cpp in Sources */,
 				8AF2813A139126C00095D9A0 /* p_pspr.cpp in Sources */,
+				8AAC3E401CAFA6A90005AEC8 /* p_pusher.cpp in Sources */,
 				8AF2813B139126C00095D9A0 /* p_saveg.cpp in Sources */,
+				8AAC3E411CAFA6AD0005AEC8 /* p_scroll.cpp in Sources */,
 				8AF2813C139126C00095D9A0 /* p_sectors.cpp in Sources */,
 				8AF2813D139126C00095D9A0 /* p_setup.cpp in Sources */,
 				8AF2813E139126C00095D9A0 /* p_sight.cpp in Sources */,
