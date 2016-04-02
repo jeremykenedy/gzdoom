@@ -1331,6 +1331,7 @@ OptionMenu "CompatibilityOptions"
 	Option "Use buggier stair building",				"compat_stairs", "YesNo"
 	Option "Use Doom's floor motion behavior",			"compat_floormove", "YesNo"
 	Option "Use Doom's point-on-line algorithm",		"compat_pointonline", "YesNo"
+	Option "Level exit can be triggered more than once",	"compat_multiexit", "YesNo"
 	
 	StaticText " "
 	StaticText "Physics Behavior",1
@@ -1710,6 +1711,7 @@ OptionValue Ratios
 	1.0, "16:9"
 	2.0, "16:10"
 	3.0, "17:10"
+	6.0, "21:9"
 	 -1, "All"
 }
 OptionValue RatiosTFT
@@ -1719,6 +1721,7 @@ OptionValue RatiosTFT
 	1.0, "16:9"
 	2.0, "16:10"
 	3.0, "17:10"
+	6.0, "21:9"
 	 -1, "All"
 }
 

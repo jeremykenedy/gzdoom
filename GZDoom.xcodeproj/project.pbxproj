@@ -189,6 +189,7 @@
 		8A5DDB9F1AF7AE12008C974C /* p_tags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */; };
 		8A5DDBA01AF7AE19008C974C /* p_tags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */; };
 		8A6227A21A18E0C4004235B1 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F4661392532C001F54B0 /* Carbon.framework */; };
+		8A643AFE1CB0128900FEB12D /* i_main_except.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A643AFD1CB0128900FEB12D /* i_main_except.cpp */; };
 		8A74F2A2139235E0001F54B0 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F2A1139235E0001F54B0 /* OpenGL.framework */; };
 		8A74F2BA1392360F001F54B0 /* libfmodex.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F2B91392360F001F54B0 /* libfmodex.dylib */; };
 		8A74F38F13925284001F54B0 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A74F38E13925284001F54B0 /* IOKit.framework */; };
@@ -1488,6 +1489,7 @@
 		8A5DDB9C1AF7ADAC008C974C /* p_tags.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = p_tags.cpp; sourceTree = "<group>"; };
 		8A5DDB9D1AF7ADAC008C974C /* p_tags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = p_tags.h; sourceTree = "<group>"; };
 		8A5DDB9E1AF7ADF1008C974C /* minza0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = minza0.png; sourceTree = "<group>"; };
+		8A643AFD1CB0128900FEB12D /* i_main_except.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = i_main_except.cpp; sourceTree = "<group>"; };
 		8A74F2A1139235E0001F54B0 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		8A74F2B91392360F001F54B0 /* libfmodex.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfmodex.dylib; path = thirdparty/FMOD/lib/libfmodex.dylib; sourceTree = "<group>"; };
 		8A74F38E13925284001F54B0 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
@@ -6878,6 +6880,7 @@
 				8AF562881A530C4E000F0B60 /* i_common.h */,
 				8AF562891A530C4E000F0B60 /* i_input.mm */,
 				8AF5628A1A530C4E000F0B60 /* i_joystick.cpp */,
+				8A643AFD1CB0128900FEB12D /* i_main_except.cpp */,
 				8AF5628B1A530C4E000F0B60 /* i_main.mm */,
 				8A34AEBD1C4A420D0007C31A /* i_system.mm */,
 				8AF5628E1A530C4E000F0B60 /* i_timer.cpp */,
@@ -7446,6 +7449,7 @@
 				8AF562B51A530CCD000F0B60 /* critsec.cpp in Sources */,
 				8AF562B61A530CCD000F0B60 /* i_input.mm in Sources */,
 				8AF562B71A530CCD000F0B60 /* i_joystick.cpp in Sources */,
+				8A643AFE1CB0128900FEB12D /* i_main_except.cpp in Sources */,
 				8AF562B81A530CCD000F0B60 /* i_main.mm in Sources */,
 				8A34AEC31C4A43070007C31A /* i_system.mm in Sources */,
 				8AF562B91A530CCD000F0B60 /* i_timer.cpp in Sources */,
