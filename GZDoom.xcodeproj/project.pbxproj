@@ -1572,7 +1572,6 @@
 		8A34AECA1C4A442C0007C31A /* edata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = edata.h; sourceTree = "<group>"; };
 		8A34AECE1C4A44A00007C31A /* p_portals.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = p_portals.cpp; sourceTree = "<group>"; };
 		8A3ACEF317F833FC002E550F /* m_specialpaths.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = m_specialpaths.cpp; sourceTree = "<group>"; };
-		8A3DA66C1547DB5100D1302A /* thingdef_function.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thingdef_function.cpp; sourceTree = "<group>"; };
 		8A3DA6941547DC2A00D1302A /* gl_builddraw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gl_builddraw.cpp; sourceTree = "<group>"; };
 		8A3FB89D18B10ED6007AAE66 /* gdtoa_fltrnds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gdtoa_fltrnds.h; sourceTree = "<group>"; };
 		8A41EE9719FB9A900072E317 /* GWANA0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GWANA0.png; sourceTree = "<group>"; };
@@ -3766,7 +3765,6 @@
 		8AF27FA5139126C00095D9A0 /* thingdef_parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thingdef_parse.cpp; sourceTree = "<group>"; };
 		8AF27FA6139126C00095D9A0 /* thingdef_properties.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thingdef_properties.cpp; sourceTree = "<group>"; };
 		8AF27FA7139126C00095D9A0 /* thingdef_states.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thingdef_states.cpp; sourceTree = "<group>"; };
-		8AF27FA8139126C00095D9A0 /* thingdef_type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thingdef_type.h; sourceTree = "<group>"; };
 		8AF27FAB139126C00095D9A0 /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common.cpp; sourceTree = "<group>"; };
 		8AF27FAD139126C00095D9A0 /* dls1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dls1.h; sourceTree = "<group>"; };
 		8AF27FAE139126C00095D9A0 /* dls2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dls2.h; sourceTree = "<group>"; };
@@ -7307,11 +7305,9 @@
 				8AF27FA2139126C00095D9A0 /* thingdef_exp.cpp */,
 				8AF27FA3139126C00095D9A0 /* thingdef_exp.h */,
 				8AF27FA4139126C00095D9A0 /* thingdef_expression.cpp */,
-				8A3DA66C1547DB5100D1302A /* thingdef_function.cpp */,
 				8AF27FA5139126C00095D9A0 /* thingdef_parse.cpp */,
 				8AF27FA6139126C00095D9A0 /* thingdef_properties.cpp */,
 				8AF27FA7139126C00095D9A0 /* thingdef_states.cpp */,
-				8AF27FA8139126C00095D9A0 /* thingdef_type.h */,
 			);
 			path = thingdef;
 			sourceTree = "<group>";
