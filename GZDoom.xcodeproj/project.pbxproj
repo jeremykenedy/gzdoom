@@ -696,6 +696,38 @@
 		8AC81C431391321300F49DC3 /* libgme_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27A541390F4F40095D9A0 /* libgme_gzdoom.a */; };
 		8AC81C441391321300F49DC3 /* libdumb_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27B251390F5DC0095D9A0 /* libdumb_gzdoom.a */; };
 		8AC81C451391321300F49DC3 /* libgdtoa_gzdoom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF27C1C1390F7E20095D9A0 /* libgdtoa_gzdoom.a */; };
+		8AD069D71CBA3A950073B0B3 /* asin.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C41CBA3A600073B0B3 /* asin.c */; };
+		8AD069D81CBA3A950073B0B3 /* atan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C51CBA3A600073B0B3 /* atan.c */; };
+		8AD069D91CBA3A950073B0B3 /* const.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C71CBA3A600073B0B3 /* const.c */; };
+		8AD069DA1CBA3A950073B0B3 /* cosh.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C81CBA3A600073B0B3 /* cosh.c */; };
+		8AD069DB1CBA3A950073B0B3 /* exp.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C91CBA3A600073B0B3 /* exp.c */; };
+		8AD069DC1CBA3A950073B0B3 /* fastsin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CA1CBA3A600073B0B3 /* fastsin.cpp */; };
+		8AD069DD1CBA3A950073B0B3 /* isnan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CB1CBA3A600073B0B3 /* isnan.c */; };
+		8AD069DE1CBA3A950073B0B3 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CC1CBA3A600073B0B3 /* log.c */; };
+		8AD069DF1CBA3A950073B0B3 /* log10.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CD1CBA3A600073B0B3 /* log10.c */; };
+		8AD069E01CBA3A950073B0B3 /* mtherr.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CF1CBA3A600073B0B3 /* mtherr.c */; };
+		8AD069E11CBA3A950073B0B3 /* polevl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D01CBA3A600073B0B3 /* polevl.c */; };
+		8AD069E21CBA3A950073B0B3 /* sin.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D21CBA3A600073B0B3 /* sin.c */; };
+		8AD069E31CBA3A950073B0B3 /* sinh.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D31CBA3A600073B0B3 /* sinh.c */; };
+		8AD069E41CBA3A950073B0B3 /* sqrt.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D41CBA3A600073B0B3 /* sqrt.c */; };
+		8AD069E51CBA3A950073B0B3 /* tan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D51CBA3A600073B0B3 /* tan.c */; };
+		8AD069E61CBA3A950073B0B3 /* tanh.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D61CBA3A600073B0B3 /* tanh.c */; };
+		8AD069E71CBA3A9A0073B0B3 /* asin.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C41CBA3A600073B0B3 /* asin.c */; };
+		8AD069E81CBA3A9A0073B0B3 /* atan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C51CBA3A600073B0B3 /* atan.c */; };
+		8AD069E91CBA3A9A0073B0B3 /* const.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C71CBA3A600073B0B3 /* const.c */; };
+		8AD069EA1CBA3A9A0073B0B3 /* cosh.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C81CBA3A600073B0B3 /* cosh.c */; };
+		8AD069EB1CBA3A9A0073B0B3 /* exp.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069C91CBA3A600073B0B3 /* exp.c */; };
+		8AD069EC1CBA3A9A0073B0B3 /* fastsin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CA1CBA3A600073B0B3 /* fastsin.cpp */; };
+		8AD069ED1CBA3A9A0073B0B3 /* isnan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CB1CBA3A600073B0B3 /* isnan.c */; };
+		8AD069EE1CBA3A9A0073B0B3 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CC1CBA3A600073B0B3 /* log.c */; };
+		8AD069EF1CBA3A9A0073B0B3 /* log10.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CD1CBA3A600073B0B3 /* log10.c */; };
+		8AD069F01CBA3A9A0073B0B3 /* mtherr.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069CF1CBA3A600073B0B3 /* mtherr.c */; };
+		8AD069F11CBA3A9A0073B0B3 /* polevl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D01CBA3A600073B0B3 /* polevl.c */; };
+		8AD069F21CBA3A9A0073B0B3 /* sin.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D21CBA3A600073B0B3 /* sin.c */; };
+		8AD069F31CBA3A9A0073B0B3 /* sinh.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D31CBA3A600073B0B3 /* sinh.c */; };
+		8AD069F41CBA3A9A0073B0B3 /* sqrt.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D41CBA3A600073B0B3 /* sqrt.c */; };
+		8AD069F51CBA3A9A0073B0B3 /* tan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D51CBA3A600073B0B3 /* tan.c */; };
+		8AD069F61CBA3A9A0073B0B3 /* tanh.c in Sources */ = {isa = PBXBuildFile; fileRef = 8AD069D61CBA3A600073B0B3 /* tanh.c */; };
 		8AD870F3140A4EC5007A06A9 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 8AD870F1140A4EC5007A06A9 /* Credits.html */; };
 		8AE271341C959DB8006389F1 /* i_main_except.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8AE271331C959DA0006389F1 /* i_main_except.cpp */; };
 		8AE875801BAAFDB700717B78 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE8757E1BAAFDB700717B78 /* libcommon.a */; };
@@ -2888,6 +2920,24 @@
 		8AC7C1B11C415FDE00D7D23E /* SkylineBinPack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkylineBinPack.cpp; sourceTree = "<group>"; };
 		8AC7C1B21C415FDE00D7D23E /* SkylineBinPack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkylineBinPack.h; sourceTree = "<group>"; };
 		8AC7C1B31C415FDE00D7D23E /* tagitem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tagitem.h; sourceTree = "<group>"; };
+		8AD069C41CBA3A600073B0B3 /* asin.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asin.c; sourceTree = "<group>"; };
+		8AD069C51CBA3A600073B0B3 /* atan.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atan.c; sourceTree = "<group>"; };
+		8AD069C61CBA3A600073B0B3 /* cmath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cmath.h; sourceTree = "<group>"; };
+		8AD069C71CBA3A600073B0B3 /* const.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = const.c; sourceTree = "<group>"; };
+		8AD069C81CBA3A600073B0B3 /* cosh.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cosh.c; sourceTree = "<group>"; };
+		8AD069C91CBA3A600073B0B3 /* exp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = exp.c; sourceTree = "<group>"; };
+		8AD069CA1CBA3A600073B0B3 /* fastsin.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = fastsin.cpp; sourceTree = "<group>"; };
+		8AD069CB1CBA3A600073B0B3 /* isnan.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = isnan.c; sourceTree = "<group>"; };
+		8AD069CC1CBA3A600073B0B3 /* log.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = log.c; sourceTree = "<group>"; };
+		8AD069CD1CBA3A600073B0B3 /* log10.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = log10.c; sourceTree = "<group>"; };
+		8AD069CE1CBA3A600073B0B3 /* mconf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mconf.h; sourceTree = "<group>"; };
+		8AD069CF1CBA3A600073B0B3 /* mtherr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mtherr.c; sourceTree = "<group>"; };
+		8AD069D01CBA3A600073B0B3 /* polevl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = polevl.c; sourceTree = "<group>"; };
+		8AD069D21CBA3A600073B0B3 /* sin.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sin.c; sourceTree = "<group>"; };
+		8AD069D31CBA3A600073B0B3 /* sinh.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sinh.c; sourceTree = "<group>"; };
+		8AD069D41CBA3A600073B0B3 /* sqrt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqrt.c; sourceTree = "<group>"; };
+		8AD069D51CBA3A600073B0B3 /* tan.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tan.c; sourceTree = "<group>"; };
+		8AD069D61CBA3A600073B0B3 /* tanh.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tanh.c; sourceTree = "<group>"; };
 		8AD870F1140A4EC5007A06A9 /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = Credits.html; path = misc/resources/Credits.html; sourceTree = "<group>"; };
 		8AE271331C959DA0006389F1 /* i_main_except.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = i_main_except.cpp; sourceTree = "<group>"; };
 		8AE8757E1BAAFDB700717B78 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "thirdparty/openal-soft/lib/libcommon.a"; sourceTree = "<group>"; };
@@ -5922,6 +5972,31 @@
 			path = xbr;
 			sourceTree = "<group>";
 		};
+		8AD069C31CBA3A5F0073B0B3 /* math */ = {
+			isa = PBXGroup;
+			children = (
+				8AD069C41CBA3A600073B0B3 /* asin.c */,
+				8AD069C51CBA3A600073B0B3 /* atan.c */,
+				8AD069C61CBA3A600073B0B3 /* cmath.h */,
+				8AD069C71CBA3A600073B0B3 /* const.c */,
+				8AD069C81CBA3A600073B0B3 /* cosh.c */,
+				8AD069C91CBA3A600073B0B3 /* exp.c */,
+				8AD069CA1CBA3A600073B0B3 /* fastsin.cpp */,
+				8AD069CB1CBA3A600073B0B3 /* isnan.c */,
+				8AD069CC1CBA3A600073B0B3 /* log.c */,
+				8AD069CD1CBA3A600073B0B3 /* log10.c */,
+				8AD069CE1CBA3A600073B0B3 /* mconf.h */,
+				8AD069CF1CBA3A600073B0B3 /* mtherr.c */,
+				8AD069D01CBA3A600073B0B3 /* polevl.c */,
+				8AD069D21CBA3A600073B0B3 /* sin.c */,
+				8AD069D31CBA3A600073B0B3 /* sinh.c */,
+				8AD069D41CBA3A600073B0B3 /* sqrt.c */,
+				8AD069D51CBA3A600073B0B3 /* tan.c */,
+				8AD069D61CBA3A600073B0B3 /* tanh.c */,
+			);
+			path = math;
+			sourceTree = "<group>";
+		};
 		8AED322C1C3E7A5700B1A0AC /* doom.freedoom */ = {
 			isa = PBXGroup;
 			children = (
@@ -6385,6 +6460,7 @@
 				8AF27DDF139126C00095D9A0 /* g_strife */,
 				8AF27DFB139126C00095D9A0 /* gl */,
 				8AF27E6F139126C00095D9A0 /* intermission */,
+				8AD069C31CBA3A5F0073B0B3 /* math */,
 				8AF27E90139126C00095D9A0 /* menu */,
 				8AF27EAE139126C00095D9A0 /* oplsynth */,
 				8AF562761A530C4E000F0B60 /* posix */,
@@ -7980,6 +8056,22 @@
 				8AB53BBC18941AD90079E426 /* xbrz_old.cpp in Sources */,
 				8A9F539C14BB0F2900F3369B /* intermission.cpp in Sources */,
 				8A9F539D14BB0F2900F3369B /* intermission_parse.cpp in Sources */,
+				8AD069D71CBA3A950073B0B3 /* asin.c in Sources */,
+				8AD069D81CBA3A950073B0B3 /* atan.c in Sources */,
+				8AD069D91CBA3A950073B0B3 /* const.c in Sources */,
+				8AD069DA1CBA3A950073B0B3 /* cosh.c in Sources */,
+				8AD069DB1CBA3A950073B0B3 /* exp.c in Sources */,
+				8AD069DC1CBA3A950073B0B3 /* fastsin.cpp in Sources */,
+				8AD069DD1CBA3A950073B0B3 /* isnan.c in Sources */,
+				8AD069DE1CBA3A950073B0B3 /* log.c in Sources */,
+				8AD069DF1CBA3A950073B0B3 /* log10.c in Sources */,
+				8AD069E01CBA3A950073B0B3 /* mtherr.c in Sources */,
+				8AD069E11CBA3A950073B0B3 /* polevl.c in Sources */,
+				8AD069E21CBA3A950073B0B3 /* sin.c in Sources */,
+				8AD069E31CBA3A950073B0B3 /* sinh.c in Sources */,
+				8AD069E41CBA3A950073B0B3 /* sqrt.c in Sources */,
+				8AD069E51CBA3A950073B0B3 /* tan.c in Sources */,
+				8AD069E61CBA3A950073B0B3 /* tanh.c in Sources */,
 				8A9F53AA14BB0F2900F3369B /* colorpickermenu.cpp in Sources */,
 				8A9F53AB14BB0F2900F3369B /* joystickmenu.cpp in Sources */,
 				8A9F53AC14BB0F2900F3369B /* listmenu.cpp in Sources */,
@@ -8691,6 +8783,22 @@
 				8AB53BBB18941AD10079E426 /* xbrz_old.cpp in Sources */,
 				8AF280FC139126C00095D9A0 /* intermission.cpp in Sources */,
 				8AF280FD139126C00095D9A0 /* intermission_parse.cpp in Sources */,
+				8AD069E71CBA3A9A0073B0B3 /* asin.c in Sources */,
+				8AD069E81CBA3A9A0073B0B3 /* atan.c in Sources */,
+				8AD069E91CBA3A9A0073B0B3 /* const.c in Sources */,
+				8AD069EA1CBA3A9A0073B0B3 /* cosh.c in Sources */,
+				8AD069EB1CBA3A9A0073B0B3 /* exp.c in Sources */,
+				8AD069EC1CBA3A9A0073B0B3 /* fastsin.cpp in Sources */,
+				8AD069ED1CBA3A9A0073B0B3 /* isnan.c in Sources */,
+				8AD069EE1CBA3A9A0073B0B3 /* log.c in Sources */,
+				8AD069EF1CBA3A9A0073B0B3 /* log10.c in Sources */,
+				8AD069F01CBA3A9A0073B0B3 /* mtherr.c in Sources */,
+				8AD069F11CBA3A9A0073B0B3 /* polevl.c in Sources */,
+				8AD069F21CBA3A9A0073B0B3 /* sin.c in Sources */,
+				8AD069F31CBA3A9A0073B0B3 /* sinh.c in Sources */,
+				8AD069F41CBA3A9A0073B0B3 /* sqrt.c in Sources */,
+				8AD069F51CBA3A9A0073B0B3 /* tan.c in Sources */,
+				8AD069F61CBA3A9A0073B0B3 /* tanh.c in Sources */,
 				8AF2810A139126C00095D9A0 /* colorpickermenu.cpp in Sources */,
 				8AF2810B139126C00095D9A0 /* joystickmenu.cpp in Sources */,
 				8AF2810C139126C00095D9A0 /* listmenu.cpp in Sources */,

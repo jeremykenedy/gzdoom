@@ -50,7 +50,8 @@ enum ETraceResult
 	TRACE_HitFloor,
 	TRACE_HitCeiling,
 	TRACE_HitWall,
-	TRACE_HitActor
+	TRACE_HitActor,
+	TRACE_CrossingPortal,
 };
 
 enum
@@ -65,13 +66,13 @@ struct FTraceResults
 {
 	sector_t *Sector;
 	FTextureID HitTexture;
-	fixedvec3 HitPos;
-	fixedvec3 HitVector;
-	fixedvec3 SrcFromTarget;
-	angle_t SrcAngleToTarget;
+	DVector3 HitPos;
+	DVector3 HitVector;
+	DVector3 SrcFromTarget;
+	DAngle SrcAngleFromTarget;
 
-	fixed_t Distance;
-	fixed_t Fraction;
+	double Distance;
+	double Fraction;
 
 	AActor *Actor;		// valid if hit an actor
 
@@ -83,9 +84,9 @@ struct FTraceResults
 	F3DFloor *ffloor;
 
 	sector_t *CrossedWater;		// For Boom-style, Transfer_Heights-based deep water
-	fixedvec3 CrossedWaterPos;	// remember the position so that we can use it for spawning the splash
+	DVector3 CrossedWaterPos;	// remember the position so that we can use it for spawning the splash
 	F3DFloor *Crossed3DWater;	// For 3D floor-based deep water
-	fixedvec3 Crossed3DWaterPos;
+	DVector3 Crossed3DWaterPos;
 
 	void CopyIfCloser(FTraceResults *other)
 	{
@@ -113,6 +114,7 @@ enum
 	TRACE_PCross		= 2,	// Trigger SPAC_PCROSS lines
 	TRACE_Impact		= 4,	// Trigger SPAC_IMPACT lines
 	TRACE_PortalRestrict= 8,	// Cannot go through portals without a static link offset.
+	TRACE_ReportPortals = 16,	// Report any portal crossing to the TraceCallback
 };
 
 // return values from callback
@@ -124,11 +126,8 @@ enum ETraceStatus
 	TRACE_Abort,		// stop the trace, returning no hits
 };
 
-bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
-			fixed_t vx, fixed_t vy, fixed_t vz, fixed_t maxDist,
-			ActorFlags ActorMask, DWORD WallMask, AActor *ignore,
-			FTraceResults &res,
-			DWORD traceFlags=0,
-			ETraceStatus (*callback)(FTraceResults &res, void *)=NULL, void *callbackdata=NULL);
+bool Trace(const DVector3 &start, sector_t *sector, const DVector3 &direction, double maxDist,
+	ActorFlags ActorMask, DWORD WallMask, AActor *ignore, FTraceResults &res, DWORD traceFlags = 0,
+	ETraceStatus(*callback)(FTraceResults &res, void *) = NULL, void *callbackdata = NULL);
 
 #endif //__P_TRACE_H__

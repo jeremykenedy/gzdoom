@@ -388,6 +388,10 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FTexture *inputTexture, u
 	if (gl.shadermodel == 2 || (gl.shadermodel == 3 && inputTexture->bWarped))
 		return inputBuffer;
 
+	// already scaled?
+	if (inputTexture->Scale.X >= 2 && inputTexture->Scale.Y >= 2)
+		return inputBuffer;
+
 	int type = HQResize_None;
 
 	switch (inputTexture->UseType)

@@ -100,13 +100,12 @@ public:
 private:
 	void DrawPortalStencil();
 
-	fixed_t savedviewx;
-	fixed_t savedviewy;
-	fixed_t savedviewz;
-	angle_t savedviewangle;
+	DVector3 savedViewPos;
+	DAngle savedAngle;
 	AActor * savedviewactor;
 	area_t savedviewarea;
 	bool savedshowviewer;
+	DVector3 savedviewpath[2];
 	unsigned char clipsave;
 	GLPortal *NextPortal;
 	TArray<BYTE> savedmapsection;
@@ -164,7 +163,7 @@ public:
 
 	virtual int ClipSeg(seg_t *seg) { return PClip_Inside; }
 	virtual int ClipSubsector(subsector_t *sub) { return PClip_Inside; }
-	virtual int ClipPoint(fixed_t x, fixed_t y) { return PClip_Inside; }
+	virtual int ClipPoint(const DVector2 &pos) { return PClip_Inside; }
 
 	static void BeginScene();
 	static void StartFrame();
@@ -177,7 +176,7 @@ struct GLLinePortal : public GLPortal
 {
 	// this must be the same as at the start of line_t, so that we can pass in this structure directly to P_ClipLineToPortal.
 	vertex_t	*v1, *v2;	// vertices, from v1 to v2
-	fixed_t 	dx, dy;		// precalculated v2 - v1 for side checking
+	DVector2	delta;		// precalculated v2 - v1 for side checking
 
 	angle_t		angv1, angv2;	// for quick comparisons with a line or subsector
 
@@ -185,8 +184,7 @@ struct GLLinePortal : public GLPortal
 	{
 		v1 = line->v1;
 		v2 = line->v2;
-		dx = line->dx;
-		dy = line->dy;
+		CalcDelta();
 	}
 
 	GLLinePortal(FGLLinePortal *line)
@@ -197,17 +195,19 @@ struct GLLinePortal : public GLPortal
 			line_t *lline = line->reference->mDestination;
 			v1 = lline->v1;
 			v2 = lline->v2;
-			dx = lline->dx;
-			dy = lline->dy;
 		}
 		else
 		{
 			// For linked portals we can check the merged span.
 			v1 = line->v1;
 			v2 = line->v2;
-			dx = line->dx;
-			dy = line->dy;
 		}
+		CalcDelta();
+	}
+
+	void CalcDelta()
+	{
+		delta = v2->fPos() - v1->fPos();
 	}
 
 	line_t *line()
@@ -218,7 +218,7 @@ struct GLLinePortal : public GLPortal
 
 	virtual int ClipSeg(seg_t *seg);
 	virtual int ClipSubsector(subsector_t *sub);
-	virtual int ClipPoint(fixed_t x, fixed_t y);
+	virtual int ClipPoint(const DVector2 &pos);
 	virtual bool NeedCap() { return false; }
 };
 

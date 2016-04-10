@@ -3,6 +3,7 @@
 #define __GLC_DATA_H
 
 #include "doomtype.h"
+#include "vectors.h"
 
 struct GLRenderSettings
 {
@@ -35,7 +36,7 @@ EXTERN_CVAR(Int, gl_weaponlight);
 
 inline	int getExtraLight()
 {
-	return extralight * gl_weaponlight; // ((glset.lightmode == 8)? 16:8);
+	return extralight * gl_weaponlight;
 }
 
 void gl_RecalcVertexHeights(vertex_t * v);
@@ -46,8 +47,7 @@ struct GLSectorStackPortal;
 
 struct FPortal
 {
-	fixed_t xDisplacement;
-	fixed_t yDisplacement;
+	DVector2 mDisplacement;
 	int plane;
 	GLSectorStackPortal *glportal;	// for quick access to the render data. This is only valid during BSP traversal!
 
@@ -58,7 +58,7 @@ struct FGLLinePortal
 {
 	// defines the complete span of this portal
 	vertex_t	*v1, *v2;	// vertices, from v1 to v2
-	fixed_t 	dx, dy;		// precalculated v2 - v1 for side checking
+	DVector2 delta;		// precalculated v2 - v1 for side checking
 	FLinePortal *reference;	// one of the associated line portals, for retrieving translation info etc.
 };
 

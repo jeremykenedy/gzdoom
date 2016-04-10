@@ -7,6 +7,7 @@
 #include "gl/textures/gl_hwtexture.h"
 #include "gl/renderer/gl_colormap.h"
 #include "i_system.h"
+#include "r_defs.h"
 
 EXTERN_CVAR(Bool, gl_precache)
 
@@ -20,17 +21,15 @@ struct FTexCoordInfo
 	int mRenderWidth;
 	int mRenderHeight;
 	int mWidth;
-	fixed_t mScaleX;
-	fixed_t mScaleY;
-	fixed_t mTempScaleX;
-	fixed_t mTempScaleY;
+	FVector2 mScale;
+	FVector2 mTempScale;
 	bool mWorldPanning;
 
 	float FloatToTexU(float v) const { return v / mRenderWidth; }
 	float FloatToTexV(float v) const { return v / mRenderHeight; }
-	fixed_t RowOffset(fixed_t ofs) const;
-	fixed_t TextureOffset(fixed_t ofs) const;
-	fixed_t TextureAdjustWidth() const;
+	float RowOffset(float ofs) const;
+	float TextureOffset(float ofs) const;
+	float TextureAdjustWidth() const;
 };
 
 //===========================================================================
@@ -152,7 +151,12 @@ public:
 	// Patch drawing utilities
 
 	void GetRect(FloatRect *r, ETexUse i) const;
-	void GetTexCoordInfo(FTexCoordInfo *tci, fixed_t x, fixed_t y) const;
+	void GetTexCoordInfo(FTexCoordInfo *tci, float x, float y) const;
+
+	void GetTexCoordInfo(FTexCoordInfo *tci, side_t *side, int texpos) const
+	{
+		GetTexCoordInfo(tci, (float)side->GetTextureXScaleF(texpos), (float)side->GetTextureYScaleF(texpos));
+	}
 
 	// This is scaled size in integer units as needed by walls and flats
 	int TextureHeight(ETexUse i) const { return RenderHeight[i]; }
@@ -182,33 +186,33 @@ public:
 
 	int GetScaledLeftOffset(ETexUse i) const
 	{
-		return DivScale16(LeftOffset[i], tex->xScale);
+		return int(LeftOffset[i] / tex->Scale.X);
 	}
 
 	int GetScaledTopOffset(ETexUse i) const
 	{
-		return DivScale16(TopOffset[i], tex->yScale);
+		return int(TopOffset[i] / tex->Scale.Y);
 	}
 
 	float GetScaledLeftOffsetFloat(ETexUse i) const
 	{
-		return LeftOffset[i] / FIXED2FLOAT(tex->xScale);
+		return float(LeftOffset[i] / tex->Scale.X);
 	}
 
 	float GetScaledTopOffsetFloat(ETexUse i) const
 	{
-		return TopOffset[i] / FIXED2FLOAT(tex->yScale);
+		return float(TopOffset[i] / tex->Scale.Y);
 	}
 
 	// This is scaled size in floating point as needed by sprites
 	float GetScaledWidthFloat(ETexUse i) const
 	{
-		return Width[i] / FIXED2FLOAT(tex->xScale);
+		return float(Width[i] / tex->Scale.X);
 	}
 
 	float GetScaledHeightFloat(ETexUse i) const
 	{
-		return Height[i] / FIXED2FLOAT(tex->yScale);
+		return float(Height[i] / tex->Scale.Y);
 	}
 
 	// Get right/bottom UV coordinates for patch drawing

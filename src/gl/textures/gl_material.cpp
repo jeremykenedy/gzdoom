@@ -518,17 +518,17 @@ const FHardwareTexture * FGLTexture::BindPatch(int texunit, int cm, int translat
 //
 //===========================================================================
 
-fixed_t FTexCoordInfo::RowOffset(fixed_t rowoffset) const
+float FTexCoordInfo::RowOffset(float rowoffset) const
 {
-	if (mTempScaleY == FRACUNIT)
+	if (mTempScale.Y == 1.f)
 	{
-		if (mScaleY==FRACUNIT || mWorldPanning) return rowoffset;
-		else return FixedDiv(rowoffset, mScaleY);
+		if (mScale.Y == 1.f || mWorldPanning) return rowoffset;
+		else return rowoffset / mScale.Y;
 	}
 	else
 	{
-		if (mWorldPanning) return FixedDiv(rowoffset, mTempScaleY);
-		else return FixedDiv(rowoffset, mScaleY);
+		if (mWorldPanning) return rowoffset / mTempScale.Y;
+		else return rowoffset / mScale.Y;
 	}
 }
 
@@ -538,17 +538,17 @@ fixed_t FTexCoordInfo::RowOffset(fixed_t rowoffset) const
 //
 //===========================================================================
 
-fixed_t FTexCoordInfo::TextureOffset(fixed_t textureoffset) const
+float FTexCoordInfo::TextureOffset(float textureoffset) const
 {
-	if (mTempScaleX == FRACUNIT)
+	if (mTempScale.X == 1.f)
 	{
-		if (mScaleX==FRACUNIT || mWorldPanning) return textureoffset;
-		else return FixedDiv(textureoffset, mScaleX);
+		if (mScale.X == 1.f || mWorldPanning) return textureoffset;
+		else return textureoffset / mScale.X;
 	}
 	else
 	{
-		if (mWorldPanning) return FixedDiv(textureoffset, mTempScaleX);
-		else return FixedDiv(textureoffset, mScaleX);
+		if (mWorldPanning) return textureoffset / mTempScale.X;
+		else return textureoffset / mScale.X;
 	}
 }
 
@@ -558,12 +558,12 @@ fixed_t FTexCoordInfo::TextureOffset(fixed_t textureoffset) const
 //
 //===========================================================================
 
-fixed_t FTexCoordInfo::TextureAdjustWidth() const
+float FTexCoordInfo::TextureAdjustWidth() const
 {
 	if (mWorldPanning) 
 	{
-		if (mTempScaleX == FRACUNIT) return mRenderWidth;
-		else return FixedDiv(mWidth, mTempScaleX);
+		if (mTempScale.X == 1.f) return mRenderWidth;
+		else return mWidth * mTempScale.X;
 	}
 	else return mWidth;
 }
@@ -839,7 +839,7 @@ void FMaterial::Bind(int cm, int clampmode, int translation, int overrideshader)
 	int usebright = false;
 	int shaderindex = overrideshader > 0? overrideshader : mShaderIndex;
 	int maxbound = 0;
-	bool allowhires = tex->xScale == FRACUNIT && tex->yScale == FRACUNIT;
+	bool allowhires = tex->Scale.X == 1 && tex->Scale.Y == 1;
 
 	int softwarewarp = gl_RenderState.SetupShader(tex->bHasCanvas, shaderindex, cm, tex->gl_info.shaderspeed);
 
@@ -941,40 +941,38 @@ void FMaterial::Precache()
 //
 //===========================================================================
 
-void FMaterial::GetTexCoordInfo(FTexCoordInfo *tci, fixed_t x, fixed_t y) const
+void FMaterial::GetTexCoordInfo(FTexCoordInfo *tci, float x, float y) const
 {
-	if (x == FRACUNIT)
+	if (x == 1.f)
 	{
 		tci->mRenderWidth = RenderWidth[GLUSE_TEXTURE];
-		tci->mScaleX = tex->xScale;
-		tci->mTempScaleX = FRACUNIT;
+		tci->mScale.X = tex->Scale.X;
+		tci->mTempScale.X = 1.f;
 	}
 	else
 	{
-		fixed_t scale_x = FixedMul(x, tex->xScale);
-		int foo = (Width[GLUSE_TEXTURE] << 17) / scale_x; 
-		tci->mRenderWidth = (foo >> 1) + (foo & 1); 
-		tci->mScaleX = scale_x;
-		tci->mTempScaleX = x;
+		float scale_x = x * tex->Scale.X;
+		tci->mRenderWidth = xs_CeilToInt(Width[GLUSE_TEXTURE] / scale_x);
+		tci->mScale.X = scale_x;
+		tci->mTempScale.X = x;
 	}
 
-	if (y == FRACUNIT)
+	if (y == 1.f)
 	{
 		tci->mRenderHeight = RenderHeight[GLUSE_TEXTURE];
-		tci->mScaleY = tex->yScale;
-		tci->mTempScaleY = FRACUNIT;
+		tci->mScale.Y = tex->Scale.Y;
+		tci->mTempScale.Y = 1.f;
 	}
 	else
 	{
-		fixed_t scale_y = FixedMul(y, tex->yScale);
-		int foo = (Height[GLUSE_TEXTURE] << 17) / scale_y; 
-		tci->mRenderHeight = (foo >> 1) + (foo & 1); 
-		tci->mScaleY = scale_y;
-		tci->mTempScaleY = y;
+		float scale_y = y * tex->Scale.Y;
+		tci->mRenderHeight = xs_CeilToInt(Height[GLUSE_TEXTURE] / scale_y);
+		tci->mScale.Y = scale_y;
+		tci->mTempScale.Y = y;
 	}
 	if (tex->bHasCanvas) 
 	{
-		tci->mScaleY = -tci->mScaleY;
+		tci->mScale.Y = -tci->mScale.Y;
 		tci->mRenderHeight = -tci->mRenderHeight;
 	}
 	tci->mWorldPanning = tex->bWorldPanning;

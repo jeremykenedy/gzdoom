@@ -68,6 +68,7 @@
 #define TEST_ANGLE 2468347904 
 #endif
 
+
 // TYPES -------------------------------------------------------------------
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
@@ -691,6 +692,8 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 	fixed_t startx = viewx;
 	fixed_t starty = viewy;
 	fixed_t startz = viewz;
+	DVector3 savedpath[2] = { ViewPath[0], ViewPath[1] };
+	int savedvisibility = camera->renderflags & RF_INVISIBLE;
 
 	CurrentPortalUniq++;
 
@@ -702,22 +705,22 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 		vertex_t *v1 = pds->src->v1;
 
 		// Reflect the current view behind the mirror.
-		if (pds->src->dx == 0)
+		if (pds->src->Delta().X == 0)
 		{ // vertical mirror
-			viewx = v1->x - startx + v1->x;
+			viewx = v1->fixX() - startx + v1->fixX();
 		}
-		else if (pds->src->dy == 0)
+		else if (pds->src->Delta().Y == 0)
 		{ // horizontal mirror
-			viewy = v1->y - starty + v1->y;
+			viewy = v1->fixY() - starty + v1->fixY();
 		}
 		else
 		{ // any mirror--use floats to avoid integer overflow
 			vertex_t *v2 = pds->src->v2;
 
-			double dx = FIXED2DBL(v2->x - v1->x);
-			double dy = FIXED2DBL(v2->y - v1->y);
-			double x1 = FIXED2DBL(v1->x);
-			double y1 = FIXED2DBL(v1->y);
+			double dx = v2->fX() - v1->fX();
+			double dy = v2->fY() - v1->fY();
+			double x1 = v1->fX();
+			double y1 = v1->fY();
 			double x = FIXED2DBL(startx);
 			double y = FIXED2DBL(starty);
 
@@ -727,16 +730,39 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 			viewx = FLOAT2FIXED((x1 + r * dx)*2 - x);
 			viewy = FLOAT2FIXED((y1 + r * dy)*2 - y);
 		}
-		viewangle = 2*R_PointToAngle2 (pds->src->v1->x, pds->src->v1->y,
-									   pds->src->v2->x, pds->src->v2->y) - startang;
-
+		viewangle = pds->src->Delta().Angle().BAMs() - startang;
+		ViewAngle = AngleToFloat(viewangle);
 	}
 	else
 	{
-		P_TranslatePortalXY(pds->src, viewx, viewy);
-		P_TranslatePortalZ(pds->src, viewz);
-		P_TranslatePortalAngle(pds->src, viewangle);
+		DVector3 view(FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz));
+		DAngle va = ANGLE2DBL(viewangle);
+		P_TranslatePortalXY(pds->src, view.X, view.Y);
+		P_TranslatePortalZ(pds->src, view.Z);
+		P_TranslatePortalAngle(pds->src, va);
+		P_TranslatePortalXY(pds->src, ViewPath[0].X, ViewPath[0].Y);
+		P_TranslatePortalXY(pds->src, ViewPath[1].X, ViewPath[1].Y);
+		viewx = FLOAT2FIXED(view.X);
+		viewy = FLOAT2FIXED(view.Y);
+		viewz = FLOAT2FIXED(view.Z);
+		viewangle = va.BAMs();
+
+		if (!r_showviewer)
+		{
+			double distp = (ViewPath[0] - ViewPath[1]).Length();
+			if (distp > EQUAL_EPSILON)
+			{
+				double dist1 = (view - ViewPath[0]).Length();
+				double dist2 = (view - ViewPath[1]).Length();
+
+				if (dist1 + dist2 < distp + 1)
+				{
+					camera->renderflags |= RF_INVISIBLE;
+				}
+			}
+		}
 	}
+	ViewAngle = AngleToFloat(viewangle);
 
 	viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
 	viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
@@ -776,6 +802,7 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 	InSubsector = NULL;
 	R_RenderBSPNode (nodes + numnodes - 1);
 	R_3D_ResetClip(); // reset clips (floor/ceiling)
+	if (!savedvisibility) camera->renderflags &= ~RF_INVISIBLE;
 
 	PlaneCycles.Clock();
 	R_DrawPlanes ();
@@ -815,6 +842,9 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 	viewx = startx;
 	viewy = starty;
 	viewz = startz;
+	ViewPath[0] = savedpath[0];
+	ViewPath[1] = savedpath[1];
+	ViewAngle = AngleToFloat(viewangle);
 }
 
 //==========================================================================

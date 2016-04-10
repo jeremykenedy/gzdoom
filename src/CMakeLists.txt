@@ -171,6 +171,12 @@ else()
 		set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
 		set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
 		set( NO_GTK ON )
+
+		# Prevent inclusion of fp.h and FixMath.h from Carbon framework
+		# Declarations from these files are not used but cause the following conflicts:
+		#  - redefinition of 'FixedToFloat' and 'FloatToFixed' macros
+		#  - redefinition of 'pi' as different kind of symbol
+		add_definitions( -D__FP__ -D__FIXMATH__ )
 	else()
 		option( NO_GTK "Disable GTK+ dialogs (Not applicable to Windows)" )
 		option( VALGRIND "Add special Valgrind sequences to self-modifying code" )
@@ -570,22 +576,6 @@ if( UNIX )
 		endif()
 	else()
 		set( ZDOOM_LIBS ${ZDOOM_LIBS} rt )
-	endif()
-endif()
-
-CHECK_CXX_SOURCE_COMPILES(
-	"#include <stdarg.h>
-	int main() { va_list list1, list2; va_copy(list1, list2); return 0; }"
-	HAS_VA_COPY )
-if( NOT HAS_VA_COPY )
-	CHECK_CXX_SOURCE_COMPILES(
-		"#include <stdarg.h>
-		int main() { va_list list1, list2; __va_copy(list1, list2); return 0; }"
-		HAS___VA_COPY )
-	if( HAS___VA_COPY )
-		add_definitions( -Dva_copy=__va_copy )
-	else()
-		add_definitions( -DNO_VA_COPY )
 	endif()
 endif()
 
@@ -1266,6 +1256,22 @@ add_executable( zdoom WIN32 MACOSX_BUNDLE
 	g_shared/sbar_mugshot.cpp
 	g_shared/shared_hud.cpp
 	g_shared/shared_sbar.cpp
+	math/asin.c
+	math/atan.c
+	math/const.c
+	math/cosh.c
+	math/exp.c
+	math/isnan.c
+	math/log.c
+	math/log10.c
+	math/mtherr.c
+	math/polevl.c
+	math/sin.c
+	math/sinh.c
+	math/sqrt.c
+	math/tan.c
+	math/tanh.c
+	math/fastsin.cpp
 	resourcefiles/ancientzip.cpp
 	resourcefiles/file_7z.cpp
 	resourcefiles/file_chasm_bin.cpp
@@ -1464,6 +1470,7 @@ source_group("Games\\Hexen Game" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR
 source_group("Games\\Raven Shared" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/g_raven/.+")
 source_group("Games\\Strife Game" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/g_strife/.+")
 source_group("Intermission" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/intermission/.+")
+source_group("Math" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/math/.+")
 source_group("Menu" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/menu/.+")
 source_group("OpenGL Renderer" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/.+")
 source_group("OpenGL Renderer\\Data" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gl/data/.+")
