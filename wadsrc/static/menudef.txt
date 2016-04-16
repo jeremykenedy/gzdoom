@@ -661,11 +661,13 @@ OptionMenu "OpenGLOptions"
 
 OptionValue VRMode
 {
-	0, "Normal"
-	1, "Green/Magenta"
-	2, "Red/Cyan"
-	3, "Left Eye"
-	4, "Right Eye"
+	0, "$OPTVAL_NORMAL"
+	1, "$OPTVAL_GREENMAGENTA"
+	2, "$OPTVAL_REDCYAN"
+	9, "$OPTVAL_AMBERBLUE"
+	5, "$OPTVAL_LEFTEYE"
+	6, "$OPTVAL_RIGHTEYE"
+	7, "$OPTVAL_QUADBUFFERED"
 }
 
 OptionMenu "VideoOptions"

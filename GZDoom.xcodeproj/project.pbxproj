@@ -307,6 +307,8 @@
 		8A805D1A196048B7009AF921 /* libvorbis.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D1419604887009AF921 /* libvorbis.a */; };
 		8A805D1C196048F2009AF921 /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D1B196048EB009AF921 /* libvorbisenc.a */; };
 		8A805D1D196048F6009AF921 /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A805D1B196048EB009AF921 /* libvorbisenc.a */; };
+		8A83D8AA1CC2237C00F3792F /* gl_quadstereo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A83D8A81CC2236B00F3792F /* gl_quadstereo.cpp */; };
+		8A83D8AB1CC2238200F3792F /* gl_quadstereo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A83D8A81CC2236B00F3792F /* gl_quadstereo.cpp */; };
 		8A8D68B713C84344001D368F /* r_swrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A8D68B313C84344001D368F /* r_swrenderer.cpp */; };
 		8A8D68B813C84344001D368F /* r_utility.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A8D68B513C84344001D368F /* r_utility.cpp */; };
 		8A938D1113B6039F002627DE /* actorptrselect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8A938D0F13B6039F002627DE /* actorptrselect.cpp */; };
@@ -2816,6 +2818,10 @@
 		8A80E04E17ABB57200917483 /* hexndefs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = hexndefs.txt; sourceTree = "<group>"; };
 		8A80E04F17ABB57200917483 /* hticdefs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = hticdefs.txt; sourceTree = "<group>"; };
 		8A80E05017ABB57200917483 /* strfdefs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = strfdefs.txt; sourceTree = "<group>"; };
+		8A83D8A81CC2236B00F3792F /* gl_quadstereo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gl_quadstereo.cpp; sourceTree = "<group>"; };
+		8A83D8A91CC2236B00F3792F /* gl_quadstereo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_quadstereo.h; sourceTree = "<group>"; };
+		8A83D8AC1CC223B400F3792F /* g_pch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_pch.h; sourceTree = "<group>"; };
+		8A83D8AD1CC223B400F3792F /* g_pch2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_pch2.h; sourceTree = "<group>"; };
 		8A8D51491AB432AA008FD481 /* mulsc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulsc.h; sourceTree = "<group>"; };
 		8A8D68B213C84344001D368F /* r_renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_renderer.h; sourceTree = "<group>"; };
 		8A8D68B313C84344001D368F /* r_swrenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = r_swrenderer.cpp; sourceTree = "<group>"; };
@@ -4206,6 +4212,8 @@
 			children = (
 				8A213C3C1C0062C3002DD476 /* gl_anaglyph.cpp */,
 				8A213C3D1C0062C3002DD476 /* gl_anaglyph.h */,
+				8A83D8A81CC2236B00F3792F /* gl_quadstereo.cpp */,
+				8A83D8A91CC2236B00F3792F /* gl_quadstereo.h */,
 				8A213C3E1C0062C3002DD476 /* gl_stereo3d.cpp */,
 				8A213C3F1C0062C3002DD476 /* gl_stereo3d.h */,
 				8A213C401C0062C3002DD476 /* gl_stereo_cvars.cpp */,
@@ -6566,6 +6574,8 @@
 				8AF27DA6139126C00095D9A0 /* g_level.cpp */,
 				8AF27DA7139126C00095D9A0 /* g_level.h */,
 				8AF27DA8139126C00095D9A0 /* g_mapinfo.cpp */,
+				8A83D8AC1CC223B400F3792F /* g_pch.h */,
+				8A83D8AD1CC223B400F3792F /* g_pch2.h */,
 				8AF27DDE139126C00095D9A0 /* g_skill.cpp */,
 				8AF27DF5139126C00095D9A0 /* gameconfigfile.cpp */,
 				8AF27DF6139126C00095D9A0 /* gameconfigfile.h */,
@@ -8032,6 +8042,7 @@
 				8A9F538714BB0F2900F3369B /* gl_shader.cpp in Sources */,
 				8A9F538814BB0F2900F3369B /* gl_texshader.cpp in Sources */,
 				8A213C461C0062F2002DD476 /* gl_anaglyph.cpp in Sources */,
+				8A83D8AA1CC2237C00F3792F /* gl_quadstereo.cpp in Sources */,
 				8A213C471C0062F2002DD476 /* gl_stereo3d.cpp in Sources */,
 				8A213C481C0062F2002DD476 /* gl_stereo_cvars.cpp in Sources */,
 				8A213C491C0062F2002DD476 /* gl_stereo_leftright.cpp in Sources */,
@@ -8759,6 +8770,7 @@
 				8AF280E6139126C00095D9A0 /* gl_shader.cpp in Sources */,
 				8AF280E7139126C00095D9A0 /* gl_texshader.cpp in Sources */,
 				8A213C4B1C006300002DD476 /* gl_anaglyph.cpp in Sources */,
+				8A83D8AB1CC2238200F3792F /* gl_quadstereo.cpp in Sources */,
 				8A213C4C1C006300002DD476 /* gl_stereo3d.cpp in Sources */,
 				8A213C4D1C006300002DD476 /* gl_stereo_cvars.cpp in Sources */,
 				8A213C4E1C006300002DD476 /* gl_stereo_leftright.cpp in Sources */,

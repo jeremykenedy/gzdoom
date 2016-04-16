@@ -148,7 +148,7 @@ static DWORD			basexfrac, baseyfrac;
 
 #ifdef X86_ASM
 extern "C" void R_SetSpanSource_ASM (const BYTE *flat);
-extern "C" void STACK_ARGS R_SetSpanSize_ASM (int xbits, int ybits);
+extern "C" void R_SetSpanSize_ASM (int xbits, int ybits);
 extern "C" void R_SetSpanColormap_ASM (BYTE *colormap);
 extern "C" void R_SetTiltedSpanSource_ASM (const BYTE *flat);
 extern "C" BYTE *ds_curcolormap, *ds_cursource, *ds_curtiltedsource;
@@ -253,7 +253,7 @@ void R_MapPlane (int y, int x1)
 //==========================================================================
 
 extern "C" {
-void STACK_ARGS R_CalcTiltedLighting (fixed_t lval, fixed_t lend, int width)
+void R_CalcTiltedLighting (fixed_t lval, fixed_t lend, int width)
 {
 	fixed_t lstep;
 	BYTE *lightfiller;
@@ -1083,6 +1083,7 @@ void R_DrawHeightPlanes(fixed_t height)
 				viewz = pl->viewz;
 				viewangle = pl->viewangle;
 				ViewAngle = AngleToFloat(viewangle);
+				ViewPos = { FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz) };
 				MirrorFlags = pl->MirrorFlags;
 				R_DrawSinglePlane (pl, pl->sky & 0x7FFFFFFF, pl->Additive, true);
 			}
@@ -1094,6 +1095,7 @@ void R_DrawHeightPlanes(fixed_t height)
 	viewz = oViewZ;
 	viewangle = oViewAngle;
 	ViewAngle = AngleToFloat(viewangle);
+	ViewPos = { FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz) };
 }
 
 
@@ -1256,6 +1258,7 @@ void R_DrawSkyBoxes ()
 			viewangle = pl->viewangle;
 		}
 		ViewAngle = AngleToFloat(viewangle);
+		ViewPos = { FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz) };
 
 		sky->bInSkybox = true;
 		if (mate != NULL) mate->bInSkybox = true;
@@ -1371,6 +1374,7 @@ void R_DrawSkyBoxes ()
 	extralight = savedextralight;
 	viewangle = savedangle;
 	ViewAngle = AngleToFloat(viewangle);
+	ViewPos = { FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz) };
 	R_SetViewAngle ();
 
 	CurrentPortalInSkybox = false;

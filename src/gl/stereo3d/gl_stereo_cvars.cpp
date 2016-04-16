@@ -36,10 +36,16 @@
 #include "gl/stereo3d/gl_stereo3d.h"
 #include "gl/stereo3d/gl_stereo_leftright.h"
 #include "gl/stereo3d/gl_anaglyph.h"
+#include "gl/stereo3d/gl_quadstereo.h"
 #include "gl/system/gl_cvars.h"
 
 // Set up 3D-specific console variables:
 CVAR(Int, vr_mode, 0, CVAR_GLOBALCONFIG)
+
+// For broadest GL compatibility, require user to explicitly enable quad-buffered stereo mode.
+// Setting vr_enable_quadbuffered_stereo does not automatically invoke quad-buffered stereo,
+// but makes it possible for subsequent "vr_mode 7" to invoke quad-buffered stereo
+CVAR(Bool, vr_enable_quadbuffered, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 // intraocular distance in meters
 CVAR(Float, vr_ipd, 0.062f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) // METERS
@@ -80,7 +86,18 @@ const Stereo3DMode& Stereo3DMode::getCurrentMode()
 	case 6:
 		setCurrentMode(RightEyeView::getInstance(vr_ipd));
 		break;
-	case 0:
+	case 7:
+		if (vr_enable_quadbuffered) {
+			setCurrentMode(QuadStereo::getInstance(vr_ipd));
+		}
+		else {
+			setCurrentMode(MonoView::getInstance());
+		}
+		break;
+	// TODO: 8: Oculus Rift
+	case 9:
+		setCurrentMode(AmberBlue::getInstance(vr_ipd));
+		break;	case 0:
 	default:
 		setCurrentMode(MonoView::getInstance());
 		break;

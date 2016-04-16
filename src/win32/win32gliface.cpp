@@ -45,6 +45,7 @@ CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_
 
 CVAR(Bool, gl_debug, false, 0)
 
+EXTERN_CVAR(Bool, vr_enable_quadbuffered)
 EXTERN_CVAR(Int, vid_refreshrate)
 
 //==========================================================================
@@ -618,9 +619,10 @@ bool Win32GLVideo::SetPixelFormat()
 
 bool Win32GLVideo::SetupPixelFormat(bool allowsoftware, int multisample)
 {
+	int i;
 	int colorDepth;
 	HDC deskDC;
-	int attributes[26];
+	int attributes[28];
 	int pixelFormat;
 	unsigned int numFormats;
 	float attribsFloat[] = {0.0f, 0.0f};
@@ -651,33 +653,39 @@ bool Win32GLVideo::SetupPixelFormat(bool allowsoftware, int multisample)
 		attributes[16]	=	WGL_DOUBLE_BUFFER_ARB;
 		attributes[17]	=	true;
 	
-		attributes[18]	=	WGL_ACCELERATION_ARB;	//required to be FULL_ACCELERATION_ARB
-		if (allowsoftware)
-		{
-			attributes[19]	=	WGL_NO_ACCELERATION_ARB;
-		}
-		else
-		{
-			attributes[19]	=	WGL_FULL_ACCELERATION_ARB;
-		}
-	
 		if (multisample > 0)
 		{
-			attributes[20]	=	WGL_SAMPLE_BUFFERS_ARB;
-			attributes[21]	=	true;
-			attributes[22]	=	WGL_SAMPLES_ARB;
-			attributes[23]	=	multisample;
+			attributes[18]	=	WGL_SAMPLE_BUFFERS_ARB;
+			attributes[19]	=	true;
+			attributes[20]	=	WGL_SAMPLES_ARB;
+			attributes[21]	=	multisample;
+			i = 22;
 		}
 		else
 		{
-			attributes[20]	=	0;
-			attributes[21]	=	0;
-			attributes[22]	=	0;
-			attributes[23]	=	0;
+			i = 18;
+		}
+		
+		attributes[i++]	=	WGL_ACCELERATION_ARB;	//required to be FULL_ACCELERATION_ARB
+		if (allowsoftware)
+		{
+			attributes[i++]	=	WGL_NO_ACCELERATION_ARB;
+		}
+		else
+		{
+			attributes[i++]	=	WGL_FULL_ACCELERATION_ARB;
 		}
 	
-		attributes[24]	=	0;
-		attributes[25]	=	0;
+		if (vr_enable_quadbuffered)
+		{
+			// [BB] Starting with driver version 314.07, NVIDIA GeForce cards support OpenGL quad buffered
+			// stereo rendering with 3D Vision hardware. Select the corresponding attribute here.
+			attributes[i++] = WGL_STEREO_ARB;
+			attributes[i++] = true;
+		}
+	
+		attributes[i++]	=	0;
+		attributes[i++]	=	0;
 	
 		if (!myWglChoosePixelFormatARB(m_hDC, attributes, attribsFloat, 1, &pixelFormat, &numFormats))
 		{

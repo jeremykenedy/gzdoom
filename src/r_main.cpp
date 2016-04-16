@@ -158,7 +158,7 @@ void (*spanfunc) (void);
 void (*hcolfunc_pre) (void);
 void (*hcolfunc_post1) (int hx, int sx, int yl, int yh);
 void (*hcolfunc_post2) (int hx, int sx, int yl, int yh);
-void (STACK_ARGS *hcolfunc_post4) (int sx, int yl, int yh);
+void (*hcolfunc_post4) (int sx, int yl, int yh);
 
 cycle_t WallCycles, PlaneCycles, MaskedCycles, WallScanCycles;
 
@@ -731,7 +731,6 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 			viewy = FLOAT2FIXED((y1 + r * dy)*2 - y);
 		}
 		viewangle = pds->src->Delta().Angle().BAMs() - startang;
-		ViewAngle = AngleToFloat(viewangle);
 	}
 	else
 	{
@@ -763,6 +762,7 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 		}
 	}
 	ViewAngle = AngleToFloat(viewangle);
+	ViewPos = { FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz) };
 
 	viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
 	viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
@@ -845,6 +845,7 @@ void R_EnterPortal (PortalDrawseg* pds, int depth)
 	ViewPath[0] = savedpath[0];
 	ViewPath[1] = savedpath[1];
 	ViewAngle = AngleToFloat(viewangle);
+	ViewPos = { FIXED2DBL(viewx), FIXED2DBL(viewy), FIXED2DBL(viewz) };
 }
 
 //==========================================================================
