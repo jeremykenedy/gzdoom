@@ -31,6 +31,11 @@ BUNDLE_EXEC_DIR=${DEPLOY_CONTENT_DIR}/${TARGET_BUNDLE_NAME}/Contents/MacOS/
 echo "Stripping executables..."
 strip "${BUNDLE_EXEC_DIR}GZDoom"
 
+FMODEX_DYLIB=${BUNDLE_EXEC_DIR}libfmodex.dylib
+lipo "${FMODEX_DYLIB}" -extract ${CURRENT_ARCH} -output ${CURRENT_ARCH}.dylib
+rm "${FMODEX_DYLIB}"
+mv ${CURRENT_ARCH}.dylib "${FMODEX_DYLIB}"
+
 echo "Copying supplementary files..."
 mkdir "${DEPLOY_CONTENT_EXTRAS_DIR}/Documentation"
 cp -R docs/ "${DEPLOY_CONTENT_EXTRAS_DIR}/Documentation"
