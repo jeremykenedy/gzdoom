@@ -44,6 +44,7 @@
 #include "p_trace.h"
 #include "p_checkposition.h"
 #include "r_utility.h"
+#include "p_blockmap.h"
 
 #include "s_sound.h"
 #include "decallib.h"
@@ -656,20 +657,21 @@ double P_GetMoveFactor(const AActor *mo, double *frictionp)
 // - 0 when intersecting
 // - -1 when outside the portal
 //
+// Note that this check is done from the 'other' side of the portal
+// so plane names seem to be inverted.
+//
 //==========================================================================
 
 static int LineIsAbove(line_t *line, AActor *actor)
 {
-	AActor *point = line->frontsector->SkyBoxes[sector_t::floor];
-	if (point == NULL) return -1;
-	return point->specialf1 >= actor->Top();
+	if (line->frontsector->PortalBlocksMovement(sector_t::floor)) return -1;
+	return line->frontsector->GetPortalPlaneZ(sector_t::floor) >= actor->Top();
 }
 
 static int LineIsBelow(line_t *line, AActor *actor)
 {
-	AActor *point = line->frontsector->SkyBoxes[sector_t::ceiling];
-	if (point == NULL) return -1;
-	return point->specialf1 <= actor->Z();
+	if (line->frontsector->PortalBlocksMovement(sector_t::ceiling)) return -1;
+	return line->frontsector->GetPortalPlaneZ(sector_t::ceiling) <= actor->Z();
 }
 
 //
@@ -762,7 +764,7 @@ bool PIT_CheckLine(FMultiBlockLinesIterator &mit, FMultiBlockLinesIterator::Chec
 				if (state == 1)
 				{
 					// the line should not block but we should set the ceilingz to the portal boundary so that we can't float up into that line.
-					double portalz = cres.line->frontsector->SkyBoxes[sector_t::floor]->specialf1;
+					double portalz = cres.line->frontsector->GetPortalPlaneZ(sector_t::floor);
 					if (portalz < tm.ceilingz)
 					{
 						tm.ceilingz = portalz;
@@ -778,7 +780,7 @@ bool PIT_CheckLine(FMultiBlockLinesIterator &mit, FMultiBlockLinesIterator::Chec
 				if (state == -1) return true;
 				if (state == 1)
 				{
-					double portalz = cres.line->frontsector->SkyBoxes[sector_t::ceiling]->specialf1;
+					double portalz = cres.line->frontsector->GetPortalPlaneZ(sector_t::ceiling);
 					if (portalz > tm.floorz)
 					{
 						tm.floorz = portalz;
@@ -3529,20 +3531,20 @@ struct aim_t
 
 	void EnterSectorPortal(int position, double frac, sector_t *entersec, DAngle newtoppitch, DAngle newbottompitch)
 	{
-		AActor *portal = entersec->SkyBoxes[position];
+		double portalz = entersec->GetPortalPlaneZ(position);
 
-		if (position == sector_t::ceiling && portal->specialf1 < limitz) return;
-		else if (position == sector_t::floor && portal->specialf1 > limitz) return;
+		if (position == sector_t::ceiling && portalz < limitz) return;
+		else if (position == sector_t::floor && portalz > limitz) return;
 		aim_t newtrace = Clone();
 
 
 		newtrace.toppitch = newtoppitch;
 		newtrace.bottompitch = newbottompitch;
 		newtrace.aimdir = position == sector_t::ceiling? aim_t::aim_up : aim_t::aim_down;
-		newtrace.startpos = startpos + portal->Scale;
+		newtrace.startpos = startpos + entersec->GetPortalDisplacement(position);
 		newtrace.startfrac = frac + 1. / attackrange;	// this is to skip the transition line to the portal which would produce a bogus opening
 		newtrace.lastsector = P_PointInSector(newtrace.startpos + aimtrace * newtrace.startfrac);
-		newtrace.limitz = portal->specialf1;
+		newtrace.limitz = portalz;
 		if (aimdebug)
 			Printf("-----Entering %s portal from sector %d to sector %d\n", position ? "ceiling" : "floor", lastsector->sectornum, newtrace.lastsector->sectornum);
 		newtrace.AimTraverse();
@@ -5177,8 +5179,8 @@ void P_RadiusAttack(AActor *bombspot, AActor *bombsource, int bombdamage, int bo
 			}
 			points *= thing->GetClass()->RDFactor;
 
-			// points and bombdamage should be the same sign
-			if (((int(points) * bombdamage) > 0) && P_CheckSight(thing, bombspot, SF_IGNOREVISIBILITY | SF_IGNOREWATERBOUNDARY))
+			// points and bombdamage should be the same sign (the double cast of 'points' is needed to prevent overflows and incorrect values slipping through.)
+			if ((((double)int(points) * bombdamage) > 0) && P_CheckSight(thing, bombspot, SF_IGNOREVISIBILITY | SF_IGNOREWATERBOUNDARY))
 			{ // OK to damage; target is in direct path
 				double vz;
 				double thrust;
@@ -5555,6 +5557,7 @@ int P_PushUp(AActor *thing, FChangePosition *cpos)
 			intersect->SetZ(oldz);
 			return 2;
 		}
+		intersect->UpdateRenderSectorList();
 	}
 	thing->CheckPortalTransition(true);
 	return 0;
@@ -5602,6 +5605,7 @@ int P_PushDown(AActor *thing, FChangePosition *cpos)
 				intersect->SetZ(oldz);
 				return 2;
 			}
+			intersect->UpdateRenderSectorList();
 		}
 	}
 	thing->CheckPortalTransition(true);
@@ -5634,6 +5638,7 @@ void PIT_FloorDrop(AActor *thing, FChangePosition *cpos)
 		{
 			thing->SetZ(thing->floorz);
 			P_CheckFakeFloorTriggers(thing, oldz);
+			thing->UpdateRenderSectorList();
 		}
 	}
 	else if ((thing->Z() != oldfloorz && !(thing->flags & MF_NOLIFTDROP)))
@@ -5642,6 +5647,7 @@ void PIT_FloorDrop(AActor *thing, FChangePosition *cpos)
 		{
 			thing->AddZ(-oldfloorz + thing->floorz);
 			P_CheckFakeFloorTriggers(thing, oldz);
+			thing->UpdateRenderSectorList();
 		}
 	}
 	if (thing->player && thing->player->mo == thing)
@@ -5689,10 +5695,12 @@ void PIT_FloorRaise(AActor *thing, FChangePosition *cpos)
 	{
 	default:
 		P_CheckFakeFloorTriggers(thing, oldz);
+		thing->UpdateRenderSectorList();
 		break;
 	case 1:
 		P_DoCrunch(thing, cpos);
 		P_CheckFakeFloorTriggers(thing, oldz);
+		thing->UpdateRenderSectorList();
 		break;
 	case 2:
 		P_DoCrunch(thing, cpos);
@@ -5735,6 +5743,7 @@ void PIT_CeilingLower(AActor *thing, FChangePosition *cpos)
 		{
 			thing->SetZ(thing->floorz);
 		}
+		thing->UpdateRenderSectorList();
 		switch (P_PushDown(thing, cpos))
 		{
 		case 2:
@@ -5744,9 +5753,11 @@ void PIT_CeilingLower(AActor *thing, FChangePosition *cpos)
 				thing->SetZ(thing->floorz);
 			P_DoCrunch(thing, cpos);
 			P_CheckFakeFloorTriggers(thing, oldz);
+			thing->UpdateRenderSectorList();
 			break;
 		default:
 			P_CheckFakeFloorTriggers(thing, oldz);
+			thing->UpdateRenderSectorList();
 			break;
 		}
 	}
@@ -5782,6 +5793,7 @@ void PIT_CeilingRaise(AActor *thing, FChangePosition *cpos)
 			thing->SetZ(thing->ceilingz - thing->Height);
 		}
 		P_CheckFakeFloorTriggers(thing, oldz);
+		thing->UpdateRenderSectorList();
 	}
 	else if ((thing->flags2 & MF2_PASSMOBJ) && !isgood && thing->Top() < thing->ceilingz)
 	{
@@ -5789,6 +5801,7 @@ void PIT_CeilingRaise(AActor *thing, FChangePosition *cpos)
 		if (!P_TestMobjZ(thing, true, &onmobj) && onmobj->Z() <= thing->Z())
 		{
 			thing->SetZ(MIN(thing->ceilingz - thing->Height, onmobj->Top()));
+			thing->UpdateRenderSectorList();
 		}
 	}
 	if (thing->player && thing->player->mo == thing)
@@ -6023,7 +6036,7 @@ void P_PutSecnode(msecnode_t *node)
 //
 //=============================================================================
 
-msecnode_t *P_AddSecnode(sector_t *s, AActor *thing, msecnode_t *nextnode)
+msecnode_t *P_AddSecnode(sector_t *s, AActor *thing, msecnode_t *nextnode, msecnode_t *&sec_thinglist)
 {
 	msecnode_t *node;
 
@@ -6061,10 +6074,10 @@ msecnode_t *P_AddSecnode(sector_t *s, AActor *thing, msecnode_t *nextnode)
 	// Add new node at head of sector thread starting at s->touching_thinglist
 
 	node->m_sprev = NULL;			// prev node on sector thread
-	node->m_snext = s->touching_thinglist; // next node on sector thread
-	if (s->touching_thinglist)
+	node->m_snext = sec_thinglist; // next node on sector thread
+	if (sec_thinglist)
 		node->m_snext->m_sprev = node;
-	s->touching_thinglist = node;
+	sec_thinglist = node;
 	return node;
 }
 
@@ -6078,7 +6091,7 @@ msecnode_t *P_AddSecnode(sector_t *s, AActor *thing, msecnode_t *nextnode)
 //
 //=============================================================================
 
-msecnode_t *P_DelSecnode(msecnode_t *node)
+msecnode_t *P_DelSecnode(msecnode_t *node, msecnode_t *sector_t::*listhead)
 {
 	msecnode_t* tp;  // prev node on thing thread
 	msecnode_t* tn;  // next node on thing thread
@@ -6105,7 +6118,7 @@ msecnode_t *P_DelSecnode(msecnode_t *node)
 		if (sp)
 			sp->m_snext = sn;
 		else
-			node->m_sector->touching_thinglist = sn;
+			node->m_sector->*listhead = sn;
 		if (sn)
 			sn->m_sprev = sp;
 
@@ -6145,7 +6158,7 @@ void P_DelSector_List()
 void P_DelSeclist(msecnode_t *node)
 {
 	while (node)
-		node = P_DelSecnode(node);
+		node = P_DelSecnode(node, &sector_t::touching_thinglist);
 }
 
 //=============================================================================
@@ -6189,7 +6202,7 @@ void P_CreateSecNodeList(AActor *thing)
 		// allowed to move to this position, then the sector_list
 		// will be attached to the Thing's AActor at touching_sectorlist.
 
-		sector_list = P_AddSecnode(ld->frontsector, thing, sector_list);
+		sector_list = P_AddSecnode(ld->frontsector, thing, sector_list, ld->frontsector->touching_thinglist);
 
 		// Don't assume all lines are 2-sided, since some Things
 		// like MT_TFOG are allowed regardless of whether their radius takes
@@ -6199,12 +6212,12 @@ void P_CreateSecNodeList(AActor *thing)
 		// Use sidedefs instead of 2s flag to determine two-sidedness.
 
 		if (ld->backsector)
-			sector_list = P_AddSecnode(ld->backsector, thing, sector_list);
+			sector_list = P_AddSecnode(ld->backsector, thing, sector_list, ld->backsector->touching_thinglist);
 	}
 
 	// Add the sector of the (x,y) point to sector_list.
 
-	sector_list = P_AddSecnode(thing->Sector, thing, sector_list);
+	sector_list = P_AddSecnode(thing->Sector, thing, sector_list, thing->Sector->touching_thinglist);
 
 	// Now delete any nodes that won't be used. These are the ones where
 	// m_thing is still NULL.
@@ -6216,7 +6229,7 @@ void P_CreateSecNodeList(AActor *thing)
 		{
 			if (node == sector_list)
 				sector_list = node->m_tnext;
-			node = P_DelSecnode(node);
+			node = P_DelSecnode(node, &sector_t::touching_thinglist);
 		}
 		else
 		{
@@ -6224,6 +6237,168 @@ void P_CreateSecNodeList(AActor *thing)
 		}
 	}
 }
+
+
+//=============================================================================
+//
+// P_DelPortalnode
+//
+// Same for line portal nodes
+//
+//=============================================================================
+
+portnode_t *P_DelPortalnode(portnode_t *node)
+{
+	portnode_t* tp;  // prev node on thing thread
+	portnode_t* tn;  // next node on thing thread
+	portnode_t* sp;  // prev node on sector thread
+	portnode_t* sn;  // next node on sector thread
+
+	if (node)
+	{
+		// Unlink from the Thing thread. The Thing thread begins at
+		// sector_list and not from AActor->touching_sectorlist.
+
+		tp = node->m_tprev;
+		tn = node->m_tnext;
+		if (tp)
+			tp->m_tnext = tn;
+		if (tn)
+			tn->m_tprev = tp;
+
+		// Unlink from the sector thread. This thread begins at
+		// sector_t->touching_thinglist.
+
+		sp = node->m_sprev;
+		sn = node->m_snext;
+		if (sp)
+			sp->m_snext = sn;
+		else
+			node->m_portal->render_thinglist = sn;
+		if (sn)
+			sn->m_sprev = sp;
+
+		// Return this node to the freelist (use the same one as for msecnodes, since both types are the same size.)
+		P_PutSecnode(reinterpret_cast<msecnode_t *>(node));
+		return tn;
+	}
+	return NULL;
+}
+
+
+//=============================================================================
+//
+// P_AddPortalnode
+//
+//=============================================================================
+
+portnode_t *P_AddPortalnode(FLinePortal *s, AActor *thing, portnode_t *nextnode)
+{
+	portnode_t *node;
+
+	if (s == 0)
+	{
+		I_FatalError("AddSecnode of 0 for %s\n", thing->GetClass()->TypeName.GetChars());
+	}
+
+	node = reinterpret_cast<portnode_t*>(P_GetSecnode());
+
+	// killough 4/4/98, 4/7/98: mark new nodes unvisited.
+	node->visited = 0;
+
+	node->m_portal = s; 			// portal
+	node->m_thing = thing; 			// mobj
+	node->m_tprev = NULL;			// prev node on Thing thread
+	node->m_tnext = nextnode;		// next node on Thing thread
+	if (nextnode)
+		nextnode->m_tprev = node;	// set back link on Thing
+
+									// Add new node at head of portal thread starting at s->touching_thinglist
+
+	node->m_sprev = NULL;			// prev node on portal thread
+	node->m_snext = s->render_thinglist; // next node on portal thread
+	if (s->render_thinglist)
+		node->m_snext->m_sprev = node;
+	s->render_thinglist = node;
+	return node;
+}
+
+
+//==========================================================================
+//
+// Handle the lists used to render actors from other portal areas
+//
+//==========================================================================
+
+void AActor::UpdateRenderSectorList()
+{
+	static const double SPRITE_SPACE = 64.;
+	if (Pos() != OldRenderPos && !(flags & MF_NOSECTOR))
+	{
+		// Only check if the map contains line portals
+		ClearRenderLineList();
+		if (PortalBlockmap.containsLines && Pos().XY() != OldRenderPos.XY())
+		{
+			int bx = GetBlockX(X());
+			int by = GetBlockX(Y());
+			FBoundingBox bb(X(), Y(), MIN(radius*1.5, 128.));	// Don't go further than 128 map units, even for large actors
+			// Are there any portals near the actor's position?
+			if (bx >= 0 && by >= 0 && bx < bmapwidth && by < bmapheight && PortalBlockmap(bx, by).neighborContainsLines)
+			{
+				// Go through the entire list. In most cases this is faster than setting up a blockmap iterator
+				for (auto &p : linePortals)
+				{
+					if (p.mType == PORTT_VISUAL) continue;
+					if (bb.inRange(p.mOrigin) && bb.BoxOnLineSide(p.mOrigin))
+					{
+						render_portallist = P_AddPortalnode(&p, this, render_portallist);
+					}
+				}
+			}
+		}
+		sector_t *sec = Sector;
+		double lasth = -FLT_MAX;
+		ClearRenderSectorList();
+		while (!sec->PortalBlocksMovement(sector_t::ceiling))
+		{
+			double planeh = sec->GetPortalPlaneZ(sector_t::ceiling);
+			if (planeh < lasth) break;	// broken setup.
+			if (Top() + SPRITE_SPACE < planeh) break;
+			lasth = planeh;
+			DVector2 newpos = Pos() + sec->GetPortalDisplacement(sector_t::ceiling);
+			sec = P_PointInSector(newpos);
+			render_sectorlist = P_AddSecnode(sec, this, render_sectorlist, sec->render_thinglist);
+		}
+		lasth = FLT_MAX;
+		while (!sec->PortalBlocksMovement(sector_t::floor))
+		{
+			double planeh = sec->GetPortalPlaneZ(sector_t::floor);
+			if (planeh > lasth) break;	// broken setup.
+			if (Z() - SPRITE_SPACE > planeh) break;
+			lasth = planeh;
+			DVector2 newpos = Pos() + sec->GetPortalDisplacement(sector_t::floor);
+			sec = P_PointInSector(newpos);
+			render_sectorlist = P_AddSecnode(sec, this, render_sectorlist, sec->render_thinglist);
+		}
+	}
+}
+
+void AActor::ClearRenderSectorList()
+{
+	msecnode_t *node = render_sectorlist;
+	while (node)
+		node = P_DelSecnode(node, &sector_t::render_thinglist);
+	render_sectorlist = NULL;
+}
+
+void AActor::ClearRenderLineList()
+{
+	portnode_t *node = render_portallist;
+	while (node)
+		node = P_DelPortalnode(node);
+	render_portallist = NULL;
+}
+
 
 //==========================================================================
 //

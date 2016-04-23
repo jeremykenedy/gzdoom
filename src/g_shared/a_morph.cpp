@@ -91,6 +91,8 @@ bool P_MorphPlayer (player_t *activator, player_t *p, PClassPlayerPawn *spawntyp
 	morphed->Angles.Yaw = actor->Angles.Yaw;
 	morphed->target = actor->target;
 	morphed->tracer = actor;
+	morphed->FriendPlayer = actor->FriendPlayer;
+	morphed->DesignatedTeam = actor->DesignatedTeam;
 	morphed->Score = actor->Score;
 	p->PremorphWeapon = p->ReadyWeapon;
 	morphed->special2 = actor->flags & ~MF_JUSTHIT;
@@ -512,7 +514,7 @@ bool P_MorphedDeath(AActor *actor, AActor **morphed, int *morphedstyle, int *mor
 		AActor *realme = actor->player->mo->tracer;
 		int realstyle = actor->player->MorphStyle;
 		int realhealth = actor->health;
-		if (P_UndoPlayerMorph(actor->player, actor->player, !!(actor->player->MorphStyle & MORPH_UNDOBYDEATHFORCED)))
+		if (P_UndoPlayerMorph(actor->player, actor->player, 0, !!(actor->player->MorphStyle & MORPH_UNDOBYDEATHFORCED)))
 		{
 			*morphed = realme;
 			*morphedstyle = realstyle;

@@ -209,18 +209,18 @@ void GLWall::PutWall(bool translucent)
 		break;
 
 	case RENDERWALL_SKYBOX:
-		portal = GLPortal::FindPortal(skybox);
+		portal = GLPortal::FindPortal(secportal);
 		if (!portal)
 		{
 			// either a regular skybox or an Eternity-style horizon
-			if (skybox->special1 != SKYBOX_SKYVIEWPOINT) portal = new GLEEHorizonPortal(skybox);
-			else portal = new GLSkyboxPortal(skybox);
+			if (secportal->mType != PORTS_SKYVIEWPOINT) portal = new GLEEHorizonPortal(secportal);
+			else portal = new GLSkyboxPortal(secportal);
 		}
 		portal->AddLine(this);
 		break;
 
 	case RENDERWALL_SECTORSTACK:
-		portal = this->portal->GetGLPortal();
+		portal = this->portal->GetRenderState();
 		portal->AddLine(this);
 		break;
 
@@ -318,7 +318,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	{
 		return;
 	}
-	::SplitWall.Clock();
 
 #ifdef _DEBUG
 	if (seg->linedef-lines==1)
@@ -382,8 +381,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 					copyWall1.lorgt.u = copyWall2.lolft.u = lolft.u + coeff * (lorgt.u-lolft.u);
 					copyWall1.lorgt.v = copyWall2.lolft.v = lolft.v + coeff * (lorgt.v-lolft.v);
 
-					::SplitWall.Unclock();
-
 					copyWall1.SplitWall(frontsector, translucent);
 					copyWall2.SplitWall(frontsector, translucent);
 					return;
@@ -425,8 +422,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 					copyWall1.lorgt.u = copyWall2.lolft.u = lolft.u + coeff * (lorgt.u-lolft.u);
 					copyWall1.lorgt.v = copyWall2.lolft.v = lolft.v + coeff * (lorgt.v-lolft.v);
 
-					::SplitWall.Unclock();
-
 					copyWall1.SplitWall(frontsector, translucent);
 					copyWall2.SplitWall(frontsector, translucent);
 					return;
@@ -445,8 +440,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 
 				lightlevel=ll;
 				Colormap=lc;
-
-				::SplitWall.Unclock();
 
 				return;
 			}
@@ -468,7 +461,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 			}
 			if (ztop[0]==zbottom[0] && ztop[1]==zbottom[1]) 
 			{
-				::SplitWall.Unclock();
 				return;
 			}
 		}
@@ -483,7 +475,6 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	lightlevel=ll;
 	Colormap=lc;
 	flags &= ~GLWF_NOSPLITUPPER;
-	::SplitWall.Unclock();
 }
 
 
@@ -1605,7 +1596,11 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector)
 			type = RENDERWALL_LINETOLINE;
 			PutWall(0);
 		}
-		else if (seg->linedef->skybox == NULL && !seg->linedef->isVisualPortal())
+		else if (seg->linedef->portaltransferred > 0)
+		{
+			SkyLine(frontsector, seg->linedef);
+		}
+		else
 		{
 			// normal texture
 			gltexture = FMaterial::ValidateTexture(seg->sidedef->GetTexture(side_t::mid), true);

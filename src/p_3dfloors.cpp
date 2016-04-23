@@ -358,7 +358,7 @@ void P_PlayerOnSpecial3DFloor(player_t* player)
 // Checks whether the player's feet touch a solid 3D floor in the sector
 //
 //==========================================================================
-bool P_CheckFor3DFloorHit(AActor * mo)
+bool P_CheckFor3DFloorHit(AActor * mo, double z)
 {
 	if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
 
@@ -368,7 +368,7 @@ bool P_CheckFor3DFloorHit(AActor * mo)
 
 		if(rover->flags & FF_SOLID && rover->model->SecActTarget)
 		{
-			if(mo->Z() == rover->top.plane->ZatPoint(mo)) 
+			if (fabs(z - rover->top.plane->ZatPoint(mo)) < EQUAL_EPSILON) 
 			{
 				rover->model->SecActTarget->TriggerAction (mo, SECSPAC_HitFloor);
 				return true;
@@ -384,7 +384,7 @@ bool P_CheckFor3DFloorHit(AActor * mo)
 // Checks whether the player's head touches a solid 3D floor in the sector
 //
 //==========================================================================
-bool P_CheckFor3DCeilingHit(AActor * mo)
+bool P_CheckFor3DCeilingHit(AActor * mo, double z)
 {
 	if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
 
@@ -394,7 +394,7 @@ bool P_CheckFor3DCeilingHit(AActor * mo)
 
 		if(rover->flags & FF_SOLID && rover->model->SecActTarget)
 		{
-			if(mo->Top() == rover->bottom.plane->ZatPoint(mo)) 
+			if(fabs(z - rover->bottom.plane->ZatPoint(mo)) < EQUAL_EPSILON)
 			{
 				rover->model->SecActTarget->TriggerAction (mo, SECSPAC_HitCeiling);
 				return true;
@@ -581,8 +581,6 @@ void P_Recalculate3DFloors(sector_t * sector)
 		lightlist[0].extra_colormap = sector->ColorMap;
 		lightlist[0].blend = 0;
 		lightlist[0].flags = 0;
-		lightlist[0].fromsector = true;
-		
 
 		resetlight = lightlist[0];
 
@@ -606,7 +604,6 @@ void P_Recalculate3DFloors(sector_t * sector)
 				newlight.extra_colormap = rover->GetColormap();
 				newlight.blend = rover->GetBlend();
 				newlight.flags = rover->flags;
-				newlight.fromsector = false;
 				lightlist.Push(newlight);
 			}
 			else
@@ -621,7 +618,6 @@ void P_Recalculate3DFloors(sector_t * sector)
 					lightlist[0].extra_colormap = rover->GetColormap();
 					lightlist[0].blend = rover->GetBlend();
 					lightlist[0].flags = rover->flags;
-					lightlist[0].fromsector = false;
 				}
 			}
 			if (!(rover->flags & (FF_DOUBLESHADOW | FF_RESET)))
@@ -648,7 +644,6 @@ void P_Recalculate3DFloors(sector_t * sector)
 					newlight.extra_colormap = resetlight.extra_colormap;
 					newlight.blend = resetlight.blend;
 					newlight.flags = rover->flags;
-					newlight.fromsector = false;
 					lightlist.Push(newlight);
 				}
 			}
@@ -728,7 +723,7 @@ lightlist_t * P_GetPlaneLight(sector_t * sector, secplane_t * plane, bool unders
 	TArray<lightlist_t> &lightlist = sector->e->XFloor.lightlist;
 
 	double planeheight=plane->ZatPoint(sector->centerspot);
-	if(underside) planeheight--;
+	if(underside) planeheight-= EQUAL_EPSILON;
 	
 	for(i = 1; i < lightlist.Size(); i++)
 		if (lightlist[i].plane.ZatPoint(sector->centerspot) <= planeheight) 

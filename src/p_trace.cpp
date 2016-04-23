@@ -112,10 +112,9 @@ static void GetPortalTransition(DVector3 &pos, sector_t *&sec)
 
 	while (!sec->PortalBlocksMovement(sector_t::ceiling))
 	{
-		AActor *port = sec->SkyBoxes[sector_t::ceiling];
-		if (pos.Z > port->specialf1)
+		if (pos.Z > sec->GetPortalPlaneZ(sector_t::ceiling))
 		{
-			pos += port->Scale;
+			pos += sec->GetPortalDisplacement(sector_t::ceiling);
 			sec = P_PointInSector(pos);
 			moved = true;
 		}
@@ -125,10 +124,9 @@ static void GetPortalTransition(DVector3 &pos, sector_t *&sec)
 	{
 		while (!sec->PortalBlocksMovement(sector_t::floor))
 		{
-			AActor *port = sec->SkyBoxes[sector_t::floor];
-			if (pos.Z <= port->specialf1)
+			if (pos.Z <= sec->GetPortalPlaneZ(sector_t::floor))
 			{
-				pos += port->Scale;
+				pos += sec->GetPortalDisplacement(sector_t::floor);
 				sec = P_PointInSector(pos);
 			}
 			else break;
@@ -208,18 +206,17 @@ bool Trace(const DVector3 &start, sector_t *sector, const DVector3 &direction, d
 
 void FTraceInfo::EnterSectorPortal(FPathTraverse &pt, int position, double frac, sector_t *entersec)
 {
-	AActor *portal = entersec->SkyBoxes[position];
-
+	DVector2 displacement = entersec->GetPortalDisplacement(position);;
 	double enterdist = MaxDist * frac;
 	DVector3 exit = Start + enterdist * Vec;
-	DVector3 enter = exit + portal->Scale;
+	DVector3 enter = exit + displacement;
 
-	Start += portal->Scale;
+	Start += displacement;
 	CurSector = P_PointInSector(enter);
 	inshootthrough = true;
 	startfrac = frac;
 	EnterDist = enterdist;
-	pt.PortalRelocate(portal, ptflags, frac);
+	pt.PortalRelocate(entersec->GetPortal(position)->mDisplacement, ptflags, frac);
 
 	if ((TraceFlags & TRACE_ReportPortals) && TraceCallback != NULL)
 	{
@@ -308,6 +305,7 @@ void FTraceInfo::Setup3DFloors()
 				{
 					Results->Crossed3DWater = rover;
 					Results->Crossed3DWaterPos = Results->HitPos;
+					Results->Distance = 0;
 				}
 			}
 
@@ -323,7 +321,7 @@ void FTraceInfo::Setup3DFloors()
 					{
 						CurSector->floorplane = *rover->top.plane;
 						CurSector->SetTexture(sector_t::floor, *rover->top.texture, false);
-						CurSector->SkyBoxes[sector_t::floor] = nullptr;
+						CurSector->ClearPortal(sector_t::floor);
 						bf = ff_top;
 					}
 				}
@@ -335,7 +333,7 @@ void FTraceInfo::Setup3DFloors()
 						CurSector->ceilingplane = *rover->bottom.plane;
 						CurSector->SetTexture(sector_t::ceiling, *rover->bottom.texture, false);
 						bc = ff_bottom;
-						CurSector->SkyBoxes[sector_t::ceiling] = nullptr;
+						CurSector->ClearPortal(sector_t::ceiling);
 					}
 				}
 				else
@@ -345,7 +343,7 @@ void FTraceInfo::Setup3DFloors()
 					{
 						CurSector->floorplane = *rover->bottom.plane;
 						CurSector->SetTexture(sector_t::floor, *rover->bottom.texture, false);
-						CurSector->SkyBoxes[sector_t::floor] = nullptr;
+						CurSector->ClearPortal(sector_t::floor);
 						bf = ff_bottom;
 					}
 
@@ -353,7 +351,7 @@ void FTraceInfo::Setup3DFloors()
 					{
 						CurSector->ceilingplane = *rover->top.plane;
 						CurSector->SetTexture(sector_t::ceiling, *rover->top.texture, false);
-						CurSector->SkyBoxes[sector_t::ceiling] = nullptr;
+						CurSector->ClearPortal(sector_t::ceiling);
 						bc = ff_top;
 					}
 					inshootthrough = false;
@@ -444,6 +442,7 @@ bool FTraceInfo::LineCheck(intercept_t *in, double dist, DVector3 hit)
 		{
 			Results->CrossedWater = &sectors[CurSector->sectornum];
 			Results->CrossedWaterPos = Results->HitPos;
+			Results->Distance = 0;
 		}
 	}
 
@@ -463,7 +462,6 @@ bool FTraceInfo::LineCheck(intercept_t *in, double dist, DVector3 hit)
 		hit.Z < bf || hit.Z > bc ||
 		in->d.line->flags & WallMask)
 	{
-normalline:
 		// hit the wall
 		Results->HitType = TRACE_HitWall;
 		Results->Tier =
@@ -501,7 +499,7 @@ normalline:
 						{
 							entersector->floorplane = *rover->top.plane;
 							entersector->SetTexture(sector_t::floor, *rover->top.texture, false);
-							entersector->SkyBoxes[sector_t::floor] = NULL;
+							entersector->ClearPortal(sector_t::floor);
 							bf = ff_top;
 						}
 					}
@@ -512,7 +510,7 @@ normalline:
 						{
 							entersector->ceilingplane = *rover->bottom.plane;
 							entersector->SetTexture(sector_t::ceiling, *rover->bottom.texture, false);
-							entersector->SkyBoxes[sector_t::ceiling] = NULL;
+							entersector->ClearPortal(sector_t::ceiling);
 							bc = ff_bottom;
 						}
 					}
@@ -748,6 +746,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 					{
 						Results->Crossed3DWater = rover;
 						Results->Crossed3DWaterPos = Results->HitPos;
+						Results->Distance = 0;
 					}
 				}
 			}
@@ -761,7 +760,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 		if (Vec.Z < 0 && !CurSector->PortalBlocksMovement(sector_t::floor))
 		{
 			// calculate position where the portal is crossed
-			double portz = CurSector->SkyBoxes[sector_t::floor]->specialf1;
+			double portz = CurSector->GetPortalPlaneZ(sector_t::floor);
 			if (hit.Z < portz && limitz > portz)
 			{
 				limitz = portz;
@@ -773,7 +772,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 		else if (Vec.Z > 0 && !CurSector->PortalBlocksMovement(sector_t::ceiling))
 		{
 			// calculate position where the portal is crossed
-			double portz = CurSector->SkyBoxes[sector_t::ceiling]->specialf1;
+			double portz = CurSector->GetPortalPlaneZ(sector_t::ceiling);
 			if (hit.Z > portz && limitz < portz)
 			{
 				limitz = portz;
@@ -836,6 +835,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 		{
 			Results->CrossedWater = &sectors[CurSector->sectornum];
 			Results->CrossedWaterPos = Results->HitPos;
+			Results->Distance = 0;
 		}
 		Results = res;
 	}
