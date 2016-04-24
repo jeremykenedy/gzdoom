@@ -6,7 +6,7 @@ This project adds OS X support to GZDoom.
 
 **NOTE:** Most of changes were integrated back into the ZDoom/GZDoom Git repository. The purpose of this project is to improve OS X support, particularly with the native Cocoa version. Binary builds will be also provided from time to time.
 
-GZDoom homepage: http://forum.drdteam.org/viewforum.php?f=22
+GZDoom homepage: http://gzdoom.drdteam.org/
 
 ZDoom homepage: http://zdoom.org/
 
