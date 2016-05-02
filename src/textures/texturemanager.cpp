@@ -53,8 +53,6 @@
 #include "r_renderer.h"
 #include "r_sky.h"
 #include "textures/textures.h"
-#include "gstrings.h"
-#include "stats.h"
 
 FTextureManager TexMan;
 
@@ -62,19 +60,6 @@ CUSTOM_CVAR(Bool, vid_nopalsubstitutions, false, CVAR_ARCHIVE)
 {
 	// This is in case the sky texture has been substituted.
 	R_InitSkyMap ();
-}
-
-CCMD(cleartexturecache)
-{
-	if (NULL == Renderer)
-	{
-		return;
-	}
-
-	for (int i = TexMan.NumTextures() - 1; i >= 0; --i)
-	{
-		Renderer->PrecacheTexture(TexMan.ByIndex(i), 0);
-	}
 }
 
 //==========================================================================
@@ -87,6 +72,10 @@ FTextureManager::FTextureManager ()
 {
 	memset (HashFirst, -1, sizeof(HashFirst));
 
+	for (int i = 0; i < 2048; ++i)
+	{
+		sintable[i] = short(sin(i*(M_PI / 1024)) * 16384);
+	}
 }
 
 //==========================================================================
@@ -1236,112 +1225,6 @@ int FTextureManager::CountLumpTextures (int lumpnum)
 	}
 	return 0;
 }
-
-//===========================================================================
-//
-// R_PrecacheLevel
-//
-
-// Preloads all relevant graphics for the level.
-//
-//===========================================================================
-
-namespace
-{
-
-class PrecacheProgress
-{
-public:
-	PrecacheProgress()
-	: m_time  (I_FPSTime())
-	, m_color (CR_YELLOW)
-	, m_dimmed(false)
-	{
-	}
-
-	void Update()
-	{
-		static const unsigned int UPDATE_TIME_MS = 250;
-		const unsigned int now = I_FPSTime();
-
-		if (UPDATE_TIME_MS > now - m_time)
-		{
-			return;
-		}
-
-		const char* const loadingMessage = GStrings("TXT_PRECACHE_WAIT");
-		FFont* const font = BigFont;
-
-		const int x = (SCREENWIDTH  - font->StringWidth(loadingMessage) * CleanXfac) / 2;
-		const int y = (SCREENHEIGHT - font->GetHeight()) / 2;
-
-		screen->Lock(false);
-
-		if (!m_dimmed)
-		{
-			// Dim amount is a guess value
-			// [?] should depend on gamma/brightness/contrast [?]
-			screen->Dim(0, 0.93f, 0, 0, SCREENWIDTH, SCREENHEIGHT);
-			m_dimmed = true;
-		}
-
-		screen->DrawText(BigFont, m_color, x, y, loadingMessage, DTA_CleanNoMove, true, TAG_DONE);
-		screen->Update();
-
-		m_time  = now;
-		m_color = (CR_YELLOW == m_color) ? CR_GOLD : CR_YELLOW;
-	}
-
-private:
-	unsigned int m_time;
-	EColorRange  m_color;
-	bool         m_dimmed;
-};
-
-} // unnamed namespace
-
-void FTextureManager::PrecacheLevel (void)
-{
-	BYTE *hitlist;
-	int cnt = NumTextures();
-
-	if (demoplayback)
-		return;
-
-	precacheTime = I_FPSTime();
-
-	hitlist = new BYTE[cnt];
-	memset (hitlist, 0, cnt);
-
-	screen->GetHitlist(hitlist);
-
-	PrecacheProgress precacheProgress;
-
-	// Consider to comment out PrecacheProgress::Update() call below
-	// in order to get more precise timing results
-	cycle_t precacheProfiler;
-	precacheProfiler.Reset();
-	precacheProfiler.Clock();
-
-	for (unsigned i = 0; i < level.info->PrecacheTextures.Size(); i++)
-	{
-		FTextureID tex = TexMan.CheckForTexture(level.info->PrecacheTextures[i], FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_ReturnFirst);
-		if (tex.Exists()) hitlist[tex.GetIndex()] |= FTextureManager::HIT_Wall;
-	}
-
-	for (int i = cnt - 1; i >= 0; i--)
-	{
-		Renderer->PrecacheTexture(ByIndex(i), hitlist[i]);
-		precacheProgress.Update();
-	}
-
-	precacheProfiler.Unclock();
-	DPrintf(TEXTCOLOR_RED "Textures were precached in %.03f ms\n", precacheProfiler.TimeMS());
-
-	delete[] hitlist;
-}
-
-
 
 
 //==========================================================================

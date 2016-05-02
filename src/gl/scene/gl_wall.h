@@ -20,6 +20,7 @@ struct GLDrawList;
 struct GLSkyInfo;
 struct FTexCoordInfo;
 struct FPortal;
+struct FFlatVertex;
 struct FGLLinePortal;
 
 enum
@@ -35,21 +36,23 @@ enum WallTypes
 	RENDERWALL_M1S,
 	RENDERWALL_M2S,
 	RENDERWALL_BOTTOM,
-	RENDERWALL_SKY,
 	RENDERWALL_FOGBOUNDARY,
-	RENDERWALL_HORIZON,
-	RENDERWALL_SKYBOX,
-	RENDERWALL_SECTORSTACK,
-	RENDERWALL_PLANEMIRROR,
-	RENDERWALL_MIRROR,
 	RENDERWALL_MIRRORSURFACE,
 	RENDERWALL_M2SNF,
-	RENDERWALL_M2SFOG,
 	RENDERWALL_COLOR,
 	RENDERWALL_FFBLOCK,
-	RENDERWALL_COLORLAYER,
-	RENDERWALL_LINETOLINE,
 	// Insert new types at the end!
+};
+
+enum PortalTypes
+{
+	PORTALTYPE_SKY,
+	PORTALTYPE_HORIZON,
+	PORTALTYPE_SKYBOX,
+	PORTALTYPE_SECTORSTACK,
+	PORTALTYPE_PLANEMIRROR,
+	PORTALTYPE_MIRROR,
+	PORTALTYPE_LINETOLINE,
 };
 
 struct GLSeg
@@ -102,12 +105,20 @@ public:
 		//GLWF_CLAMPX=1, use GLT_* for these!
 		//GLWF_CLAMPY=2,
 		GLWF_SKYHACK=4,
-		GLWF_FOGGY=8,
-		GLWF_GLOW=16,		// illuminated by glowing flats
-		GLWF_NOSHADER=32,	// cannot be drawn with shaders.
-		GLWF_NOSPLITUPPER=64,
-		GLWF_NOSPLITLOWER=128,
+		GLWF_GLOW=8,		// illuminated by glowing flats
+		GLWF_NOSPLITUPPER=16,
+		GLWF_NOSPLITLOWER=32,
+		GLWF_NOSPLIT=64,
 	};
+
+	enum
+	{
+		RWF_BLANK = 0,
+		RWF_TEXTURED = 1,	// actually not being used anymore because with buffers it's even less efficient not writing the texture coordinates - but leave it here
+		RWF_NOSPLIT = 4,
+		RWF_NORENDER = 8,
+	};
+
 
 	friend struct GLDrawList;
 	friend class GLPortal;
@@ -124,6 +135,7 @@ public:
 	
 	float ViewDistance;
 
+	TArray<lightlist_t> *lightlist;
 	int lightlevel;
 	BYTE type;
 	BYTE flags;
@@ -132,7 +144,7 @@ public:
 	float topglowcolor[4];
 	float bottomglowcolor[4];
 
-	int firstdynlight, lastdynlight;
+	int dynlightindex;
 
 	union
 	{
@@ -160,11 +172,17 @@ private:
 
 	void CheckGlowing();
 	void PutWall(bool translucent);
+	void PutPortal(int ptype);
 	void CheckTexturePosition();
+
+	void Put3DWall(lightlist_t * lightlist, bool translucent);
+	void SplitWallComplex(sector_t * frontsector, bool translucent, float maplightbottomleft, float maplightbottomright);
+	void SplitWall(sector_t * frontsector, bool translucent);
 
 	void SetupLights();
 	bool PrepareLight(texcoord * tcs, ADynamicLight * light);
-	void RenderWall(int textured, float * color2, ADynamicLight * light=NULL);
+	void RenderWall(int textured, unsigned int *store = NULL);
+	void RenderTextured(int rflags);
 
 	void FloodPlane(int pass);
 
@@ -174,8 +192,6 @@ private:
 	void SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2);
 	void SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex_t * v2);
 
-	void Put3DWall(lightlist_t * lightlist, bool translucent);
-	void SplitWall(sector_t * frontsector, bool translucent);
 	void LightPass();
 	void SetHorizon(vertex_t * ul, vertex_t * ur, vertex_t * ll, vertex_t * lr);
 	bool DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2);
@@ -217,10 +233,10 @@ private:
 	void RenderMirrorSurface();
 	void RenderTranslucentWall();
 
-	void SplitLeftEdge(texcoord * tcs);
-	void SplitRightEdge(texcoord * tcs);
-	void SplitUpperEdge(texcoord * tcs);
-	void SplitLowerEdge(texcoord * tcs);
+	void SplitLeftEdge(texcoord * tcs, FFlatVertex *&ptr);
+	void SplitRightEdge(texcoord * tcs, FFlatVertex *&ptr);
+	void SplitUpperEdge(texcoord * tcs, FFlatVertex *&ptr);
+	void SplitLowerEdge(texcoord * tcs, FFlatVertex *&ptr);
 
 public:
 
@@ -275,17 +291,20 @@ public:
 	int vboindex;
 	//int vboheight;
 
-	bool SetupSubsectorLights(bool lightsapplied, subsector_t * sub);
+	int dynlightindex;
+
+	void SetupSubsectorLights(int pass, subsector_t * sub, int *dli = NULL);
 	void DrawSubsector(subsector_t * sub);
 	void DrawSubsectorLights(subsector_t * sub, int pass);
-	void DrawSkyboxSector(int pass);
-	void DrawSubsectors(int pass, bool istrans);
+	void DrawSkyboxSector(int pass, bool processlights);
+	void DrawSubsectors(int pass, bool processlights, bool istrans);
+	void ProcessLights(bool istrans);
 
 	void PutFlat(bool fog = false);
 	void Process(sector_t * model, int whichplane, bool notexture);
 	void SetFrom3DFloor(F3DFloor *rover, bool top, bool underside);
 	void ProcessSector(sector_t * frontsector);
-	void Draw(int pass);
+	void Draw(int pass, bool trans);
 };
 
 
@@ -330,6 +349,7 @@ public:
 	float trans;
 	AActor * actor;
 	particle_t * particle;
+	TArray<lightlist_t> *lightlist;
 
 	void SplitSprite(sector_t * frontsector, bool translucent);
 	void SetLowerParam();
@@ -339,10 +359,9 @@ public:
 
 	void Draw(int pass);
 	void PutSprite(bool translucent);
-	void Process(AActor* thing,sector_t * sector, bool thruportal = false);
+	void Process(AActor* thing,sector_t * sector, int thruportal = false);
 	void ProcessParticle (particle_t *particle, sector_t *sector);//, int shade, int fakeside)
 	void SetThingColor(PalEntry);
-	void SetSpriteColor(sector_t *sector, double y);
 
 	// Lines start-end and fdiv must intersect.
 	double CalcIntersectionVertex(GLWall * w2);
@@ -355,20 +374,8 @@ inline float Dist2(float x1,float y1,float x2,float y2)
 
 // Light + color
 
-bool gl_GetSpriteLight(AActor *Self, float x, float y, float z, subsector_t * subsec, int desaturation, float * out, line_t *line = NULL, int side = 0);
-int gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
-
-void gl_GetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,
-					   float *red, float *green, float *blue,
-					   PalEntry ThingColor, bool weapon);
-
-int gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
-						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon);
-
-int gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor = 0xffffff);
-void gl_GetLightForThing(AActor * thing, float upper, float lower, float & r, float & g, float & b);
-
-
-
+void gl_SetDynSpriteLight(AActor *self, float x, float y, float z, subsector_t *subsec);
+void gl_SetDynSpriteLight(AActor *actor, particle_t *particle);
+void gl_RenderActorsInPortal(FGLLinePortal *glport);
 
 #endif

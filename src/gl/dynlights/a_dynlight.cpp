@@ -35,6 +35,8 @@
 **
 */
 
+#include "gl/system/gl_system.h"
+
 #include "templates.h"
 #include "m_random.h"
 #include "p_local.h"
@@ -538,11 +540,14 @@ void ADynamicLight::CollectWithinRadius(const DVector3 &pos, subsector_t *subSec
 {
 	if (!subSec) return;
 
-	bool additive = (flags4&MF4_ADDITIVE) || gl_lights_additive;
-
 	subSec->validcount = ::validcount;
 
-	touching_subsectors = AddLightNode(&subSec->lighthead[additive], subSec, this, touching_subsectors);
+	touching_subsectors = AddLightNode(&subSec->lighthead, subSec, this, touching_subsectors);
+	if (subSec->sector->validcount != ::validcount)
+	{
+		touching_sector = AddLightNode(&subSec->render_sector->lighthead, subSec->sector, this, touching_sector);
+		subSec->sector->validcount = ::validcount;
+	}
 
 	for (unsigned int i = 0; i < subSec->numlines; i++)
 	{
@@ -555,10 +560,10 @@ void ADynamicLight::CollectWithinRadius(const DVector3 &pos, subsector_t *subSec
 			if (seg->sidedef && seg->linedef && seg->linedef->validcount != ::validcount)
 			{
 				// light is in front of the seg
-				if ((pos.Y - seg->v1->fY()) * (seg->v2->fX() - seg->v1->fX()) + (seg->v1->fX() - pos.X * (seg->v2->fY() - seg->v1->fY())) <= 0)
+				if ((pos.Y - seg->v1->fY()) * (seg->v2->fX() - seg->v1->fX()) + (seg->v1->fX() - pos.X) * (seg->v2->fY() - seg->v1->fY()) <= 0)
 				{
 					seg->linedef->validcount = validcount;
-					touching_sides = AddLightNode(&seg->sidedef->lighthead[additive], seg->sidedef, this, touching_sides);
+					touching_sides = AddLightNode(&seg->sidedef->lighthead, seg->sidedef, this, touching_sides);
 				}
 			}
 			if (seg->linedef)
@@ -617,10 +622,6 @@ void ADynamicLight::CollectWithinRadius(const DVector3 &pos, subsector_t *subSec
 
 void ADynamicLight::LinkLight()
 {
-	if (X() == 1088 && Y() == 2832)
-	{
-		int a = 0;
-	}
 	// mark the old light nodes
 	FLightNode * node;
 	
@@ -636,6 +637,12 @@ void ADynamicLight::LinkLight()
 		node->lightsource = NULL;
 		node = node->nextTarget;
     }
+	node = touching_sector;
+	while (node)
+	{
+		node->lightsource = NULL;
+		node = node->nextTarget;
+	}
 
 	if (radius>0)
 	{
@@ -670,6 +677,17 @@ void ADynamicLight::LinkLight()
 		else
 			node = node->nextTarget;
 	}
+
+	node = touching_sector;
+	while (node)
+	{
+		if (node->lightsource == NULL)
+		{
+			node = DeleteLightNode(node);
+		}
+		else
+			node = node->nextTarget;
+	}
 }
 
 
@@ -694,6 +712,7 @@ void ADynamicLight::UnlinkLight ()
 	}
 	while (touching_sides) touching_sides = DeleteLightNode(touching_sides);
 	while (touching_subsectors) touching_subsectors = DeleteLightNode(touching_subsectors);
+	while (touching_sector) touching_sector = DeleteLightNode(touching_sector);
 }
 
 void ADynamicLight::Destroy()
@@ -722,8 +741,8 @@ size_t AActor::PropagateMark()
 
 CCMD(listlights)
 {
-	int walls, sectors;
-	int allwalls=0, allsectors=0;
+	int walls, sectors, subsecs;
+	int allwalls=0, allsectors=0, allsubsecs = 0;
 	int i=0;
 	ADynamicLight * dl;
 	TThinkerIterator<ADynamicLight> it;
@@ -732,6 +751,7 @@ CCMD(listlights)
 	{
 		walls=0;
 		sectors=0;
+		subsecs = 0;
 		Printf("%s at (%f, %f, %f), color = 0x%02x%02x%02x, radius = %f ",
 			dl->target? dl->target->GetClass()->TypeName.GetChars() : dl->GetClass()->TypeName.GetChars(),
 			dl->X(), dl->Y(), dl->Z(), dl->args[LIGHT_RED], 
@@ -760,15 +780,23 @@ CCMD(listlights)
 
 		while (node)
 		{
+			allsubsecs++;
+			subsecs++;
+			node = node->nextTarget;
+		}
+
+		node = dl->touching_sector;
+
+		while (node)
+		{
 			allsectors++;
 			sectors++;
 			node = node->nextTarget;
 		}
-
-		Printf("- %d walls, %d subsectors\n", walls, sectors);
+		Printf("- %d walls, %d subsectors, %d sectors\n", walls, subsecs, sectors);
 
 	}
-	Printf("%i dynamic lights, %d walls, %d subsectors\n\n\n", i, allwalls, allsectors);
+	Printf("%i dynamic lights, %d walls, %d subsectors, %d sectors\n\n\n", i, allwalls, allsubsecs, allsectors);
 }
 
 CCMD(listsublights)
@@ -777,22 +805,15 @@ CCMD(listsublights)
 	{
 		subsector_t *sub = &subsectors[i];
 		int lights = 0;
-		int addlights = 0;
 
-		FLightNode * node = sub->lighthead[0];
+		FLightNode * node = sub->lighthead;
 		while (node != NULL)
 		{
 			lights++;
 			node = node->nextLight;
 		}
 
-		node = sub->lighthead[1];
-		while (node != NULL)
-		{
-			addlights++;
-			node = node->nextLight;
-		}
-		Printf(PRINT_LOG, "Subsector %d - %d lights, %d additive lights\n", i, lights, addlights);
+		Printf(PRINT_LOG, "Subsector %d - %d lights\n", i, lights);
 	}
 }
 

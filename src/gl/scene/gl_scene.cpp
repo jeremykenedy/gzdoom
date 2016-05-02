@@ -57,6 +57,7 @@
 #include "p_local.h"
 #include "gl/gl_functions.h"
 
+#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/system/gl_interface.h"
 #include "gl/system/gl_framebuffer.h"
 #include "gl/system/gl_cvars.h"
@@ -65,7 +66,6 @@
 #include "gl/data/gl_data.h"
 #include "gl/data/gl_vertexbuffer.h"
 #include "gl/dynlights/gl_dynlight.h"
-#include "gl/dynlights/gl_lightbuffer.h"
 #include "gl/models/gl_models.h"
 #include "gl/scene/gl_clipper.h"
 #include "gl/scene/gl_drawinfo.h"
@@ -74,11 +74,10 @@
 #include "gl/stereo3d/gl_stereo3d.h"
 #include "gl/stereo3d/scoped_view_shifter.h"
 #include "gl/textures/gl_material.h"
+#include "gl/textures/gl_skyboxtexture.h"
 #include "gl/utility/gl_clock.h"
 #include "gl/utility/gl_convert.h"
 #include "gl/utility/gl_templates.h"
-#include "gl/stereo3d/gl_stereo3d.h"
-#include "gl/stereo3d/scoped_view_shifter.h"
 
 //==========================================================================
 //
@@ -89,7 +88,7 @@ CVAR(Bool, gl_texture, true, 0)
 CVAR(Bool, gl_no_skyclear, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Float, gl_mask_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Float, gl_mask_sprite_threshold, 0.5f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(Bool, gl_forcemultipass, false, 0)
+CVAR(Bool, gl_sort_textures, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 EXTERN_CVAR (Int, screenblocks)
 EXTERN_CVAR (Bool, cl_capfps)
@@ -238,45 +237,20 @@ void FGLRenderer::SetViewAngle(DAngle viewangle)
 //
 //-----------------------------------------------------------------------------
 
-static void setPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
-{
-	GLdouble m[4][4];
-	double sine, cotangent, deltaZ;
-	double radians = fovy / 2 * M_PI / 180;
-
-	deltaZ = zFar - zNear;
-	sine = sin(radians);
-	if ((deltaZ == 0) || (sine == 0) || (aspect == 0)) {
-		return;
-	}
-	cotangent = cos(radians) / sine;
-
-	memset(m, 0, sizeof(m));
-	m[0][0] = cotangent / aspect;
-	m[1][1] = cotangent;
-	m[2][2] = -(zFar + zNear) / deltaZ;
-	m[2][3] = -1;
-	m[3][2] = -2 * zNear * zFar / deltaZ;
-	m[3][3] = 0;
-	glLoadMatrixd(&m[0][0]);
-}
-
-
 void FGLRenderer::SetProjection(float fov, float ratio, float fovratio)
 {
-	glMatrixMode(GL_PROJECTION);
 
 	float fovy = 2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovratio));
-	setPerspective(fovy, ratio, 5.f, 65536.f);
+	gl_RenderState.mProjectionMatrix.perspective(fovy, ratio, 5.f, 65536.f);
 	gl_RenderState.Set2DMode(false);
 }
 
 // raw matrix input from stereo 3d modes
-void FGLRenderer::SetProjection(float matrix[4][4])
+void FGLRenderer::SetProjection(VSMatrix matrix)
 {
-	glMatrixMode(GL_PROJECTION);
+	gl_RenderState.mProjectionMatrix.loadIdentity();
+	gl_RenderState.mProjectionMatrix.multMatrix(matrix);
 	gl_RenderState.Set2DMode(false);
-	glLoadMatrixf(&matrix[0][0]);
 }
 
 //-----------------------------------------------------------------------------
@@ -287,27 +261,15 @@ void FGLRenderer::SetProjection(float matrix[4][4])
 
 void FGLRenderer::SetViewMatrix(float vx, float vy, float vz, bool mirror, bool planemirror)
 {
-	if (gl.shadermodel >= 4)
-	{
-		glActiveTexture(GL_TEXTURE7);
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
-	}
-	glActiveTexture(GL_TEXTURE0);
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
 	float mult = mirror? -1:1;
 	float planemult = planemirror? -glset.pixelstretch : glset.pixelstretch;
 
-	glRotatef(GLRenderer->mAngles.Roll.Degrees,  0.0f, 0.0f, 1.0f);
-	glRotatef(GLRenderer->mAngles.Pitch.Degrees, 1.0f, 0.0f, 0.0f);
-	glRotatef(GLRenderer->mAngles.Yaw.Degrees,   0.0f, mult, 0.0f);
-	glTranslatef(vx * mult, -vz * planemult , -vy);
-	glScalef(-mult, planemult, 1);
+	gl_RenderState.mViewMatrix.loadIdentity();
+	gl_RenderState.mViewMatrix.rotate(GLRenderer->mAngles.Roll.Degrees,  0.0f, 0.0f, 1.0f);
+	gl_RenderState.mViewMatrix.rotate(GLRenderer->mAngles.Pitch.Degrees, 1.0f, 0.0f, 0.0f);
+	gl_RenderState.mViewMatrix.rotate(GLRenderer->mAngles.Yaw.Degrees,   0.0f, mult, 0.0f);
+	gl_RenderState.mViewMatrix.translate(vx * mult, -vz * planemult , -vy);
+	gl_RenderState.mViewMatrix.scale(-mult, planemult, 1);
 }
 
 
@@ -321,6 +283,7 @@ void FGLRenderer::SetupView(float vx, float vy, float vz, DAngle va, bool mirror
 {
 	SetViewAngle(va);
 	SetViewMatrix(vx, vy, vz, mirror, planemirror);
+	gl_RenderState.ApplyMatrices();
 }
 
 //-----------------------------------------------------------------------------
@@ -346,6 +309,7 @@ void FGLRenderer::CreateScene()
 	R_SetView();
 	validcount++;	// used for processing sidedefs only once by the renderer.
 	gl_RenderBSPNode (nodes + numnodes - 1);
+	if (GLRenderer->mCurrentPortal != NULL) GLRenderer->mCurrentPortal->RenderAttached();
 	Bsp.Unclock();
 
 	// And now the crappy hacks that have to be done to avoid rendering anomalies:
@@ -354,7 +318,6 @@ void FGLRenderer::CreateScene()
 	gl_drawinfo->HandleHackedSubsectors();	// open sector hacks for deep water
 	gl_drawinfo->ProcessSectorStacks();		// merge visplanes of sector stacks
 
-	GLRenderer->mVBO->UnmapVBO ();
 	ProcessAll.Unclock();
 
 }
@@ -379,149 +342,96 @@ void FGLRenderer::RenderScene(int recursion)
 	gl_RenderState.EnableFog(true);
 	gl_RenderState.BlendFunc(GL_ONE,GL_ZERO);
 
-	// First draw all single-pass stuff
+	if (gl_sort_textures)
+	{
+		gl_drawinfo->drawlists[GLDL_PLAINWALLS].SortWalls();
+		gl_drawinfo->drawlists[GLDL_PLAINFLATS].SortFlats();
+		gl_drawinfo->drawlists[GLDL_MASKEDWALLS].SortWalls();
+		gl_drawinfo->drawlists[GLDL_MASKEDFLATS].SortFlats();
+		gl_drawinfo->drawlists[GLDL_MASKEDWALLSOFS].SortWalls();
+	}
+
+	// if we don't have a persistently mapped buffer, we have to process all the dynamic lights up front,
+	// so that we don't have to do repeated map/unmap calls on the buffer.
+	bool haslights = mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT && gl_lights;
+	if (gl.lightmethod == LM_DEFERRED && haslights)
+	{
+		GLRenderer->mLights->Begin();
+		gl_drawinfo->drawlists[GLDL_PLAINWALLS].DrawWalls(GLPASS_LIGHTSONLY);
+		gl_drawinfo->drawlists[GLDL_PLAINFLATS].DrawFlats(GLPASS_LIGHTSONLY);
+		gl_drawinfo->drawlists[GLDL_MASKEDWALLS].DrawWalls(GLPASS_LIGHTSONLY);
+		gl_drawinfo->drawlists[GLDL_MASKEDFLATS].DrawFlats(GLPASS_LIGHTSONLY);
+		gl_drawinfo->drawlists[GLDL_MASKEDWALLSOFS].DrawWalls(GLPASS_LIGHTSONLY);
+		gl_drawinfo->drawlists[GLDL_TRANSLUCENTBORDER].Draw(GLPASS_LIGHTSONLY);
+		gl_drawinfo->drawlists[GLDL_TRANSLUCENT].Draw(GLPASS_LIGHTSONLY, true);
+		GLRenderer->mLights->Finish();
+	}
 
 	// Part 1: solid geometry. This is set up so that there are no transparent parts
 	glDepthFunc(GL_LESS);
-
-
-	gl_RenderState.EnableAlphaTest(false);
-
-	glDisable(GL_POLYGON_OFFSET_FILL);	// just in case
+	gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
+	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	int pass;
 
-	if (mLightCount > 0 && gl_fixedcolormap == CM_DEFAULT && gl_lights && gl_dynlight_shader)
-	{
-		pass = GLPASS_ALL;
-	}
-	else if (gl_texture)
+	if (!haslights || gl.lightmethod == LM_DEFERRED)
 	{
 		pass = GLPASS_PLAIN;
 	}
+	else if (gl.lightmethod == LM_DIRECT)
+	{
+		pass = GLPASS_ALL;
+	}
 	else
 	{
-		pass = GLPASS_BASE;
+		// process everything that needs to handle textured dynamic lights.
+		if (haslights) RenderMultipassStuff();
+
+		// The remaining lists which are unaffected by dynamic lights are just processed as normal.
+		pass = GLPASS_PLAIN;
 	}
 
 	gl_RenderState.EnableTexture(gl_texture);
-	gl_RenderState.EnableBrightmap(gl_fixedcolormap == CM_DEFAULT);
-	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
-	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(pass);
-	gl_RenderState.EnableBrightmap(false);
-	gl_drawinfo->drawlists[GLDL_FOG].Sort();
-	gl_drawinfo->drawlists[GLDL_FOG].Draw(pass);
-	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Sort();
-	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Draw(pass);
+	gl_RenderState.EnableBrightmap(true);
+	gl_drawinfo->drawlists[GLDL_PLAINWALLS].DrawWalls(pass);
+	gl_drawinfo->drawlists[GLDL_PLAINFLATS].DrawFlats(pass);
 
 
-	gl_RenderState.EnableAlphaTest(true);
-
-	// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
+	// Part 2: masked geometry. This is set up so that only pixels with alpha>gl_mask_threshold will show
 	if (!gl_texture) 
 	{
 		gl_RenderState.EnableTexture(true);
 		gl_RenderState.SetTextureMode(TM_MASK);
 	}
-	if (pass == GLPASS_BASE) pass = GLPASS_BASE_MASKED;
-	gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_threshold);
-	gl_RenderState.EnableBrightmap(true);
-	gl_drawinfo->drawlists[GLDL_MASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_MASKED].Draw(pass);
-	gl_RenderState.EnableBrightmap(false);
-	gl_drawinfo->drawlists[GLDL_FOGMASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(pass);
-	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Draw(pass);
+	gl_RenderState.AlphaFunc(GL_GEQUAL, gl_mask_threshold);
+	gl_drawinfo->drawlists[GLDL_MASKEDWALLS].DrawWalls(pass);
+	gl_drawinfo->drawlists[GLDL_MASKEDFLATS].DrawFlats(pass);
 
-	// And now the multipass stuff
-	if (!gl_dynlight_shader && gl_lights)
+	// Part 3: masked geometry with polygon offset. This list is empty most of the time so only waste time on it when in use.
+	if (gl_drawinfo->drawlists[GLDL_MASKEDWALLSOFS].Size() > 0)
 	{
-		// First pass: empty background with sector light only
-
-		// Part 1: solid geometry. This is set up so that there are no transparent parts
-
-		// remove any remaining texture bindings and shaders whick may get in the way.
-		gl_RenderState.EnableTexture(false);
-		gl_RenderState.EnableBrightmap(false);
-		gl_RenderState.Apply();
-		gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_BASE);
-		gl_RenderState.EnableTexture(true);
-
-		// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
-		// This creates a blank surface that only fills the nontransparent parts of the texture
-		gl_RenderState.SetTextureMode(TM_MASK);
-		gl_RenderState.EnableBrightmap(true);
-		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_BASE_MASKED);
-		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
-		gl_RenderState.EnableBrightmap(false);
-		gl_RenderState.SetTextureMode(TM_MODULATE);
-
-
-		// second pass: draw lights (on fogged surfaces they are added to the textures!)
-		glDepthMask(false);
-		if (mLightCount && !gl_fixedcolormap)
-		{
-			if (gl_SetupLightTexture())
-			{
-				gl_RenderState.BlendFunc(GL_ONE, GL_ONE);
-				glDepthFunc(GL_EQUAL);
-				if (glset.lightmode == 8) glVertexAttrib1f(VATTR_LIGHTLEVEL, 1.0f); // Korshun.
-				for(int i=GLDL_FIRSTLIGHT; i<=GLDL_LASTLIGHT; i++)
-				{
-					gl_drawinfo->drawlists[i].Draw(GLPASS_LIGHT);
-				}
-				gl_RenderState.BlendEquation(GL_FUNC_ADD);
-			}
-			else gl_lights=false;
-		}
-
-		// third pass: modulated texture
-		glColor3f(1.0f, 1.0f, 1.0f);
-		gl_RenderState.BlendFunc(GL_DST_COLOR, GL_ZERO);
-		gl_RenderState.EnableFog(false);
-		glDepthFunc(GL_LEQUAL);
-		if (gl_texture) 
-		{
-			gl_RenderState.EnableAlphaTest(false);
-			gl_drawinfo->drawlists[GLDL_LIGHT].Sort();
-			gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_TEXTURE);
-			gl_RenderState.EnableAlphaTest(true);
-			gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Sort();
-			gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_TEXTURE);
-			gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Sort();
-			gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_TEXTURE);
-		}
-
-		// fourth pass: additive lights
-		gl_RenderState.EnableFog(true);
-		if (gl_lights && mLightCount && !gl_fixedcolormap)
-		{
-			gl_RenderState.BlendFunc(GL_ONE, GL_ONE);
-			glDepthFunc(GL_EQUAL);
-			if (gl_SetupLightTexture())
-			{
-				for(int i=0; i<GLDL_TRANSLUCENT; i++)
-				{
-					gl_drawinfo->drawlists[i].Draw(GLPASS_LIGHT_ADDITIVE);
-				}
-				gl_RenderState.BlendEquation(GL_FUNC_ADD);
-			}
-			else gl_lights=false;
-		}
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(-1.0f, -128.0f);
+		gl_drawinfo->drawlists[GLDL_MASKEDWALLSOFS].DrawWalls(pass);
+		glDisable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(0, 0);
 	}
+
+	gl_drawinfo->drawlists[GLDL_MODELS].Draw(pass);
 
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// Draw decals (not a real pass)
+	// Part 4: Draw decals (not a real pass)
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(-1.0f, -128.0f);
 	glDepthMask(false);
 
-	for(int i=0; i<GLDL_TRANSLUCENT; i++)
+	// this is the only geometry type on which decals can possibly appear
+	gl_drawinfo->drawlists[GLDL_PLAINWALLS].DrawDecals();
+	if (gl.lightmethod == LM_SOFTWARE)
 	{
-		gl_drawinfo->drawlists[i].Draw(GLPASS_DECALS);
+		// also process the render lists with walls and dynamic lights
 	}
 
 	gl_RenderState.SetTextureMode(TM_MODULATE);
@@ -533,21 +443,20 @@ void FGLRenderer::RenderScene(int recursion)
 	// so they don't interfere with overlapping mid textures.
 	glPolygonOffset(1.0f, 128.0f);
 
-	// flood all the gaps with the back sector's flat texture
-	// This will always be drawn like GLDL_PLAIN or GLDL_FOG, depending on the fog settings
+	// Part 5: flood all the gaps with the back sector's flat texture
+	// This will always be drawn like GLDL_PLAIN, depending on the fog settings
 	
 	glDepthMask(false);							// don't write to Z-buffer!
 	gl_RenderState.EnableFog(true);
-	gl_RenderState.EnableAlphaTest(false);
+	gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
 	gl_RenderState.BlendFunc(GL_ONE,GL_ZERO);
 	gl_drawinfo->DrawUnhandledMissingTextures();
-	gl_RenderState.EnableAlphaTest(true);
 	glDepthMask(true);
 
 	glPolygonOffset(0.0f, 0.0f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
-
 	RenderAll.Unclock();
+
 }
 
 //-----------------------------------------------------------------------------
@@ -566,8 +475,7 @@ void FGLRenderer::RenderTranslucent()
 	gl_RenderState.SetCameraPos(ViewPos.X, ViewPos.Y, ViewPos.Z);
 
 	// final pass: translucent stuff
-	gl_RenderState.EnableAlphaTest(true);
-	gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
+	gl_RenderState.AlphaFunc(GL_GEQUAL, gl_mask_sprite_threshold);
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	gl_RenderState.EnableBrightmap(true);
@@ -597,7 +505,7 @@ void FGLRenderer::DrawScene(bool toscreen)
 	static int recursion=0;
 
 	CreateScene();
-	GLRenderer->mCurrentPortal = NULL;	// this must be reset before any portal recursion takes place.
+	GLRenderer->mClipPortal = NULL;	// this must be reset before any portal recursion takes place.
 
 	// Up to this point in the main draw call no rendering is performed so we can wait
 	// with swapping the render buffer until now.
@@ -617,6 +525,23 @@ void FGLRenderer::DrawScene(bool toscreen)
 	RenderTranslucent();
 }
 
+
+void gl_FillScreen()
+{
+	gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
+	gl_RenderState.EnableTexture(false);
+	gl_RenderState.Apply();
+	FFlatVertex *ptr = GLRenderer->mVBO->GetBuffer();
+	ptr->Set(0, 0, 0, 0, 0);
+	ptr++;
+	ptr->Set(0, (float)SCREENHEIGHT, 0, 0, 0);
+	ptr++;
+	ptr->Set((float)SCREENWIDTH, 0, 0, 0, 0);
+	ptr++;
+	ptr->Set((float)SCREENWIDTH, (float)SCREENHEIGHT, 0, 0, 0);
+	ptr++;
+	GLRenderer->mVBO->RenderCurrent(ptr, GL_TRIANGLE_STRIP);
+}
 
 //==========================================================================
 //
@@ -677,50 +602,42 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 				}
 			}
 		}
-	}
 
-	if (blendv.a==0)
-	{
-		blendv = R_BlendForColormap(blendv);
-		if (blendv.a==255)
+		if (blendv.a == 0)
 		{
-			// The calculated average is too dark so brighten it according to the palettes's overall brightness
-			int maxcol = MAX<int>(MAX<int>(framebuffer->palette_brightness, blendv.r), MAX<int>(blendv.g, blendv.b));
-			blendv.r = blendv.r * 255 / maxcol;
-			blendv.g = blendv.g * 255 / maxcol;
-			blendv.b = blendv.b * 255 / maxcol;
+			blendv = R_BlendForColormap(blendv);
+			if (blendv.a == 255)
+			{
+				// The calculated average is too dark so brighten it according to the palettes's overall brightness
+				int maxcol = MAX<int>(MAX<int>(framebuffer->palette_brightness, blendv.r), MAX<int>(blendv.g, blendv.b));
+				blendv.r = blendv.r * 255 / maxcol;
+				blendv.g = blendv.g * 255 / maxcol;
+				blendv.b = blendv.b * 255 / maxcol;
+			}
 		}
-	}
 
-	if (blendv.a==255)
-	{
-
-		extra_red = blendv.r / 255.0f;
-		extra_green = blendv.g / 255.0f;
-		extra_blue = blendv.b / 255.0f;
-
-		// If this is a multiplicative blend do it separately and add the additive ones on top of it!
-		blendv=0;
-
-		// black multiplicative blends are ignored
-		if (extra_red || extra_green || extra_blue)
+		if (blendv.a == 255)
 		{
-			gl_RenderState.EnableAlphaTest(false);
-			gl_RenderState.EnableTexture(false);
-			gl_RenderState.BlendFunc(GL_DST_COLOR,GL_ZERO);
-			glColor4f(extra_red, extra_green, extra_blue, 1.0f);
-			gl_RenderState.Apply(true);
-			glBegin(GL_TRIANGLE_STRIP);
-			glVertex2f( 0.0f, 0.0f);
-			glVertex2f( 0.0f, (float)SCREENHEIGHT);
-			glVertex2f( (float)SCREENWIDTH, 0.0f);
-			glVertex2f( (float)SCREENWIDTH, (float)SCREENHEIGHT);
-			glEnd();
+
+			extra_red = blendv.r / 255.0f;
+			extra_green = blendv.g / 255.0f;
+			extra_blue = blendv.b / 255.0f;
+
+			// If this is a multiplicative blend do it separately and add the additive ones on top of it.
+			blendv = 0;
+
+			// black multiplicative blends are ignored
+			if (extra_red || extra_green || extra_blue)
+			{
+				gl_RenderState.BlendFunc(GL_DST_COLOR, GL_ZERO);
+				gl_RenderState.SetColor(extra_red, extra_green, extra_blue, 1.0f);
+				gl_FillScreen();
+			}
 		}
-	}
-	else if (blendv.a)
-	{
-		V_AddBlend (blendv.r / 255.f, blendv.g / 255.f, blendv.b / 255.f, blendv.a/255.0f,blend);
+		else if (blendv.a)
+		{
+			V_AddBlend(blendv.r / 255.f, blendv.g / 255.f, blendv.b / 255.f, blendv.a / 255.0f, blend);
+		}
 	}
 
 	// This mostly duplicates the code in shared_sbar.cpp
@@ -743,16 +660,8 @@ void FGLRenderer::DrawBlend(sector_t * viewsector)
 	if (blend[3]>0.0f)
 	{
 		gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		gl_RenderState.EnableAlphaTest(false);
-		gl_RenderState.EnableTexture(false);
-		glColor4fv(blend);
-		gl_RenderState.Apply(true);
-		glBegin(GL_TRIANGLE_STRIP);
-		glVertex2f( 0.0f, 0.0f);
-		glVertex2f( 0.0f, (float)SCREENHEIGHT);
-		glVertex2f( (float)SCREENWIDTH, 0.0f);
-		glVertex2f( (float)SCREENWIDTH, (float)SCREENHEIGHT);
-		glEnd();
+		gl_RenderState.SetColor(blend[0], blend[1], blend[2], blend[3]);
+		gl_FillScreen();
 	}
 }
 
@@ -780,7 +689,6 @@ void FGLRenderer::EndDrawScene(sector_t * viewsector)
 	}
 
 	glDisable(GL_STENCIL_TEST);
-	glDisable(GL_POLYGON_SMOOTH);
 
 	framebuffer->Begin2D(false);
 
@@ -790,14 +698,22 @@ void FGLRenderer::EndDrawScene(sector_t * viewsector)
 	{
 		DrawPlayerSprites (viewsector, false);
 	}
+	int cm = gl_RenderState.GetFixedColormap();
+	gl_RenderState.SetFixedColormap(CM_DEFAULT);
+	gl_RenderState.SetSoftLightLevel(-1);
 	DrawTargeterSprites();
 	DrawBlend(viewsector);
+	if (gl.glslversion == 0.0)
+	{
+		gl_RenderState.SetFixedColormap(cm);
+		gl_RenderState.DrawColormapOverlay();
+		gl_RenderState.SetFixedColormap(CM_DEFAULT);
+	}
 
 	// Restore standard rendering state
 	gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor3f(1.0f,1.0f,1.0f);
+	gl_RenderState.ResetColor();
 	gl_RenderState.EnableTexture(true);
-	gl_RenderState.EnableAlphaTest(true);
 	glDisable(GL_SCISSOR_TEST);
 }
 
@@ -863,6 +779,7 @@ void FGLRenderer::SetFixedColormap (player_t *player)
 			}
 		}
 	}
+	gl_RenderState.SetFixedColormap(gl_fixedcolormap);
 }
 
 //-----------------------------------------------------------------------------
@@ -878,13 +795,13 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 	SetViewArea();
 
 	// We have to scale the pitch to account for the pixel stretching, because the playsim doesn't know about this and treats it as 1:1.
-	double radPitch = clamp(ViewPitch.Normalized180().Radians(), -PI / 2, PI / 2);
+	double radPitch = ViewPitch.Normalized180().Radians();
 	double angx = cos(radPitch);
 	double angy = sin(radPitch) * glset.pixelstretch;
 	double alen = sqrt(angx*angx + angy*angy);
 
 	mAngles.Pitch = (float)RAD2DEG(asin(angy / alen));
-	mAngles.Roll.Degrees = camera->Angles.Roll.Degrees;
+	mAngles.Roll.Degrees = ViewRoll.Degrees;
 
 	// Scroll the sky
 	mSky1Pos = (float)fmod(gl_frameMS * level.skyspeed1, 1024.f) * 90.f/256.f;
@@ -906,7 +823,6 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 	retval = viewsector;
 
 	// Render (potentially) multiple views for stereo 3d
-	float projectionMatrix[4][4];
 	float viewShift[3];
 	const s3d::Stereo3DMode& stereo3dMode = s3d::Stereo3DMode::getCurrentMode();
 	stereo3dMode.SetUp();
@@ -918,14 +834,14 @@ sector_t * FGLRenderer::RenderViewpoint (AActor * camera, GL_IRECT * bounds, flo
 		SetViewport(bounds);
 		mCurrentFoV = fov;
 		// Stereo mode specific perspective projection
-		eye->GetProjection(fov, ratio, fovratio, projectionMatrix);
-		SetProjection(projectionMatrix);
+		SetProjection( eye->GetProjection(fov, ratio, fovratio) );
 		// SetProjection(fov, ratio, fovratio);	// switch to perspective mode and set up clipper
 		SetViewAngle(ViewAngle);
-		// Stereo mode specific viewpoint adjustment - temporarily shifts global viewx, viewy, viewz
+		// Stereo mode specific viewpoint adjustment - temporarily shifts global ViewPos
 		eye->GetViewShift(GLRenderer->mAngles.Yaw.Degrees, viewShift);
 		s3d::ScopedViewShifter viewShifter(viewShift);
 		SetViewMatrix(ViewPos.X, ViewPos.Y, ViewPos.Z, false, false);
+		gl_RenderState.ApplyMatrices();
 
 		clipper.Clear();
 		angle_t a1 = FrustumAngle();
@@ -968,7 +884,8 @@ void FGLRenderer::RenderView (player_t* player)
 		LastCamera=player->camera;
 	}
 
-	mVBO->BindVBO();
+	gl_RenderState.SetVertexBuffer(mVBO);
+	GLRenderer->mVBO->Reset();
 
 	// reset statistics counters
 	ResetProfilingData();
@@ -979,6 +896,8 @@ void FGLRenderer::RenderView (player_t* player)
 	gl_frameMS = I_MSTime();
 
 	P_FindParticleSubsectors ();
+
+	if (gl.lightmethod != LM_SOFTWARE) GLRenderer->mLights->Clear();
 
 	// NoInterpolateView should have no bearing on camera textures, but needs to be preserved for the main view below.
 	bool saved_niv = NoInterpolateView;
@@ -1010,8 +929,7 @@ void FGLRenderer::RenderView (player_t* player)
 	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
 	GLRenderer->mLightCount = ((it.Next()) != NULL);
 
-	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true, true);
-	EndDrawScene(viewsector);
+	sector_t * viewsector = RenderViewpoint(player->camera, NULL, FieldOfView.Degrees, ratio, fovratio, true, true);
 
 	if (NULL != afterRenderView)
 	{
@@ -1037,14 +955,19 @@ void FGLRenderer::WriteSavePic (player_t *player, FILE *file, int width, int hei
 	bounds.height=height;
 	glFlush();
 	SetFixedColormap(player);
+	gl_RenderState.SetVertexBuffer(mVBO);
+	GLRenderer->mVBO->Reset();
+	if (gl.lightmethod != LM_SOFTWARE) GLRenderer->mLights->Clear();
 
 	// Check if there's some lights. If not some code can be skipped.
 	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
 	GLRenderer->mLightCount = ((it.Next()) != NULL);
 
 	sector_t *viewsector = RenderViewpoint(players[consoleplayer].camera, &bounds, 
-								FieldOfView * 360.0f / FINEANGLES, 1.6f, 1.6f, true, false);
+								FieldOfView.Degrees, 1.6f, 1.6f, true, false);
 	glDisable(GL_STENCIL_TEST);
+	gl_RenderState.SetFixedColormap(CM_DEFAULT);
+	gl_RenderState.SetSoftLightLevel(-1);
 	screen->Begin2D(false);
 	DrawBlend(viewsector);
 	glFlush();
@@ -1066,6 +989,7 @@ struct FGLInterface : public FRenderer
 {
 	bool UsesColormap() const;
 	void PrecacheTexture(FTexture *tex, int cache);
+	void Precache(BYTE *texhitlist, TMap<PClassActor*, bool> &actorhitlist);
 	void RenderView(player_t *player);
 	void WriteSavePic (player_t *player, FILE *file, int width, int height);
 	void StateChanged(AActor *actor);
@@ -1107,7 +1031,7 @@ void FGLInterface::PrecacheTexture(FTexture *tex, int cache)
 	{
 		if (cache)
 		{
-			tex->PrecacheGL();
+			tex->PrecacheGL(cache);
 		}
 		else
 		{
@@ -1115,6 +1039,85 @@ void FGLInterface::PrecacheTexture(FTexture *tex, int cache)
 		}
 	}
 }
+
+void FGLInterface::Precache(BYTE *texhitlist, TMap<PClassActor*, bool> &actorhitlist)
+{
+	BYTE *spritelist = new BYTE[sprites.Size()];
+	TMap<PClassActor*, bool>::Iterator it(actorhitlist);
+	TMap<PClassActor*, bool>::Pair *pair;
+
+	// this isn't done by the main code so it needs to be done here first:
+	// check skybox textures and mark the separate faces as used
+	for (int i = 0; i<TexMan.NumTextures(); i++)
+	{
+		// HIT_Wall must be checked for MBF-style sky transfers. 
+		if (texhitlist[i] & (FTextureManager::HIT_Sky | FTextureManager::HIT_Wall))
+		{
+			FTexture *tex = TexMan.ByIndex(i);
+			if (tex->gl_info.bSkybox)
+			{
+				FSkyBox *sb = static_cast<FSkyBox*>(tex);
+				for (int i = 0; i<6; i++)
+				{
+					if (sb->faces[i])
+					{
+						int index = sb->faces[i]->id.GetIndex();
+						texhitlist[index] |= FTextureManager::HIT_Flat;
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+
+	memset(spritelist, 0, sprites.Size());
+
+	while (it.NextPair(pair))
+	{
+		PClassActor *cls = pair->Key;
+
+		for (int i = 0; i < cls->NumOwnedStates; i++)
+		{
+			spritelist[cls->OwnedStates[i].sprite] = true;
+		}
+	}
+
+	// Precache textures (and sprites).
+
+	for (int i = (int)(sprites.Size() - 1); i >= 0; i--)
+	{
+		if (spritelist[i])
+		{
+			int j, k;
+			for (j = 0; j < sprites[i].numframes; j++)
+			{
+				const spriteframe_t *frame = &SpriteFrames[sprites[i].spriteframes + j];
+
+				for (k = 0; k < 16; k++)
+				{
+					FTextureID pic = frame->Texture[k];
+					if (pic.isValid())
+					{
+						texhitlist[pic.GetIndex()] = FTextureManager::HIT_Sprite;
+					}
+				}
+			}
+		}
+	}
+	delete[] spritelist;
+
+	TexMan.precacheTime = I_FPSTime();
+
+	int cnt = TexMan.NumTextures();
+	for (int i = cnt - 1; i >= 0; i--)
+	{
+		PrecacheTexture(TexMan.ByIndex(i), texhitlist[i]);
+	}
+}
+
 
 //==========================================================================
 //
@@ -1219,22 +1222,15 @@ extern TexFilter_s TexFilter[];
 
 void FGLInterface::RenderTextureView (FCanvasTexture *tex, AActor *Viewpoint, int FOV)
 {
-	FMaterial * gltex = FMaterial::ValidateTexture(tex);
+	FMaterial * gltex = FMaterial::ValidateTexture(tex, false);
 
-	int width = gltex->TextureWidth(GLUSE_TEXTURE);
-	int height = gltex->TextureHeight(GLUSE_TEXTURE);
+	int width = gltex->TextureWidth();
+	int height = gltex->TextureHeight();
 
 	gl_fixedcolormap=CM_DEFAULT;
+	gl_RenderState.SetFixedColormap(CM_DEFAULT);
 
-	bool usefb;
-
-	if (gl.flags & RFL_FRAMEBUFFER)
-	{
-		usefb = gl_usefb || width > screen->GetWidth() || height > screen->GetHeight();
-	}
-	else usefb = false;
-
-
+	bool usefb = gl_usefb || gltex->GetWidth() > screen->GetWidth() || gltex->GetHeight() > screen->GetHeight();
 	if (!usefb)
 	{
 		glFlush();
@@ -1261,15 +1257,15 @@ void FGLInterface::RenderTextureView (FCanvasTexture *tex, AActor *Viewpoint, in
 
 	GL_IRECT bounds;
 	bounds.left=bounds.top=0;
-	bounds.width=FHardwareTexture::GetTexDimension(gltex->GetWidth(GLUSE_TEXTURE));
-	bounds.height=FHardwareTexture::GetTexDimension(gltex->GetHeight(GLUSE_TEXTURE));
+	bounds.width=FHardwareTexture::GetTexDimension(gltex->GetWidth());
+	bounds.height=FHardwareTexture::GetTexDimension(gltex->GetHeight());
 
 	GLRenderer->RenderViewpoint(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false, false);
 
 	if (!usefb)
 	{
 		glFlush();
-		gltex->Bind(CM_DEFAULT, 0, 0);
+		gl_RenderState.SetMaterial(gltex, 0, 0, -1, false);
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
 	}
 	else
@@ -1277,8 +1273,6 @@ void FGLInterface::RenderTextureView (FCanvasTexture *tex, AActor *Viewpoint, in
 		GLRenderer->EndOffscreen();
 	}
 
-	gltex->Bind(CM_DEFAULT, 0, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
 	tex->SetUpdated();
 }
 

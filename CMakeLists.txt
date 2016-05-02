@@ -44,11 +44,11 @@ function( add_pk3 PK3_NAME PK3_DIR )
 			DEPENDS zipdir )
 	endif()
 
-	# Touch the zipdir executable here so that the pk3s are forced to
-	# rebuild each time since their dependecy has "changed."
-	add_custom_target( ${PK3_TARGET} ALL
-		COMMAND ${CMAKE_COMMAND} -E touch $<TARGET_FILE:zipdir>
-		DEPENDS ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} )
+		# Touch the zipdir executable here so that the pk3s are forced to
+		# rebuild each time since their dependecy has "changed."
+		add_custom_target( ${PK3_TARGET} ALL
+			COMMAND ${CMAKE_COMMAND} -E touch $<TARGET_FILE:zipdir>
+			DEPENDS ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} )
 endfunction()
 
 # Macro for building libraries without debugging information
@@ -95,10 +95,6 @@ if( ZD_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
-
-if( APPLE )
-	SET( CMAKE_OSX_ARCHITECTURES "i386" CACHE STRING "OX Architectures" FORCE)
-endif( APPLE )
 
 option( NO_FMOD "Disable FMODEx sound support" OFF )
 option( NO_OPENAL "Disable OpenAL sound support" OFF )

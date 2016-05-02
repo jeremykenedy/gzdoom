@@ -42,7 +42,6 @@
  * FIXME: these comments are somewhat out of date now.
  */
 
-#include <limits.h>
 #include <math.h>
 #include "dumb.h"
 

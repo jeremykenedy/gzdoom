@@ -2,8 +2,10 @@
 #define __GL_MODELS_H_
 
 #include "gl/utility/gl_geometric.h"
+#include "gl/data/gl_vertexbuffer.h"
 #include "p_pspr.h"
 #include "r_data/voxels.h"
+
 
 #define MAX_LODS			4
 
@@ -20,18 +22,25 @@ FTexture * LoadSkin(const char * path, const char * fn);
 class FModel
 {
 public:
-	FModel() { }
-	virtual ~FModel() { }
+
+	FModel() 
+	{ 
+		mVBuf = NULL;
+	}
+	virtual ~FModel();
 
 	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length) = 0;
 	virtual int FindFrame(const char * name) = 0;
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0) = 0;
-	// [BB] Added RenderFrameInterpolated
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0) = 0;
-	virtual void MakeGLData() {}
-	virtual void CleanGLData() {}
+	virtual void RenderFrame(FTexture * skin, int frame, int frame2, double inter, int translation=0) = 0;
+	virtual void BuildVertexBuffer() = 0;
+	void DestroyVertexBuffer()
+	{
+		delete mVBuf;
+		mVBuf = NULL;
+	}
 	virtual float getAspectFactor() { return 1.f; }
 
+	FModelVertexBuffer *mVBuf;
 	FString mFileName;
 };
 
@@ -53,7 +62,7 @@ protected:
 		int             flags;
 	};
 
-	struct FModelVertex
+	struct DMDModelVertex
 	{
 		float           xyz[3];
 	};
@@ -89,8 +98,13 @@ protected:
 	struct ModelFrame
 	{
 		char            name[16];
-		FModelVertex *vertices;
-		FModelVertex *normals;
+		unsigned int vindex;
+	};
+
+	struct ModelFrameVertexData
+	{
+		DMDModelVertex *vertices;
+		DMDModelVertex *normals;
 	};
 
 	struct DMDLoDInfo
@@ -104,39 +118,44 @@ protected:
 	struct DMDLoD
 	{
 		FTriangle		* triangles;
-		int				* glCommands;
 	};
 
 
-	bool			loaded;
+	int				mLumpNum;
 	DMDHeader	    header;
 	DMDInfo			info;
 	FTexture **		skins;
-	FTexCoord *		texCoords;
-	
 	ModelFrame  *	frames;
-	DMDLoDInfo		lodInfo[MAX_LODS];
-	DMDLoD			lods[MAX_LODS];
-	char           *vertexUsage;   // Bitfield for each vertex.
 	bool			allowTexComp;  // Allow texture compression with this.
 
-	static void RenderGLCommands(void *glCommands, unsigned int numVertices,FModelVertex * vertices);
+	// Temp data only needed for buffer construction
+	FTexCoord *		texCoords;
+	ModelFrameVertexData *framevtx;
+	DMDLoDInfo		lodInfo[MAX_LODS];
+	DMDLoD			lods[MAX_LODS];
 
 public:
 	FDMDModel() 
 	{ 
-		loaded = false; 
+		mLumpNum = -1;
 		frames = NULL;
 		skins = NULL;
-		lods[0].glCommands = NULL;
+		for (int i = 0; i < MAX_LODS; i++)
+		{
+			lods[i].triangles = NULL;
+		}
 		info.numLODs = 0;
+		texCoords = NULL;
+		framevtx = NULL;
 	}
 	virtual ~FDMDModel();
 
 	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0);
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0);
+	virtual void RenderFrame(FTexture * skin, int frame, int frame2, double inter, int translation=0);
+	virtual void LoadGeometry();
+	void UnloadGeometry();
+	void BuildVertexBuffer();
 
 };
 
@@ -148,6 +167,7 @@ public:
 	virtual ~FMD2Model();
 
 	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
+	virtual void LoadGeometry();
 
 };
 
@@ -186,19 +206,31 @@ class FMD3Model : public FModel
 		MD3TexCoord * texcoords;
 		MD3Vertex * vertices;
 
+		unsigned int vindex;	// contains numframes arrays of vertices
+		unsigned int iindex;
+
 		MD3Surface()
 		{
 			tris=NULL;
 			vertices=NULL;
 			texcoords=NULL;
+			vindex = iindex = UINT_MAX;
 		}
 
 		~MD3Surface()
 		{
+			if (skins) delete [] skins;
+			UnloadGeometry();
+		}
+
+		void UnloadGeometry()
+		{
 			if (tris) delete [] tris;
 			if (vertices) delete [] vertices;
 			if (texcoords) delete [] texcoords;
-			if (skins) delete [] skins;
+			tris = NULL;
+			vertices = NULL;
+			texcoords = NULL;
 		}
 	};
 
@@ -213,11 +245,10 @@ class FMD3Model : public FModel
 	int numFrames;
 	int numTags;
 	int numSurfaces;
+	int mLumpNum;
 
 	MD3Frame * frames;
 	MD3Surface * surfaces;
-
-	void RenderTriangles(MD3Surface * surf, MD3Vertex * vert);
 
 public:
 	FMD3Model() { }
@@ -225,22 +256,15 @@ public:
 
 	virtual bool Load(const char * fn, int lumpnum, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0);
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0);
-};
-
-class FVoxelVertexBuffer;
-
-struct FVoxelVertex
-{
-	float x,y,z;
-	float u,v;
+	virtual void RenderFrame(FTexture * skin, int frame, int frame2, double inter, int translation=0);
+	void LoadGeometry();
+	void BuildVertexBuffer();
 };
 
 struct FVoxelVertexHash
 {
 	// Returns the hash value for a key.
-	hash_t Hash(const FVoxelVertex &key) 
+	hash_t Hash(const FModelVertex &key) 
 	{ 
 		int ix = xs_RoundToInt(key.x);		
 		int iy = xs_RoundToInt(key.y);		
@@ -249,7 +273,7 @@ struct FVoxelVertexHash
 	}
 
 	// Compares two keys, returning zero if they are the same.
-	int Compare(const FVoxelVertex &left, const FVoxelVertex &right) 
+	int Compare(const FModelVertex &left, const FModelVertex &right) 
 	{ 
 		return left.x != right.x || left.y != right.y || left.z != right.z || left.u != right.u || left.v != right.v;
 	}
@@ -263,7 +287,7 @@ struct FIndexInit
 	}
 };
 
-typedef TMap<FVoxelVertex, unsigned int, FVoxelVertexHash, FIndexInit> FVoxelMap;
+typedef TMap<FModelVertex, unsigned int, FVoxelVertexHash, FIndexInit> FVoxelMap;
 
 
 class FVoxelModel : public FModel
@@ -271,26 +295,24 @@ class FVoxelModel : public FModel
 protected:
 	FVoxel *mVoxel;
 	bool mOwningVoxel;	// if created through MODELDEF deleting this object must also delete the voxel object
-	TArray<FVoxelVertex> mVertices;
-	TArray<unsigned int> mIndices;
-	FVoxelVertexBuffer *mVBO;
 	FTexture *mPalette;
+	unsigned int mNumIndices;
+	TArray<FModelVertex> mVertices;
+	TArray<unsigned int> mIndices;
 	
 	void MakeSlabPolys(int x, int y, kvxslab_t *voxptr, FVoxelMap &check);
 	void AddFace(int x1, int y1, int z1, int x2, int y2, int z2, int x3, int y3, int z3, int x4, int y4, int z4, BYTE color, FVoxelMap &check);
-	void AddVertex(FVoxelVertex &vert, FVoxelMap &check);
+	unsigned int AddVertex(FModelVertex &vert, FVoxelMap &check);
 
 public:
 	FVoxelModel(FVoxel *voxel, bool owned);
 	~FVoxelModel();
 	bool Load(const char * fn, int lumpnum, const char * buffer, int length);
 	void Initialize();
-	void MakeGLData();
-	void CleanGLData();
 	virtual int FindFrame(const char * name);
-	virtual void RenderFrame(FTexture * skin, int frame, int cm, int translation=0);
-	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm, int translation=0);
+	virtual void RenderFrame(FTexture * skin, int frame, int frame2, double inter, int translation=0);
 	FTexture *GetPaletteTexture() const { return mPalette; }
+	void BuildVertexBuffer();
 	float getAspectFactor();
 };
 
@@ -341,10 +363,9 @@ class GLSprite;
 
 FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame, bool dropped);
 
-void gl_RenderModel(GLSprite * spr, int cm);
+void gl_RenderModel(GLSprite * spr);
 // [BB] HUD weapon model rendering functions.
-void gl_RenderHUDModel(pspdef_t *psp, float ofsx, float ofsy, int cm);
+void gl_RenderHUDModel(pspdef_t *psp, float ofsx, float ofsy);
 bool gl_IsHUDModelForPlayerAvailable (player_t * player);
-void gl_CleanModelData();
 
 #endif

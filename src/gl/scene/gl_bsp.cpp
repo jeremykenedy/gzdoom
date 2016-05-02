@@ -111,7 +111,7 @@ static void AddLine (seg_t *seg, bool portalclip)
 
 	if (portalclip)
 	{
-		int clipres = GLRenderer->mCurrentPortal->ClipSeg(seg);
+		int clipres = GLRenderer->mClipPortal->ClipSeg(seg);
 		if (clipres == GLPortal::PClip_InFront) return;
 	}
 
@@ -218,7 +218,7 @@ static void PolySubsector(subsector_t * sub)
 	{
 		if (line->linedef)
 		{
-			AddLine (line, GLRenderer->mCurrentPortal != NULL);
+			AddLine (line, GLRenderer->mClipPortal != NULL);
 		}
 		line++;
 	}
@@ -313,11 +313,11 @@ static inline void AddLines(subsector_t * sub, sector_t * sector)
 		{
 			if (seg->linedef == NULL)
 			{
-				if (!(sub->flags & SSECF_DRAWN)) AddLine (seg, GLRenderer->mCurrentPortal != NULL);
+				if (!(sub->flags & SSECF_DRAWN)) AddLine (seg, GLRenderer->mClipPortal != NULL);
 			}
 			else if (!(seg->sidedef->Flags & WALLF_POLYOBJ)) 
 			{
-				AddLine (seg, GLRenderer->mCurrentPortal != NULL);
+				AddLine (seg, GLRenderer->mClipPortal != NULL);
 			}
 			seg++;
 		}
@@ -435,6 +435,7 @@ static void DoSubsector(subsector_t * sub)
 
 	// If the mapsections differ this subsector can't possibly be visible from the current view point
 	if (!(currentmapsection[sub->mapsection>>3] & (1 << (sub->mapsection & 7)))) return;
+	if (sub->flags & SSECF_POLYORG) return;	// never render polyobject origin subsectors because their vertices no longer are where one may expect.
 
 	if (gl_drawinfo->ss_renderflags[sub-subsectors] & SSRF_SEEN)
 	{
@@ -446,12 +447,12 @@ static void DoSubsector(subsector_t * sub)
 
 	fakesector=gl_FakeFlat(sector, &fake, false);
 
-	if (GLRenderer->mCurrentPortal)
+	if (GLRenderer->mClipPortal)
 	{
-		int clipres = GLRenderer->mCurrentPortal->ClipSubsector(sub);
+		int clipres = GLRenderer->mClipPortal->ClipSubsector(sub);
 		if (clipres == GLPortal::PClip_InFront)
 		{
-			line_t *line = GLRenderer->mCurrentPortal->ClipLine();
+			line_t *line = GLRenderer->mClipPortal->ClipLine();
 			// The subsector is out of range, but we still have to check lines that lie directly on the boundary and may expose their upper or lower parts.
 			if (line) AddSpecialPortalLines(sub, fakesector, line);
 			return;

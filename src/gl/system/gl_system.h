@@ -18,14 +18,7 @@
 #pragma warning(disable : 4995)     // MIPS
 #endif
 
-#ifdef NOMINMAX
 #include <windows.h>
-#else
-#define NOMINMAX
-#include <windows.h>
-#undef NOMINMAX
-#endif
-
 #include <mmsystem.h>
 #include <winsock.h>
 #ifndef __WINE__
@@ -56,7 +49,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <signal.h>
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
 #include <time.h>
@@ -91,7 +84,6 @@ typedef unsigned char 	byte;
 typedef float		FLOAT;
 template <typename T>
 inline T max( T a, T b) { return (((a)>(b)) ? (a) : (b)); }
-#define __cdecl
 #define _access(a,b)	access(a,b)
 #endif
 

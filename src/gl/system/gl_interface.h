@@ -3,43 +3,53 @@
 
 #include "basictypes.h"
 
+enum GLCompat
+{
+	CMPT_GL2,
+	CMPT_GL2_SHADER,
+	CMPT_GL3,
+	CMPT_GL4
+};
+
 enum RenderFlags
 {
 	// [BB] Added texture compression flags.
-	RFL_TEXTURE_COMPRESSION=8,
-	RFL_TEXTURE_COMPRESSION_S3TC=16,
+	RFL_TEXTURE_COMPRESSION=1,
+	RFL_TEXTURE_COMPRESSION_S3TC=2,
 
-	RFL_MAP_BUFFER_RANGE = 64,
-	RFL_FRAMEBUFFER = 128,
-	RFL_TEXTUREBUFFER = 256,
-	RFL_NVIDIA = 512,
-	RFL_ATI = 1024,
-
-
-	RFL_GL_20 = 0x10000000,
-	RFL_GL_21 = 0x20000000,
-	RFL_GL_30 = 0x40000000,
+	RFL_SHADER_STORAGE_BUFFER = 4,
+	RFL_BUFFER_STORAGE = 8,
+	RFL_SAMPLER_OBJECTS = 16,
 };
 
 enum TexMode
 {
-	TMF_MASKBIT = 1,
-	TMF_OPAQUEBIT = 2,
-	TMF_INVERTBIT = 4,
+	TM_MODULATE = 0,	// (r, g, b, a)
+	TM_MASK,			// (1, 1, 1, a)
+	TM_OPAQUE,			// (r, g, b, 1)
+	TM_INVERSE,			// (1-r, 1-g, 1-b, a)
+	TM_REDTOALPHA,		// (1, 1, 1, r)
+	TM_CLAMPY,			// (r, g, b, (t >= 0.0 && t <= 1.0)? a:0)
 
-	TM_MODULATE = 0,
-	TM_MASK = TMF_MASKBIT,
-	TM_OPAQUE = TMF_OPAQUEBIT,
-	TM_INVERT = TMF_INVERTBIT,
-	//TM_INVERTMASK = TMF_MASKBIT | TMF_INVERTBIT
-	TM_INVERTOPAQUE = TMF_INVERTBIT | TMF_OPAQUEBIT,
+	TM_INVERTOPAQUE,	// used by GL 2.x fallback code.
+};
+
+enum ELightMethod
+{
+	LM_SOFTWARE = 0,	// multi-pass texturing
+	LM_DEFERRED = 1,	// calculate lights up front in a separate pass
+	LM_DIRECT = 2,		// calculate lights on the fly along with the render data
 };
 
 struct RenderContext
 {
 	unsigned int flags;
-	unsigned int shadermodel;
 	unsigned int maxuniforms;
+	unsigned int maxuniformblock;
+	unsigned int uniformblockalignment;
+	int lightmethod;
+	float version;
+	float glslversion;
 	int max_texturesize;
 	char * vendorstring;
 

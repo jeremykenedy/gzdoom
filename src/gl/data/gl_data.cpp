@@ -372,7 +372,6 @@ void InitGLRMapinfoData()
 		glset.skyrotatevector = opt->skyrotatevector;
 		glset.skyrotatevector2 = opt->skyrotatevector2;
 		glset.pixelstretch = opt->pixelstretch;
-		if (gl.shadermodel == 2 && glset.map_lightmode ==2) glset.map_lightmode = 3;
 	}
 	else
 	{
@@ -432,11 +431,11 @@ FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang, b
 		{
 			if (sprframe->Texture[0] == sprframe->Texture[1])
 			{
-				rot = (ang + (angle_t)(ANGLE_45/2)*9) >> 28;
+				rot = (ang + (angle_t)(ANGLE_90/4)*9) >> 28;
 			}
 			else
 			{
-				rot = (ang + (angle_t)(ANGLE_45/2)*9-(angle_t)(ANGLE_180/16)) >> 28;
+				rot = (ang + (angle_t)(ANGLE_90/4)*9-(angle_t)(ANGLE_180/16)) >> 28;
 			}
 		}
 		if (mirror) *mirror = !!(sprframe->Flip&(1<<rot));

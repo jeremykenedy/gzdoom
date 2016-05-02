@@ -47,7 +47,7 @@ public:
 	ShiftedEyePose(float shift) : shift(shift) {};
 	float getShift() const { return shift; }
 	void setShift(float shift) { this->shift = shift; }
-	virtual void GetProjection(float fov, float aspectRatio, float fovRatio, float outMatrix[4][4]) const;
+	virtual VSMatrix GetProjection(float fov, float aspectRatio, float fovRatio) const;
 	virtual void GetViewShift(float yaw, float outViewShift[3]) const;
 protected:
 	float shift;

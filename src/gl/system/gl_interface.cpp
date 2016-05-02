@@ -43,15 +43,13 @@
 #include "version.h"
 #include "i_system.h"
 #include "v_text.h"
+#include "r_data/r_translate.h"
 #include "gl/system/gl_interface.h"
 #include "gl/system/gl_cvars.h"
 
+void gl_PatchMenu();
 static TArray<FString>  m_Extensions;
-
 RenderContext gl;
-
-int occlusion_type=0;
-
 
 //==========================================================================
 //
@@ -61,24 +59,40 @@ int occlusion_type=0;
 
 static void CollectExtensions()
 {
-	const char *supported = NULL;
-	char *extensions, *extension;
+	const char *extension;
 
-	supported = (char *)glGetString(GL_EXTENSIONS);
+	int max = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &max);
 
-	if (supported)
+	if (0 == max)
 	{
-		extensions = new char[strlen(supported) + 1];
-		strcpy(extensions, supported);
+		// Try old method to collect extensions
+		const char *supported = (char *)glGetString(GL_EXTENSIONS);
 
-		extension = strtok(extensions, " ");
-		while(extension)
+		if (nullptr != supported)
 		{
-			m_Extensions.Push(FString(extension));
-			extension = strtok(NULL, " ");
-		}
+			char *extensions = new char[strlen(supported) + 1];
+			strcpy(extensions, supported);
 
-		delete [] extensions;
+			char *extension = strtok(extensions, " ");
+
+			while (extension)
+			{
+				m_Extensions.Push(FString(extension));
+				extension = strtok(nullptr, " ");
+			}
+
+			delete [] extensions;
+		}
+	}
+	else
+	{
+		// Use modern method to collect extensions
+		for (int i = 0; i < max; i++)
+		{
+			extension = (const char*)glGetStringi(GL_EXTENSIONS, i);
+			m_Extensions.Push(FString(extension));
+		}
 	}
 }
 
@@ -117,66 +131,147 @@ static void InitContext()
 //
 //==========================================================================
 
+#define FUDGE_FUNC(name, ext) 	if (_ptrc_##name == NULL) _ptrc_##name = _ptrc_##name##ext;
+
+
 void gl_LoadExtensions()
 {
 	InitContext();
 	CollectExtensions();
 
-	const char *version = (const char*)glGetString(GL_VERSION);
+	const char *version = Args->CheckValue("-glversion");
+	const char *glversion = (const char*)glGetString(GL_VERSION);
 
-	// Don't even start if it's lower than 1.3
-	if (strcmp(version, "2.0") < 0) 
+	if (version == NULL)
 	{
-		I_FatalError("Unsupported OpenGL version.\nAt least GL 2.0 is required to run " GAMENAME ".\n");
+		version = glversion;
+	}
+	else
+	{
+		double v1 = strtod(version, NULL);
+		double v2 = strtod(glversion, NULL);
+		if (v2 < v1) version = glversion;
+		else Printf("Emulating OpenGL v %s\n", version);
 	}
 
-	// This loads any function pointers and flags that require a vaild render context to
-	// initialize properly
+	gl.version = strtod(version, NULL) + 0.01f;
 
-	gl.shadermodel = 0;	// assume no shader support
-	gl.vendorstring=(char*)glGetString(GL_VENDOR);
+	// Don't even start if it's lower than 3.0
+	if ((gl.version < 2.0 || !CheckExtension("GL_EXT_framebuffer_object")) && gl.version < 3.0)
+	{
+		I_FatalError("Unsupported OpenGL version.\nAt least OpenGL 2.0 with framebuffer support is required to run " GAMENAME ".\n");
+	}
 
-	if (CheckExtension("GL_ARB_texture_compression")) gl.flags|=RFL_TEXTURE_COMPRESSION;
-	if (CheckExtension("GL_EXT_texture_compression_s3tc")) gl.flags|=RFL_TEXTURE_COMPRESSION_S3TC;
-	if (strstr(gl.vendorstring, "NVIDIA")) gl.flags|=RFL_NVIDIA;
-	else if (strstr(gl.vendorstring, "ATI Technologies")) gl.flags|=RFL_ATI;
+	// add 0.01 to account for roundoff errors making the number a tad smaller than the actual version
+	gl.glslversion = strtod((char*)glGetString(GL_SHADING_LANGUAGE_VERSION), NULL) + 0.01f;
 
-	if (strcmp(version, "2.0") >= 0) gl.flags|=RFL_GL_20;
-	if (strcmp(version, "2.1") >= 0) gl.flags|=RFL_GL_21;
-	if (strcmp(version, "3.0") >= 0) gl.flags|=RFL_GL_30;
+	gl.vendorstring = (char*)glGetString(GL_VENDOR);
+	gl.lightmethod = LM_SOFTWARE;
 
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE,&gl.max_texturesize);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	if (gl.version >= 3.3f || CheckExtension("GL_ARB_sampler_objects"))
+	{
+		gl.flags |= RFL_SAMPLER_OBJECTS;
+	}
 	
-	if (gl.flags & RFL_GL_20)
+	// Buffer lighting is only feasible with GLSL 1.3 and higher, even if 1.2 supports the extension.
+	if (gl.version > 3.0f && (gl.version >= 3.3f || CheckExtension("GL_ARB_uniform_buffer_object")))
 	{
-		// Rules:
-		// SM4 will always use shaders. No option to switch them off is needed here.
-		// SM3 has shaders optional but they are off by default (they will have a performance impact
-		// SM2 only uses shaders for colormaps on camera textures and has no option to use them in general.
-		//     On SM2 cards the shaders will be too slow and show visual bugs (at least on GF 6800.)
-		if (strcmp((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION), "1.3") >= 0) gl.shadermodel = 4;
-		else if (CheckExtension("GL_NV_GPU_shader4")) gl.shadermodel = 4;	// for pre-3.0 drivers that support GF8xxx.
-		else if (CheckExtension("GL_EXT_GPU_shader4")) gl.shadermodel = 4;	// for pre-3.0 drivers that support GF8xxx.
-		else if (CheckExtension("GL_NV_vertex_program3")) gl.shadermodel = 3;
-		else if (!strstr(gl.vendorstring, "NVIDIA")) gl.shadermodel = 3;
-		else gl.shadermodel = 2;	// Only for older NVidia cards which had notoriously bad shader support.
-
-		// Command line overrides for testing and problem cases.
-		if (Args->CheckParm("-sm2") && gl.shadermodel > 2) gl.shadermodel = 2;
-		else if (Args->CheckParm("-sm3") && gl.shadermodel > 3) gl.shadermodel = 3;
+		gl.lightmethod = LM_DEFERRED;
 	}
 
-	if (CheckExtension("GL_ARB_map_buffer_range")) 
+	if (CheckExtension("GL_ARB_texture_compression")) gl.flags |= RFL_TEXTURE_COMPRESSION;
+	if (CheckExtension("GL_EXT_texture_compression_s3tc")) gl.flags |= RFL_TEXTURE_COMPRESSION_S3TC;
+
+	if (Args->CheckParm("-noshader") || gl.glslversion < 1.2f)
 	{
-		gl.flags|=RFL_MAP_BUFFER_RANGE;
+		gl.version = 2.11f;
+		gl.glslversion = 0;
+		gl.lightmethod = LM_SOFTWARE;
+	}
+	else if (gl.version < 3.0f)
+	{
+		if (CheckExtension("GL_NV_GPU_shader4") || CheckExtension("GL_EXT_GPU_shader4")) gl.glslversion = 1.21f;	// for pre-3.0 drivers that support capable hardware. Needed for Apple.
+		else gl.glslversion = 0;
+	}
+	else if (gl.version < 4.f)
+	{
+		if (strstr(gl.vendorstring, "ATI Tech")) 
+		{
+			gl.version = 2.11f;
+			gl.glslversion = 1.21f;
+			gl.lightmethod = LM_SOFTWARE;		// do not use uniform buffers with the fallback shader, it may cause problems.
+		}
+	}
+	else
+	{
+		// don't use GL 4.x features when running in GL 3 emulation mode.
+		if (CheckExtension("GL_ARB_buffer_storage"))
+		{
+			// work around a problem with older AMD drivers: Their implementation of shader storage buffer objects is piss-poor and does not match uniform buffers even closely.
+			// Recent drivers, GL 4.4 don't have this problem, these can easily be recognized by also supporting the GL_ARB_buffer_storage extension.
+			if (CheckExtension("GL_ARB_shader_storage_buffer_object"))
+			{
+				// Shader storage buffer objects are broken on current Intel drivers.
+				if (strstr(gl.vendorstring, "Intel") == NULL)
+				{
+					gl.flags |= RFL_SHADER_STORAGE_BUFFER;
+				}
+			}
+			gl.flags |= RFL_BUFFER_STORAGE;
+			gl.lightmethod = LM_DIRECT;
+		}
+		else
+		{
+			gl.version = 3.3f;
+		}
 	}
 
-	if (gl.flags & RFL_GL_30 || CheckExtension("GL_EXT_framebuffer_object"))
+	const char *lm = Args->CheckValue("-lightmethod");
+	if (lm != NULL)
 	{
-		gl.flags|=RFL_FRAMEBUFFER;
+		if (!stricmp(lm, "deferred") && gl.lightmethod == LM_DIRECT) gl.lightmethod = LM_DEFERRED;	
+		if (!stricmp(lm, "textured")) gl.lightmethod = LM_SOFTWARE;
 	}
 
+	int v;
+	
+	if (gl.lightmethod != LM_SOFTWARE && !(gl.flags & RFL_SHADER_STORAGE_BUFFER))
+	{
+		glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &v);
+		gl.maxuniforms = v;
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &v);
+		gl.maxuniformblock = v;
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &v);
+		gl.uniformblockalignment = v;
+	}
+	else
+	{
+		gl.maxuniforms = 0;
+		gl.maxuniformblock = 0;
+		gl.uniformblockalignment = 0;
+	}
+	
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl.max_texturesize);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	// fudge a bit with the framebuffer stuff to avoid redundancies in the main code. Some of the older cards do not have the ARB stuff but the calls are nearly identical.
+	FUDGE_FUNC(glGenerateMipmap, EXT);
+	FUDGE_FUNC(glGenFramebuffers, EXT);
+	FUDGE_FUNC(glBindFramebuffer, EXT);
+	FUDGE_FUNC(glDeleteFramebuffers, EXT);
+	FUDGE_FUNC(glFramebufferTexture2D, EXT);
+	FUDGE_FUNC(glGenerateMipmap, EXT);
+	FUDGE_FUNC(glGenFramebuffers, EXT);
+	FUDGE_FUNC(glBindFramebuffer, EXT);
+	FUDGE_FUNC(glDeleteFramebuffers, EXT);
+	FUDGE_FUNC(glFramebufferTexture2D, EXT);
+	FUDGE_FUNC(glFramebufferRenderbuffer, EXT);
+	FUDGE_FUNC(glGenRenderbuffers, EXT);
+	FUDGE_FUNC(glDeleteRenderbuffers, EXT);
+	FUDGE_FUNC(glRenderbufferStorage, EXT);
+	FUDGE_FUNC(glBindRenderbuffer, EXT);
+	gl_PatchMenu();
 }
 
 //==========================================================================
@@ -187,101 +282,52 @@ void gl_LoadExtensions()
 
 void gl_PrintStartupLog()
 {
+	int v = 0;
+	if (gl.version >= 3.2) glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &v);
+
 	Printf ("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
 	Printf ("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
-	Printf ("GL_VERSION: %s\n", glGetString(GL_VERSION));
+	Printf ("GL_VERSION: %s (%s profile)\n", glGetString(GL_VERSION), (v & GL_CONTEXT_CORE_PROFILE_BIT)? "Core" : "Compatibility");
 	Printf ("GL_SHADING_LANGUAGE_VERSION: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-	Printf ("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
-	int v = 0;
+	Printf ("GL_EXTENSIONS:");
+	for (unsigned i = 0; i < m_Extensions.Size(); i++)
+	{
+		Printf(" %s", m_Extensions[i].GetChars());
+	}
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &v);
-	Printf("Max. texture size: %d\n", v);
+	Printf("\nMax. texture size: %d\n", v);
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &v);
 	Printf ("Max. texture units: %d\n", v);
-	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &v);
-	Printf ("Max. fragment uniforms: %d\n", v);
-	if (gl.shadermodel == 4) gl.maxuniforms = v;
-	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &v);
-	Printf ("Max. vertex uniforms: %d\n", v);
 	glGetIntegerv(GL_MAX_VARYING_FLOATS, &v);
 	Printf ("Max. varying: %d\n", v);
-#ifndef __APPLE__
-	// GL_ARB_uniform_buffer_object extention is not supported on OS X
-	glGetIntegerv(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, &v);
-	Printf ("Max. combined uniforms: %d\n", v);
-	glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &v);
-	Printf ("Max. combined uniform blocks: %d\n", v);
-#endif // !__APPLE__
+	
+	if (gl.lightmethod != LM_SOFTWARE && !(gl.flags & RFL_SHADER_STORAGE_BUFFER))
+	{
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &v);
+		Printf ("Max. uniform block size: %d\n", v);
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &v);
+		Printf ("Uniform block alignment: %d\n", v);
+	}
+
+	if (gl.flags & RFL_SHADER_STORAGE_BUFFER)
+	{
+		glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &v);
+		Printf("Max. combined shader storage blocks: %d\n", v);
+		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &v);
+		Printf("Max. vertex shader storage blocks: %d\n", v);
+	}
+
+	// For shader-less, the special alphatexture translation must be changed to actually set the alpha, because it won't get translated by a shader.
+	if (gl.glslversion == 0)
+	{
+		FRemapTable *remap = translationtables[TRANSLATION_Standard][8];
+		for (int i = 0; i < 256; i++)
+		{
+			remap->Remap[i] = i;
+			remap->Palette[i] = PalEntry(i, 255, 255, 255);
+		}
+	}
+
 }
 
-//==========================================================================
-//
-// 
-//
-//==========================================================================
-
-void gl_SetTextureMode(int type)
-{
-	static float white[] = {1.f,1.f,1.f,1.f};
-
-	if (type == TM_MASK)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE); 
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-	}
-	else if (type == TM_OPAQUE)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE); 
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	}
-	else if (type == TM_INVERT)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_ONE_MINUS_SRC_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE); 
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-	}
-	else if (type == TM_INVERTOPAQUE)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE0);
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_ONE_MINUS_SRC_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE); 
-		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-	}
-	else // if (type == TM_MODULATE)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	}
-}
-
-//} // extern "C"

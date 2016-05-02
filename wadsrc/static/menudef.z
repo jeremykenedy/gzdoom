@@ -14,13 +14,6 @@ OptionValue "EnhancedStealth"
 	3, "$OPTVAL_ANYFIXEDCOLORMAP"
 }
 
-OptionValue "VBOModes"
-{
-	0, "Off"
-	1, "Static"
-	2, "Dynamic"
-}
-
 OptionValue "PostProcess"
 {
 	0, "Off"
@@ -150,6 +143,17 @@ OptionValue "FuzzStyle"
 	//5, "$OPTVAL_JAGGEDFUZZ" I can't see any difference between this and 4 so it's disabled for now.
 }
 
+OptionValue VRMode
+{
+	0, "$OPTVAL_NORMAL"
+	1, "$OPTVAL_GREENMAGENTA"
+	2, "$OPTVAL_REDCYAN"
+	9, "$OPTVAL_AMBERBLUE"
+	5, "$OPTVAL_LEFTEYE"
+	6, "$OPTVAL_RIGHTEYE"
+	7, "$OPTVAL_QUADBUFFERED"
+}
+
 OptionMenu "GLTextureGLOptions"
 {
 	Title "$GLTEXMNU_TITLE"
@@ -180,7 +184,6 @@ OptionMenu "GLLightOptions"
 	Option "$GLLIGHTMNU_FORCEADDITIVE",		gl_lights_additive,				"YesNo"
 	Slider "$GLLIGHTMNU_LIGHTINTENSITY",	gl_lights_intensity, 			0.0, 1.0, 0.1
 	Slider "$GLLIGHTMNU_LIGHTSIZE",			gl_lights_size,					0.0, 2.0, 0.1
-	Option "Use shaders for lights",		gl_dynlight_shader,				"YesNo"
 }
 
 OptionMenu "GLPrefOptions"
@@ -198,22 +201,12 @@ OptionMenu "GLPrefOptions"
 	Option "$GLPREFMNU_SPRBLEND",				gl_sprite_blend,				"OnOff"
 	Option "$GLPREFMNU_FUZZSTYLE",				gl_fuzztype,					"FuzzStyle"
 	Option "$GLPREFMNU_SPRBILLBOARD",			gl_billboard_mode,				"BillboardModes"
+	Option "$GLPREFMNU_SPRBILLFACECAMERA",		gl_billboard_faces_camera,		"OnOff"
 	Option "$GLPREFMNU_PARTICLESTYLE",			gl_particles_style,				"Particles"
 	Slider "$GLPREFMNU_AMBLIGHT",				gl_light_ambient,				1.0, 255.0, 5.0
 	Option "$GLPREFMNU_RENDERQUALITY",			gl_render_precise,				"Precision"
-	Option "Use vertex buffer",					gl_usevbo,						"VBOModes"
 	Option "$GLPREFMNU_VRMODE",					vr_mode, 						"VRMode"
 	Option "$GLPREFMNU_VRQUADSTEREO",			vr_enable_quadbuffered,			"OnOff"
-}
-
-OptionMenu "GLShaderOptions"
-{
-	Title "SHADER OPTIONS"
-	Option "Enable brightness maps",	gl_brightmap_shader,			"OnOff"
-	Option "Shaders for texture warp",	gl_warp_shader,					"OnOff"
-	Option "Shaders for fog",			gl_fog_shader,					"OnOff"
-	Option "Shaders for colormaps",		gl_colormap_shader,				"OnOff"
-	Option "Shaders for glowing textures",	gl_glow_shader,				"OnOff"
 }
 
 OptionValue "VSyncModes"

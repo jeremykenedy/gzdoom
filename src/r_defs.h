@@ -1085,6 +1085,7 @@ public:
 	double						transdoorheight;	// for transparent door hacks
 	subsector_t **				subsectors;
 	FPortal *					portals[2];			// floor and ceiling portals
+	FLightNode *				lighthead;
 
 	enum
 	{
@@ -1273,7 +1274,7 @@ struct side_t
 	vertex_t *V2() const;
 
 	//For GL
-	FLightNode * lighthead[2];				// all blended lights that may affect this wall
+	FLightNode * lighthead;				// all blended lights that may affect this wall
 
 	seg_t **segs;	// all segs belonging to this sidedef in ascending order. Used for precise rendering
 	int numsegs;
@@ -1453,7 +1454,7 @@ struct subsector_t
 
 	void BuildPolyBSP();
 	// subsector related GL data
-	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
+	FLightNode *	lighthead;	// Light nodes (blended and additive)
 	int				validcount;
 	short			mapsection;
 	char			hacked;			// 1: is part of a render hack
@@ -1474,7 +1475,11 @@ struct node_t
 	fixed_t		y;
 	fixed_t		dx;
 	fixed_t		dy;
-	fixed_t		bbox[2][4];		// Bounding box for each child.
+	union
+	{
+		float	bbox[2][4];		// Bounding box for each child.
+		fixed_t	nb_bbox[2][4];	// Used by nodebuilder.
+	};
 	float		len;
 	union
 	{

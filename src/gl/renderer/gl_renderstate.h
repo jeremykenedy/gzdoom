@@ -2,69 +2,23 @@
 #define __GL_RENDERSTATE_H
 
 #include <string.h>
+#include "gl/system/gl_interface.h"
+#include "gl/data/gl_data.h"
+#include "gl/data/gl_matrix.h"
+#include "gl/textures/gl_material.h"
 #include "c_cvars.h"
 #include "r_defs.h"
+#include "r_data/r_translate.h"
+
+class FVertexBuffer;
+class FShader;
+extern TArray<VSMatrix> gl_MatrixStack;
 
 EXTERN_CVAR(Bool, gl_direct_state_change)
 
-struct FStateAttr
-{
-	static int ChangeCounter;
-	int mLastChange;
-
-	FStateAttr()
-	{
-		mLastChange = -1;
-	}
-
-	bool operator == (const FStateAttr &other)
-	{
-		return mLastChange == other.mLastChange;
-	}
-
-	bool operator != (const FStateAttr &other)
-	{
-		return mLastChange != other.mLastChange;
-	}
-
-};
-
-struct FStateVec3 : public FStateAttr
-{
-	float vec[3];
-
-	bool Update(FStateVec3 *other)
-	{
-		if (mLastChange != other->mLastChange)
-		{
-			*this = *other;
-			return true;
-		}
-		return false;
-	}
-
-	void Set(float x, float y, float z)
-	{
-		vec[0] = x;
-		vec[1] = z;
-		vec[2] = y;
-		mLastChange = ++ChangeCounter;
-	}
-};
-
-struct FStateVec4 : public FStateAttr
+struct FStateVec4
 {
 	float vec[4];
-
-	bool Update(FStateVec4 *other)
-	{
-		if (mLastChange != other->mLastChange)
-		{
-			*this = *other;
-			return true;
-		}
-		return false;
-	}
 
 	void Set(float r, float g, float b, float a)
 	{
@@ -72,16 +26,20 @@ struct FStateVec4 : public FStateAttr
 		vec[1] = g;
 		vec[2] = b;
 		vec[3] = a;
-		mLastChange = ++ChangeCounter;
 	}
 };
 
 
 enum EEffect
 {
-	EFF_NONE,
+	EFF_NONE=-1,
 	EFF_FOGBOUNDARY,
 	EFF_SPHEREMAP,
+	EFF_BURN,
+	EFF_STENCIL,
+	EFF_GAMMACORRECTION,
+
+	MAX_EFFECTS
 };
 
 class FRenderState
@@ -89,49 +47,59 @@ class FRenderState
 	bool mTextureEnabled;
 	bool mFogEnabled;
 	bool mGlowEnabled;
-	bool mLightEnabled;
+	bool mSplitEnabled;
+	bool mClipLineEnabled;
 	bool mBrightmapEnabled;
 	bool mColorMask[4];
 	bool currentColorMask[4];
+	int mLightIndex;
 	int mSpecialEffect;
 	int mTextureMode;
-	float mDynLight[3];
-	float mLightParms[2];
-	int mNumLights[3];
-	float *mLightData;
+	int mDesaturation;
+	int mSoftLight;
+	float mLightParms[4];
 	int mSrcBlend, mDstBlend;
-	int mAlphaFunc;
 	float mAlphaThreshold;
-	bool mAlphaTest;
 	int mBlendEquation;
 	bool m2D;
+	bool mModelMatrixEnabled;
+	bool mTextureMatrixEnabled;
+	float mInterpolationFactor;
+	float mClipHeight, mClipHeightDirection;
+	float mShaderTimer;
+	bool mLastDepthClamp;
 
-	FStateVec3 mCameraPos;
+	FVertexBuffer *mVertexBuffer, *mCurrentVertexBuffer;
+	FStateVec4 mColor;
+	FStateVec4 mCameraPos;
 	FStateVec4 mGlowTop, mGlowBottom;
 	FStateVec4 mGlowTopPlane, mGlowBottomPlane;
+	FStateVec4 mSplitTopPlane, mSplitBottomPlane;
+	FStateVec4 mClipLine;
 	PalEntry mFogColor;
-	float mFogDensity;
+	PalEntry mObjectColor;
+	FStateVec4 mDynColor;
+	float mClipSplit[2];
 
 	int mEffectState;
 	int mColormapState;
-	float mWarpTime;
 
-	int stAlphaFunc;
 	float stAlphaThreshold;
 	int stSrcBlend, stDstBlend;
 	bool stAlphaTest;
 	int stBlendEquation;
 
-	bool ffTextureEnabled;
-	bool ffFogEnabled;
-	int ffTextureMode;
-	int ffSpecialEffect;
-	PalEntry ffFogColor;
-	float ffFogDensity;
+	FShader *activeShader;
 
 	bool ApplyShader();
 
 public:
+
+	VSMatrix mProjectionMatrix;
+	VSMatrix mViewMatrix;
+	VSMatrix mModelMatrix;
+	VSMatrix mTextureMatrix;
+
 	FRenderState()
 	{
 		Reset();
@@ -139,9 +107,82 @@ public:
 
 	void Reset();
 
-	int SetupShader(bool cameratexture, int &shaderindex, int &cm, float warptime);
-	void Apply(bool forcenoshader = false);
+	void SetMaterial(FMaterial *mat, int clampmode, int translation, int overrideshader, bool alphatexture)
+	{
+		// textures without their own palette are a special case for use as an alpha texture:
+		// They use the color index directly as an alpha value instead of using the palette's red.
+		// To handle this case, we need to set a special translation for such textures.
+		// Without shaders this translation must be applied to any texture.
+		if (alphatexture)
+		{
+			if (mat->tex->UseBasePalette() || gl.glslversion == 0) translation = TRANSLATION(TRANSLATION_Standard, 8);
+		}
+		mEffectState = overrideshader >= 0? overrideshader : mat->mShaderIndex;
+		mShaderTimer = mat->tex->gl_info.shaderspeed;
+		mat->Bind(clampmode, translation);
+	}
+
+	void Apply();
 	void ApplyColorMask();
+	void ApplyMatrices();
+	void ApplyLightIndex(int index);
+
+	void SetVertexBuffer(FVertexBuffer *vb)
+	{
+		mVertexBuffer = vb;
+	}
+
+	void ResetVertexBuffer()
+	{
+		// forces rebinding with the next 'apply' call.
+		mCurrentVertexBuffer = NULL;
+	}
+
+	float GetClipHeight()
+	{
+		return mClipHeight;
+	}
+
+	float GetClipHeightDirection()
+	{
+		return mClipHeightDirection;
+	}
+
+	FStateVec4 &GetClipLine()
+	{
+		return mClipLine;
+	}
+
+	bool GetClipLineState()
+	{
+		return mClipLineEnabled;
+	}
+
+	void SetClipHeight(float height, float direction);
+
+	void SetColor(float r, float g, float b, float a = 1.f, int desat = 0)
+	{
+		mColor.Set(r, g, b, a);
+		mDesaturation = desat;
+	}
+
+	void SetColor(PalEntry pe, int desat = 0)
+	{
+		mColor.Set(pe.r/255.f, pe.g/255.f, pe.b/255.f, pe.a/255.f);
+		mDesaturation = desat;
+	}
+
+	void SetColorAlpha(PalEntry pe, float alpha = 1.f, int desat = 0)
+	{
+		mColor.Set(pe.r/255.f, pe.g/255.f, pe.b/255.f, alpha);
+		mDesaturation = desat;
+	}
+
+	void ResetColor()
+	{
+		mColor.Set(1,1,1,1);
+		mDesaturation = 0;
+	}
 
 	void GetColorMask(bool& r, bool &g, bool& b, bool& a) const
 	{
@@ -170,6 +211,11 @@ public:
 		mTextureMode = mode;
 	}
 
+	int GetTextureMode()
+	{
+		return mTextureMode;
+	}
+
 	void EnableTexture(bool on)
 	{
 		mTextureEnabled = on;
@@ -190,9 +236,48 @@ public:
 		mGlowEnabled = on;
 	}
 
-	void EnableLight(bool on)
+	void EnableSplit(bool on)
 	{
-		mLightEnabled = on;
+		if (gl.glslversion >= 1.3f)
+		{
+			mSplitEnabled = on;
+			if (on)
+			{
+				glEnable(GL_CLIP_DISTANCE3);
+				glEnable(GL_CLIP_DISTANCE4);
+			}
+			else
+			{
+				glDisable(GL_CLIP_DISTANCE3);
+				glDisable(GL_CLIP_DISTANCE4);
+			}
+		}
+	}
+
+	void SetClipLine(line_t *line)
+	{
+		mClipLine.Set(line->v1->fX(), line->v1->fY(), line->Delta().X, line->Delta().Y);
+	}
+
+	void EnableClipLine(bool on)
+	{
+		if (gl.glslversion >= 1.3f)
+		{
+			mClipLineEnabled = on;
+			if (on)
+			{
+				glEnable(GL_CLIP_DISTANCE0);
+			}
+			else
+			{
+				glDisable(GL_CLIP_DISTANCE0);
+			}
+		}
+	}
+
+	void SetLightIndex(int n)
+	{
+		mLightIndex = n;
 	}
 
 	void EnableBrightmap(bool on)
@@ -200,15 +285,31 @@ public:
 		mBrightmapEnabled = on;
 	}
 
+	void EnableModelMatrix(bool on)
+	{
+		mModelMatrixEnabled = on;
+	}
+
+	void EnableTextureMatrix(bool on)
+	{
+		mTextureMatrixEnabled = on;
+	}
+
 	void SetCameraPos(float x, float y, float z)
 	{
-		mCameraPos.Set(x,y,z);
+		mCameraPos.Set(x, z, y, 0);
 	}
 
 	void SetGlowParams(float *t, float *b)
 	{
 		mGlowTop.Set(t[0], t[1], t[2], t[3]);
 		mGlowBottom.Set(b[0], b[1], b[2], b[3]);
+	}
+
+	void SetSoftLightLevel(int level)
+	{
+		if (glset.lightmode == 8) mLightParms[3] = level / 255.f;
+		else mLightParms[3] = -1.f;
 	}
 
 	void SetGlowPlanes(const secplane_t &top, const secplane_t &bottom)
@@ -219,31 +320,35 @@ public:
 		mGlowBottomPlane.Set(bn.X, bn.Y, 1. / bn.Z, bottom.fD());
 	}
 
+	void SetSplitPlanes(const secplane_t &top, const secplane_t &bottom)
+	{
+		DVector3 tn = top.Normal();
+		DVector3 bn = bottom.Normal();
+		mSplitTopPlane.Set(tn.X, tn.Y, 1. / tn.Z, top.fD());
+		mSplitBottomPlane.Set(bn.X, bn.Y, 1. / bn.Z, bottom.fD());
+	}
+
 	void SetDynLight(float r, float g, float b)
 	{
-		mDynLight[0] = r;
-		mDynLight[1] = g;
-		mDynLight[2] = b;
+		mDynColor.Set(r, g, b, 0);
+	}
+
+	void SetObjectColor(PalEntry pe)
+	{
+		mObjectColor = pe;
 	}
 
 	void SetFog(PalEntry c, float d)
 	{
+		const float LOG2E = 1.442692f;	// = 1/log(2)
 		mFogColor = c;
-		if (d >= 0.0f) mFogDensity = d;
+		if (d >= 0.0f) mLightParms[2] = d * (-LOG2E / 64000.f);
 	}
 
 	void SetLightParms(float f, float d)
 	{
-		mLightParms[0] = f;
-		mLightParms[1] = d;
-	}
-
-	void SetLights(int *numlights, float *lightdata)
-	{
-		mNumLights[0] = numlights[0];
-		mNumLights[1] = numlights[1];
-		mNumLights[2] = numlights[2];
-		mLightData = lightdata;	// caution: the data must be preserved by the caller until the 'apply' call!
+		mLightParms[1] = f;
+		mLightParms[0] = d;
 	}
 
 	void SetFixedColormap(int cm)
@@ -251,9 +356,36 @@ public:
 		mColormapState = cm;
 	}
 
+	int GetFixedColormap()
+	{
+		return mColormapState;
+	}
+
 	PalEntry GetFogColor() const
 	{
 		return mFogColor;
+	}
+
+	void SetClipSplit(float bottom, float top)
+	{
+		mClipSplit[0] = bottom;
+		mClipSplit[1] = top;
+	}
+
+	void SetClipSplit(float *vals)
+	{
+		memcpy(mClipSplit, vals, 2 * sizeof(float));
+	}
+
+	void GetClipSplit(float *out)
+	{
+		memcpy(out, mClipSplit, 2 * sizeof(float));
+	}
+
+	void ClearClipSplit()
+	{
+		mClipSplit[0] = -1000000.f;
+		mClipSplit[1] = 1000000.f;
 	}
 
 	void BlendFunc(int src, int dst)
@@ -271,28 +403,8 @@ public:
 
 	void AlphaFunc(int func, float thresh)
 	{
-		if (!gl_direct_state_change)
-		{
-			mAlphaFunc = func;
-			mAlphaThreshold = thresh;
-		}
-		else
-		{
-			::glAlphaFunc(func, thresh);
-		}
-	}
-
-	void EnableAlphaTest(bool on)
-	{
-		if (!gl_direct_state_change)
-		{
-			mAlphaTest = on;
-		}
-		else
-		{
-			if (on) glEnable(GL_ALPHA_TEST);
-			else glDisable(GL_ALPHA_TEST);
-		}
+		if (func == GL_GREATER) mAlphaThreshold = thresh;
+		else mAlphaThreshold = thresh - 0.001f;
 	}
 
 	void BlendEquation(int eq)
@@ -307,10 +419,29 @@ public:
 		}
 	}
 
+	// This wraps the depth clamp setting because we frequently need to read it which OpenGL is not particularly performant at...
+	bool SetDepthClamp(bool on)
+	{
+		bool res = mLastDepthClamp;
+		if (!on) glDisable(GL_DEPTH_CLAMP);
+		else glEnable(GL_DEPTH_CLAMP);
+		mLastDepthClamp = on;
+		return res;
+	}
+
 	void Set2DMode(bool on)
 	{
 		m2D = on;
 	}
+
+	void SetInterpolationFactor(float fac)
+	{
+		mInterpolationFactor = fac;
+	}
+
+	// Backwards compatibility crap follows
+	void ApplyFixedFunction();
+	void DrawColormapOverlay();
 };
 
 extern FRenderState gl_RenderState;

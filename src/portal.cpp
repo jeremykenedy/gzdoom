@@ -1003,6 +1003,7 @@ void P_CreateLinkedPortals()
 			orgs.Push(&s);
 		}
 	}
+	id = 1;
 	if (orgs.Size() != 0)
 	{
 		for (int i = 0; i < numsectors; i++)

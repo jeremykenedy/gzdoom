@@ -33,6 +33,7 @@
 **
 */
 
+#include "gl/system/gl_system.h"
 #include "gl/stereo3d/gl_stereo3d.h"
 #include "gl/renderer/gl_renderer.h"
 #include "vectors.h" // RAD2DEG
@@ -42,29 +43,15 @@ namespace s3d {
 
 
 /* virtual */
-void EyePose::GetProjection(float fov, float aspectRatio, float fovRatio, float m[4][4]) const
+VSMatrix EyePose::GetProjection(float fov, float aspectRatio, float fovRatio) const
 {
+	VSMatrix result;
+
 	// Lifted from gl_scene.cpp FGLRenderer::SetProjection()
 	float fovy = (float)(2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovRatio)));
-	const float zNear = 5.0;
-	const float zFar = 65536.0;
+	result.perspective(fovy, aspectRatio, 5.f, 65536.f);
 
-	double radians = fovy / 2 * M_PI / 180;
-
-	float deltaZ = zFar - zNear;
-	double sine = sin(radians);
-	if ((deltaZ == 0) || (sine == 0) || (aspectRatio == 0)) {
-		return;
-	}
-	float cotangent = float(cos(radians) / sine);
-
-	memset(m, 0, 16*sizeof(float));
-	m[0][0] = cotangent / aspectRatio;
-	m[1][1] = cotangent;
-	m[2][2] = -(zFar + zNear) / deltaZ;
-	m[2][3] = -1;
-	m[3][2] = -2 * zNear * zFar / deltaZ;
-	m[3][3] = 0;
+	return result;
 }
 
 /* virtual */

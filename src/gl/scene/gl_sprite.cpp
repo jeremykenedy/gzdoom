@@ -54,6 +54,7 @@
 #include "gl/system/gl_cvars.h"
 #include "gl/renderer/gl_lightdata.h"
 #include "gl/renderer/gl_renderstate.h"
+#include "gl/renderer/gl_renderer.h"
 #include "gl/data/gl_data.h"
 #include "gl/dynlights/gl_glow.h"
 #include "gl/scene/gl_drawinfo.h"
@@ -62,6 +63,7 @@
 #include "gl/shaders/gl_shader.h"
 #include "gl/textures/gl_material.h"
 #include "gl/utility/gl_clock.h"
+#include "gl/data/gl_vertexbuffer.h"
 
 CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_spritebrightfog, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
@@ -71,6 +73,7 @@ CVAR(Float, gl_sclipthreshold, 10.0, CVAR_ARCHIVE)
 CVAR(Float, gl_sclipfactor, 1.8, CVAR_ARCHIVE)
 CVAR(Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
 CVAR(Int, gl_billboard_mode, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_billboard_faces_camera, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_billboard_particles, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, gl_enhanced_nv_stealth, 3, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CUSTOM_CVAR(Int, gl_fuzztype, 0, CVAR_ARCHIVE)
@@ -114,41 +117,36 @@ static const float LARGE_VALUE = 1e19f;
 //==========================================================================
 void GLSprite::Draw(int pass)
 {
-	if (pass!=GLPASS_PLAIN && pass != GLPASS_ALL && pass!=GLPASS_TRANSLUCENT) return;
+	if (pass == GLPASS_DECALS || pass == GLPASS_LIGHTSONLY) return;
 
-	// Hack to enable bright sprites in faded maps
-	uint32 backupfade = Colormap.FadeColor.d;
-	if (gl_spritebrightfog && fullbright)
-		Colormap.FadeColor = 0;
 
 
 	bool additivefog = false;
 	bool foglayer = false;
-	int rel = getExtraLight();
+	int rel = fullbright? 0 : getExtraLight();
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
 		// The translucent pass requires special setup for the various modes.
 
-		// Brightmaps will only be used when doing regular drawing ops and having no fog
-		if (!gl_spritebrightfog && (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE || 
-			RenderStyle.BlendOp != STYLEOP_Add))
+		// for special render styles brightmaps would not look good - especially for subtractive.
+		if (RenderStyle.BlendOp != STYLEOP_Add)
 		{
 			gl_RenderState.EnableBrightmap(false);
 		}
 
 		gl_SetRenderStyle(RenderStyle, false, 
 			// The rest of the needed checks are done inside gl_SetRenderStyle
-			trans > 1.f - FLT_EPSILON && gl_usecolorblending && gl_fixedcolormap < CM_FIRSTSPECIALCOLORMAP && actor && 
+			trans > 1.f - FLT_EPSILON && gl_usecolorblending && gl_fixedcolormap == CM_DEFAULT && actor && 
 			fullbright && gltexture && !gltexture->GetTransparent());
 
 		if (hw_styleflags == STYLEHW_NoAlphaTest)
 		{
-			gl_RenderState.EnableAlphaTest(false);
+			gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
 		}
 		else
 		{
-			gl_RenderState.AlphaFunc(GL_GEQUAL,trans*gl_mask_sprite_threshold);
+			gl_RenderState.AlphaFunc(GL_GEQUAL, gl_mask_sprite_threshold);
 		}
 
 		if (RenderStyle.BlendOp == STYLEOP_Shadow)
@@ -169,8 +167,8 @@ void GLSprite::Draw(int pass)
 				minalpha*=factor;
 			}
 
-			gl_RenderState.AlphaFunc(GL_GEQUAL,minalpha*gl_mask_sprite_threshold);
-			glColor4f(0.2f,0.2f,0.2f,fuzzalpha);
+			gl_RenderState.AlphaFunc(GL_GEQUAL, gl_mask_sprite_threshold);
+			gl_RenderState.SetColor(0.2f,0.2f,0.2f,fuzzalpha, Colormap.desaturation);
 			additivefog = true;
 		}
 		else if (RenderStyle.BlendOp == STYLEOP_Add && RenderStyle.DestAlpha == STYLEALPHA_One)
@@ -180,24 +178,13 @@ void GLSprite::Draw(int pass)
 	}
 	if (RenderStyle.BlendOp!=STYLEOP_Shadow)
 	{
-		if (actor)
+		if (gl_lights && GLRenderer->mLightCount && !gl_fixedcolormap && !fullbright)
 		{
-			lightlevel = gl_SetSpriteLighting(RenderStyle, actor, lightlevel, rel, &Colormap, ThingColor, trans,
-							 fullbright || gl_fixedcolormap >= CM_FIRSTSPECIALCOLORMAP, false);
+			gl_SetDynSpriteLight(gl_light_sprites ? actor : NULL, gl_light_particles ? particle : NULL);
 		}
-		else if (particle)
-		{
-			if (gl_light_particles)
-			{
-				lightlevel = gl_SetSpriteLight(particle, lightlevel, rel, &Colormap, trans, ThingColor);
-			}
-			else 
-			{
-				gl_SetColor(lightlevel, rel, &Colormap, trans, ThingColor);
-			}
-		}
-		else return;
+		gl_SetColor(lightlevel, rel, Colormap, trans);
 	}
+	gl_RenderState.SetObjectColor(ThingColor);
 
 	if (gl_isBlack(Colormap.FadeColor)) foglevel=lightlevel;
 
@@ -207,11 +194,6 @@ void GLSprite::Draw(int pass)
 		additivefog = true;
 	}
 
-	if (RenderStyle.Flags & STYLEF_InvertOverlay) 
-	{
-		Colormap.FadeColor = Colormap.FadeColor.InverseColor();
-		additivefog=false;
-	}
 	if (RenderStyle.BlendOp == STYLEOP_RevSub || RenderStyle.BlendOp == STYLEOP_Sub)
 	{
 		if (!modelframe)
@@ -219,18 +201,9 @@ void GLSprite::Draw(int pass)
 			// non-black fog with subtractive style needs special treatment
 			if (!gl_isBlack(Colormap.FadeColor))
 			{
-				if (gl.shadermodel >= 4 && !gl_nolayer)
-				{
-					// fog layer only works on modern hardware. 
-					foglayer = true;
-					// Due to the two-layer approach we need to force an alpha test that lets everything pass
-					gl_RenderState.AlphaFunc(GL_GREATER, 0);
-				}
-				else
-				{
-					// this at least partially handles the fog issue
-					Colormap.FadeColor = Colormap.FadeColor.InverseColor();
-				}
+				foglayer = true;
+				// Due to the two-layer approach we need to force an alpha test that lets everything pass
+				gl_RenderState.AlphaFunc(GL_GREATER, 0);
 			}
 		}
 		else RenderStyle.BlendOp = STYLEOP_Fuzz;	// subtractive with models is not going to work.
@@ -243,99 +216,143 @@ void GLSprite::Draw(int pass)
 		gl_RenderState.SetFog(0, 0);
 	}
 
-	if (gltexture) gltexture->BindPatch(Colormap.colormap, translation, OverrideShader);
+	if (gltexture) gl_RenderState.SetMaterial(gltexture, CLAMP_XY, translation, OverrideShader, !!(RenderStyle.Flags & STYLEF_RedIsAlpha));
 	else if (!modelframe) gl_RenderState.EnableTexture(false);
 
-	if (!modelframe)
+		//gl_SetColor(lightlevel, rel, Colormap, trans);
+
+	unsigned int iter = lightlist? lightlist->Size() : 1;
+	bool clipping = false;
+	if (lightlist || topclip != LARGE_VALUE || bottomclip != -LARGE_VALUE)
 	{
-		// [BB] Billboard stuff
-		const bool drawWithXYBillboard = ( (particle && gl_billboard_particles) || (!(actor && actor->renderflags & RF_FORCEYBILLBOARD)
-		                                   //&& GLRenderer->mViewActor != NULL
-		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD ))) );
-		gl_RenderState.Apply();
+		clipping = true;
+		gl_RenderState.EnableSplit(true);
+	}
 
-		Vector v1;
-		Vector v2;
-		Vector v3;
-		Vector v4;
-
-		if (drawWithXYBillboard)
+	secplane_t bottomp = { { 0, 0, -1. }, bottomclip };
+	secplane_t topp = { { 0, 0, -1. }, topclip };
+	for (unsigned i = 0; i < iter; i++)
+	{
+		if (lightlist)
 		{
-			// Rotate the sprite about the vector starting at the center of the sprite
-			// triangle strip and with direction orthogonal to where the player is looking
-			// in the x/y plane.
-			float xcenter = (x1 + x2)*0.5;
-			float ycenter = (y1 + y2)*0.5;
-			float zcenter = (z1 + z2)*0.5;
-			float angleRad = (270. - GLRenderer->mAngles.Yaw).Radians();
+			// set up the light slice
+			secplane_t *topplane = i == 0 ? &topp : &(*lightlist)[i].plane;
+			secplane_t *lowplane = i == (*lightlist).Size() - 1 ? &bottomp : &(*lightlist)[i + 1].plane;
 
-			Matrix3x4 mat;
-			mat.MakeIdentity();
-			mat.Translate(xcenter, zcenter, ycenter);
-			mat.Rotate(-sin(angleRad), 0, cos(angleRad), -GLRenderer->mAngles.Pitch.Degrees);
-			mat.Translate(-xcenter, -zcenter, -ycenter);
-			v1 = mat * Vector(x1, z1, y1);
-			v2 = mat * Vector(x2, z1, y2);
-			v3 = mat * Vector(x1, z2, y1);
-			v4 = mat * Vector(x2, z2, y2);
+			int thisll = (*lightlist)[i].caster != NULL ? gl_ClampLight(*(*lightlist)[i].p_lightlevel) : lightlevel;
+			FColormap thiscm;
+			thiscm.FadeColor = Colormap.FadeColor;
+			thiscm.CopyFrom3DLight(&(*lightlist)[i]);
+			if (glset.nocoloredspritelighting)
+			{
+				thiscm.Decolorize();
+			}
+
+			gl_SetColor(thisll, rel, thiscm, trans);
+			gl_RenderState.SetSplitPlanes(*topplane, *lowplane);
+		}
+		else if (clipping)
+		{
+			gl_RenderState.SetSplitPlanes(topp, bottomp);
+		}
+
+		if (!modelframe)
+		{
+			// [BB] Billboard stuff
+			const bool drawWithXYBillboard = ((particle && gl_billboard_particles) || (!(actor && actor->renderflags & RF_FORCEYBILLBOARD)
+				//&& GLRenderer->mViewActor != NULL
+				&& (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD))));
+
+			const bool drawBillboardFacingCamera = gl_billboard_faces_camera;
+
+			gl_RenderState.Apply();
+
+			FVector3 v1;
+			FVector3 v2;
+			FVector3 v3;
+			FVector3 v4;
+
+			if (drawWithXYBillboard || drawBillboardFacingCamera)
+			{
+				// Compute center of sprite
+				float xcenter = (x1 + x2)*0.5;
+				float ycenter = (y1 + y2)*0.5;
+				float zcenter = (z1 + z2)*0.5;
+
+				Matrix3x4 mat;
+				mat.MakeIdentity();
+				mat.Translate(xcenter, zcenter, ycenter); // move to sprite center
+
+				// Order of rotations matters. Perform yaw rotation (Y, face camera) before pitch (X, tilt up/down).
+				if (drawBillboardFacingCamera) {
+					// [CMB] Rotate relative to camera XY position, not just camera direction,
+					// which is nicer in VR
+					float xrel = xcenter - GLRenderer->mViewActor->X();
+					float yrel = ycenter - GLRenderer->mViewActor->Y();
+					float absAngleDeg = RAD2DEG(atan2(-yrel, xrel));
+					float counterRotationDeg = 270. - GLRenderer->mAngles.Yaw.Degrees; // counteracts existing sprite rotation
+					float relAngleDeg = counterRotationDeg + absAngleDeg;
+
+					mat.Rotate(0, 1, 0, relAngleDeg);
+				}
+
+				if (drawWithXYBillboard)
+				{
+					// Rotate the sprite about the vector starting at the center of the sprite
+					// triangle strip and with direction orthogonal to where the player is looking
+					// in the x/y plane.
+					float angleRad = (270. - GLRenderer->mAngles.Yaw).Radians();
+
+					mat.Rotate(-sin(angleRad), 0, cos(angleRad), -GLRenderer->mAngles.Pitch.Degrees);
+				}
+				mat.Translate(-xcenter, -zcenter, -ycenter); // retreat from sprite center
+				v1 = mat * FVector3(x1, z1, y1);
+				v2 = mat * FVector3(x2, z1, y2);
+				v3 = mat * FVector3(x1, z2, y1);
+				v4 = mat * FVector3(x2, z2, y2);
+			}
+			else // traditional "Y" billboard mode
+			{
+				v1 = FVector3(x1, z1, y1);
+				v2 = FVector3(x2, z1, y2);
+				v3 = FVector3(x1, z2, y1);
+				v4 = FVector3(x2, z2, y2);
+			}
+
+			FFlatVertex *ptr;
+			unsigned int offset, count;
+			ptr = GLRenderer->mVBO->GetBuffer();
+			ptr->Set(v1[0], v1[1], v1[2], ul, vt);
+			ptr++;
+			ptr->Set(v2[0], v2[1], v2[2], ur, vt);
+			ptr++;
+			ptr->Set(v3[0], v3[1], v3[2], ul, vb);
+			ptr++;
+			ptr->Set(v4[0], v4[1], v4[2], ur, vb);
+			ptr++;
+			GLRenderer->mVBO->RenderCurrent(ptr, GL_TRIANGLE_STRIP, &offset, &count);
+
+			if (foglayer)
+			{
+				// If we get here we know that we have colored fog and no fixed colormap.
+				gl_SetFog(foglevel, rel, &Colormap, additivefog);
+				gl_RenderState.SetFixedColormap(CM_FOGLAYER);
+				gl_RenderState.BlendEquation(GL_FUNC_ADD);
+				gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				gl_RenderState.Apply();
+				GLRenderer->mVBO->RenderArray(GL_TRIANGLE_STRIP, offset, count);
+				gl_RenderState.SetFixedColormap(CM_DEFAULT);
+			}
 		}
 		else
 		{
-			v1 = Vector(x1, z1, y1);
-			v2 = Vector(x2, z1, y2);
-			v3 = Vector(x1, z2, y1);
-			v4 = Vector(x2, z2, y2);
-		}
-
-		glBegin(GL_TRIANGLE_STRIP);
-		if (gltexture)
-		{
-			glTexCoord2f(ul, vt); glVertex3fv(&v1[0]);
-			glTexCoord2f(ur, vt); glVertex3fv(&v2[0]);
-			glTexCoord2f(ul, vb); glVertex3fv(&v3[0]);
-			glTexCoord2f(ur, vb); glVertex3fv(&v4[0]);
-		}
-		else	// Particle
-		{
-			glVertex3fv(&v1[0]);
-			glVertex3fv(&v2[0]);
-			glVertex3fv(&v3[0]);
-			glVertex3fv(&v4[0]);
-		}
-
-		glEnd();
-
-		if (foglayer)
-		{
-			// If we get here we know that we have colored fog and no fixed colormap.
-			gl_SetFog(foglevel, rel, &Colormap, additivefog);
-			gl_RenderState.SetFixedColormap(CM_FOGLAYER);
-			gl_RenderState.BlendEquation(GL_FUNC_ADD);
-			gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			gl_RenderState.Apply();
-
-			glBegin(GL_TRIANGLE_STRIP);
-			if (gltexture)
-			{
-				glTexCoord2f(ul, vt); glVertex3fv(&v1[0]);
-				glTexCoord2f(ur, vt); glVertex3fv(&v2[0]);
-				glTexCoord2f(ul, vb); glVertex3fv(&v3[0]);
-				glTexCoord2f(ur, vb); glVertex3fv(&v4[0]);
-			}
-			else	// Particle
-			{
-				glVertex3fv(&v1[0]);
-				glVertex3fv(&v2[0]);
-				glVertex3fv(&v3[0]);
-				glVertex3fv(&v4[0]);
-			}
-			glEnd();
-
+			gl_RenderModel(this);
 		}
 	}
-	else
+
+	if (clipping)
 	{
-		gl_RenderModel(this, Colormap.colormap);
+		gl_RenderState.EnableSplit(false);
 	}
 
 	if (pass==GLPASS_TRANSLUCENT)
@@ -344,22 +361,9 @@ void GLSprite::Draw(int pass)
 		gl_RenderState.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		gl_RenderState.BlendEquation(GL_FUNC_ADD);
 		gl_RenderState.SetTextureMode(TM_MODULATE);
-
-		// [BB] Restore the alpha test after drawing a smooth particle.
-		if (hw_styleflags == STYLEHW_NoAlphaTest)
-		{
-			gl_RenderState.EnableAlphaTest(true);
-		}
-		else
-		{
-			gl_RenderState.AlphaFunc(GL_GEQUAL,gl_mask_sprite_threshold);
-		}
 	}
 
-	// End of gl_sprite_brightfog hack: restore FadeColor to normalcy
-	if (backupfade != Colormap.FadeColor.d)
-		Colormap.FadeColor = backupfade;
-
+	gl_RenderState.SetObjectColor(0xffffffff);
 	gl_RenderState.EnableTexture(true);
 	gl_RenderState.SetDynLight(0,0,0);
 }
@@ -378,13 +382,9 @@ inline void GLSprite::PutSprite(bool translucent)
 	{
 		list = GLDL_TRANSLUCENT;
 	}
-	else if ((!gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE))
-	{
-		list = GLDL_FOGMASKED;
-	}
 	else
 	{
-		list = GLDL_MASKED;
+		list = GLDL_MODELS;
 	}
 	gl_drawinfo->drawlists[list].AddSprite(this);
 }
@@ -433,42 +433,6 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 				(lightbottom-copySprite.z1)*(copySprite.vb-copySprite.vt)/(z2-copySprite.z1);
 			copySprite.PutSprite(translucent);
 			put=true;
-		}
-	}
-}
-
-
-void GLSprite::SetSpriteColor(sector_t *sector, double center_y)
-{
-	double lightbottom;
-	unsigned int i;
-	TArray<lightlist_t> & lightlist=actor->Sector->e->XFloor.lightlist;
-
-	for(i=0;i<lightlist.Size();i++)
-	{
-		// Particles don't go through here so we can safely assume that actor is not NULL
-		if (i<lightlist.Size()-1) lightbottom=lightlist[i+1].plane.ZatPoint(actor);
-		else lightbottom=sector->floorplane.ZatPoint(actor);
-
-		if (lightbottom<z2) lightbottom=z2;
-
-		if (lightbottom<center_y)
-		{
-			lightlevel=*lightlist[i].p_lightlevel;
-			Colormap.CopyLightColor(lightlist[i].extra_colormap);
-
-			if (glset.nocoloredspritelighting)
-			{
-				Colormap.Decolorize();
-			}
-
-			if (!gl_isWhite(ThingColor))
-			{
-				Colormap.LightColor.r=(Colormap.LightColor.r*ThingColor.r)>>8;
-				Colormap.LightColor.g=(Colormap.LightColor.g*ThingColor.g)>>8;
-				Colormap.LightColor.b=(Colormap.LightColor.b*ThingColor.b)>>8;
-			}
-			return;
 		}
 	}
 }
@@ -578,7 +542,7 @@ void GLSprite::PerformSpriteClipAdjustment(AActor *thing, const DVector2 &thingp
 //
 //==========================================================================
 
-void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
+void GLSprite::Process(AActor* thing, sector_t * sector, int thruportal)
 {
 	sector_t rs;
 	sector_t * rendersector;
@@ -609,7 +573,7 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 
 	// [RH] Interpolate the sprite's position to make it look smooth
 	DVector3 thingpos = thing->InterpolatedPosition(r_TicFracF);
-	if (thruportal) thingpos += Displacements.getOffset(thing->Sector->PortalGroup, sector->PortalGroup);
+	if (thruportal == 1) thingpos += Displacements.getOffset(thing->Sector->PortalGroup, sector->PortalGroup);
 
 	// Too close to the camera. This doesn't look good if it is a sprite.
 	if (fabs(thingpos.X - ViewPos.X) < 2 && fabs(thingpos.Y - ViewPos.Y) < 2)
@@ -638,9 +602,9 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 		thing->flags7 |= MF7_FLYCHEAT;	// do this only once for the very first frame, but not if it gets into range again.
 	}
 
-	if (GLRenderer->mCurrentPortal)
+	if (thruportal != 2 && GLRenderer->mClipPortal)
 	{
-		int clipres = GLRenderer->mCurrentPortal->ClipPoint(thingpos);
+		int clipres = GLRenderer->mClipPortal->ClipPoint(thingpos);
 		if (clipres == GLPortal::PClip_InFront) return;
 	}
 
@@ -657,7 +621,6 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 	}
 	topclip = rendersector->PortalBlocksMovement(sector_t::ceiling) ? LARGE_VALUE : rendersector->GetPortalPlaneZ(sector_t::ceiling);
 	bottomclip = rendersector->PortalBlocksMovement(sector_t::floor) ? -LARGE_VALUE : rendersector->GetPortalPlaneZ(sector_t::floor);
-
 
 	x = thingpos.X;
 	z = thingpos.Z - thing->Floorclip;
@@ -677,12 +640,13 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 		DAngle ang = (thingpos - ViewPos).Angle();
 		FTextureID patch = gl_GetSpriteFrame(spritenum, thing->frame, -1, (ang - thing->Angles.Yaw).BAMs(), &mirror);
 		if (!patch.isValid()) return;
-		gltexture = FMaterial::ValidateTexture(patch, false);
+		int type = thing->renderflags & RF_SPRITETYPEMASK;
+		gltexture = FMaterial::ValidateTexture(patch, (type == RF_FACESPRITE), false);
 		if (!gltexture) return;
 
 		vt = gltexture->GetSpriteVT();
 		vb = gltexture->GetSpriteVB();
-		gltexture->GetRect(&r, GLUSE_SPRITE);
+		gltexture->GetSpriteRect(&r);
 		if (mirror)
 		{
 			r.left = -r.width - r.left;	// mirror the sprite's x-offset
@@ -753,7 +717,7 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 	// allow disabling of the fullbright flag by a brightmap definition
 	// (e.g. to do the gun flashes of Doom's zombies correctly.
 	fullbright = (thing->flags5 & MF5_BRIGHT) ||
-		((thing->renderflags & RF_FULLBRIGHT) && (!gl_BrightmapsActive() || !gltexture || !gltexture->tex->gl_info.bDisableFullbright));
+		((thing->renderflags & RF_FULLBRIGHT) && (!gltexture || !gltexture->tex->gl_info.bDisableFullbright));
 
 	lightlevel=fullbright? 255 : 
 		gl_ClampLight(rendersector->GetTexture(sector_t::ceiling) == skyflatnum ? 
@@ -761,6 +725,10 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 	foglevel = (BYTE)clamp<short>(rendersector->lightlevel, 0, 255);
 
 	lightlevel = (byte)gl_CheckSpriteGlow(rendersector, lightlevel, thingpos);
+
+	ThingColor = (thing->RenderStyle.Flags & STYLEF_ColorIsFixed) ? thing->fillcolor : 0xffffff;
+	ThingColor.a = 255;
+	RenderStyle = thing->RenderStyle;
 
 	// colormap stuff is a little more complicated here...
 	if (gl_fixedcolormap) 
@@ -770,14 +738,14 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 			|| (gl_enhanced_nv_stealth == 3))								// Any fixed colormap
 			enhancedvision=true;
 
-		Colormap.GetFixedColormap();
+		Colormap.Clear();
 
 		if (gl_fixedcolormap==CM_LITE)
 		{
 			if (gl_enhanced_nightvision &&
 				(thing->IsKindOf(RUNTIME_CLASS(AInventory)) || thing->flags3&MF3_ISMONSTER || thing->flags&MF_MISSILE || thing->flags&MF_CORPSE))
 			{
-				Colormap.colormap = CM_FIRSTSPECIALCOLORMAP + INVERSECOLORMAP;
+				RenderStyle.Flags |= STYLEF_InvertSource;
 			}
 		}
 	}
@@ -809,9 +777,7 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 
 	translation=thing->Translation;
 
-	ThingColor=0xffffff;
-	RenderStyle = thing->RenderStyle;
-	OverrideShader = 0;
+	OverrideShader = -1;
 	trans = thing->Alpha;
 	hw_styleflags = STYLEHW_Normal;
 
@@ -820,7 +786,7 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 		RenderStyle.CheckFuzz();
 		if (RenderStyle.BlendOp == STYLEOP_Fuzz)
 		{
-			if (gl.shadermodel >= 4 && gl_fuzztype != 0)
+			if (gl_fuzztype != 0 && gl.glslversion > 0)
 			{
 				// Todo: implement shader selection here
 				RenderStyle = LegacyRenderStyles[STYLE_Translucent];
@@ -908,19 +874,34 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 									   && (gl_billboard_mode == 1 || actor->renderflags & RF_FORCEXYBILLBOARD ) );
 
 
-	if (drawWithXYBillboard || modelframe)
+	// no light splitting when:
+	// 1. no lightlist
+	// 2. any fixed colormap
+	// 3. any bright object
+	// 4. any with render style shadow (which doesn't use the sector light)
+	// 5. anything with render style reverse subtract (light effect is not what would be desired here)
+	if (thing->Sector->e->XFloor.lightlist.Size() != 0 && gl_fixedcolormap == CM_DEFAULT && !fullbright &&
+		RenderStyle.BlendOp != STYLEOP_Shadow && RenderStyle.BlendOp != STYLEOP_RevSub)
 	{
-		if (!gl_fixedcolormap && !fullbright) SetSpriteColor(actor->Sector, thingpos.Y + actor->Height / 2);
-		PutSprite(hw_styleflags != STYLEHW_Solid);
-	}
-	else if (thing->Sector->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap || fullbright) 
-	{
-		PutSprite(hw_styleflags != STYLEHW_Solid);
+		if (gl.glslversion < 1.3)	// on old hardware we are rather limited...
+		{
+			lightlist = NULL;
+			if (!drawWithXYBillboard && !modelframe)
+			{
+				SplitSprite(thing->Sector, hw_styleflags != STYLEHW_Solid);
+			}
+		}
+		else
+		{
+			lightlist = &thing->Sector->e->XFloor.lightlist;
+		}
 	}
 	else
 	{
-		SplitSprite(thing->Sector, hw_styleflags != STYLEHW_Solid);
+		lightlist = NULL;
 	}
+
+	PutSprite(hw_styleflags != STYLEHW_Solid);
 	rendered_sprites++;
 }
 
@@ -933,9 +914,9 @@ void GLSprite::Process(AActor* thing, sector_t * sector, bool thruportal)
 
 void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int shade, int fakeside)
 {
-	if (GLRenderer->mCurrentPortal)
+	if (GLRenderer->mClipPortal)
 	{
-		int clipres = GLRenderer->mCurrentPortal->ClipPoint(particle->Pos);
+		int clipres = GLRenderer->mClipPortal->ClipPoint(particle->Pos);
 		if (clipres == GLPortal::PClip_InFront) return;
 	}
 
@@ -949,7 +930,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 
 	if (gl_fixedcolormap) 
 	{
-		Colormap.GetFixedColormap();
+		Colormap.Clear();
 	}
 	else if (!particle->bright)
 	{
@@ -986,8 +967,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	OverrideShader = 0;
 
 	ThingColor = particle->color;
-	gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.colormap);
-	ThingColor.a=0;
+	ThingColor.a = 255;
 
 	modelframe=NULL;
 	gltexture=NULL;
@@ -1009,7 +989,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 
 		if (lump != NULL)
 		{
-			gltexture=FMaterial::ValidateTexture(lump);
+			gltexture = FMaterial::ValidateTexture(lump, true);
 			translation = 0;
 
 			ul = gltexture->GetUL();
@@ -1017,7 +997,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 			vt = gltexture->GetVT();
 			vb = gltexture->GetVB();
 			FloatRect r;
-			gltexture->GetRect(&r, GLUSE_PATCH);
+			gltexture->GetSpriteRect(&r);
 		}
 	}
 
@@ -1050,9 +1030,65 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	if (gl_particles_style != 2 && trans>=1.0f-FLT_EPSILON) hw_styleflags = STYLEHW_Solid;
 	else hw_styleflags = STYLEHW_NoAlphaTest;
 
+	if (sector->e->XFloor.lightlist.Size() != 0 && gl_fixedcolormap == CM_DEFAULT && !fullbright)
+		lightlist = &sector->e->XFloor.lightlist;
+	else
+		lightlist = NULL;
+
 	PutSprite(hw_styleflags != STYLEHW_Solid);
 	rendered_sprites++;
 }
 
+//==========================================================================
+//
+// 
+//
+//==========================================================================
 
+void gl_RenderActorsInPortal(FGLLinePortal *glport)
+{
+	TMap<AActor*, bool> processcheck;
+	if (glport->validcount == validcount) return;	// only process once per frame
+	glport->validcount = validcount;
+	for (auto port : glport->lines)
+	{
+		line_t *line = port->mOrigin;
+		if (line->isLinePortal())	// only crossable ones
+		{
+			FLinePortal *port2 = port->mDestination->getPortal();
+			// process only if the other side links back to this one.
+			if (port2 != nullptr && port->mDestination == port2->mOrigin && port->mOrigin == port2->mDestination)
+			{
 
+				for (portnode_t *node = port->render_thinglist; node != nullptr; node = node->m_snext)
+				{
+					AActor *th = node->m_thing;
+
+					// process each actor only once per portal.
+					bool *check = processcheck.CheckKey(th);
+					if (check && *check) continue;
+					processcheck[th] = true;
+
+					DAngle savedangle = th->Angles.Yaw;
+					DVector3 savedpos = th->Pos();
+					DVector3 newpos = savedpos;
+					sector_t fakesector;
+
+					P_TranslatePortalXY(line, newpos.X, newpos.Y);
+					P_TranslatePortalZ(line, newpos.Z);
+					P_TranslatePortalAngle(line, th->Angles.Yaw);
+					th->SetXYZ(newpos);
+					th->Prev += newpos - savedpos;
+
+					GLSprite spr;
+					th->fillcolor = 0xff0000ff;
+					spr.Process(th, gl_FakeFlat(th->Sector, &fakesector, false), 2);
+					th->fillcolor = 0xffffffff;
+					th->Angles.Yaw = savedangle;
+					th->SetXYZ(savedpos);
+					th->Prev -= newpos - savedpos;
+				}
+			}
+		}
+	}
+}

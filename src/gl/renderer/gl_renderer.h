@@ -5,15 +5,19 @@
 #include "v_video.h"
 #include "vectors.h"
 #include "r_renderer.h"
+#include "gl/data/gl_matrix.h"
 
 struct particle_t;
 class FCanvasTexture;
 class FFlatVertexBuffer;
+class FSkyVertexBuffer;
 class OpenGLFrameBuffer;
 struct FDrawInfo;
 struct pspdef_t;
 class FShaderManager;
 class GLPortal;
+class FLightBuffer;
+class FSamplerManager;
 
 inline float DEG2RAD(float deg)
 {
@@ -55,6 +59,7 @@ class FGLRenderer
 public:
 
 	OpenGLFrameBuffer *framebuffer;
+	GLPortal *mClipPortal;
 	GLPortal *mCurrentPortal;
 	int mMirrorCount;
 	int mPlaneMirrorCount;
@@ -62,21 +67,25 @@ public:
 	float mCurrentFoV;
 	AActor *mViewActor;
 	FShaderManager *mShaderManager;
+	FSamplerManager *mSamplerManager;
 	int gl_spriteindex;
 	unsigned int mFBID;
+	unsigned int mVAOID;
 	int mOldFBID;
 
+	FTexture *gllight;
 	FTexture *glpart2;
 	FTexture *glpart;
 	FTexture *mirrortexture;
-	FTexture *gllight;
-
+	
 	float mSky1Pos, mSky2Pos;
 
 	FRotator mAngles;
 	FVector2 mViewVector;
 
 	FFlatVertexBuffer *mVBO;
+	FSkyVertexBuffer *mSkyVBO;
+	FLightBuffer *mLights;
 
 	void (*beforeRenderView)();
 	void (*afterRenderView)();
@@ -97,12 +106,13 @@ public:
 	void Initialize();
 
 	void CreateScene();
+	void RenderMultipassStuff();
 	void RenderScene(int recursion);
 	void RenderTranslucent();
 	void DrawScene(bool toscreen = false);
 	void DrawBlend(sector_t * viewsector);
 
-	void DrawPSprite (player_t * player,pspdef_t *psp,float sx, float sy, int cm_index, bool hudModelStep, int OverrideShader);
+	void DrawPSprite (player_t * player,pspdef_t *psp,float sx, float sy, bool hudModelStep, int OverrideShader, bool alphatexture);
 	void DrawPlayerSprites(sector_t * viewsector, bool hudModelStep);
 	void DrawTargeterSprites();
 
@@ -129,7 +139,7 @@ public:
 	void Flush() {}
 
 	void SetProjection(float fov, float ratio, float fovratio);
-	void SetProjection(float matrix[4][4]); // raw matrix input from stereo 3d modes
+	void SetProjection(VSMatrix matrix); // raw matrix input from stereo 3d modes
 	void SetViewMatrix(float vx, float vy, float vz, bool mirror, bool planemirror);
 	void ProcessScene(bool toscreen = false);
 
