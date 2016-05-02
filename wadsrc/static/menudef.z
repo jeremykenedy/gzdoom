@@ -207,6 +207,8 @@ OptionMenu "GLPrefOptions"
 	Option "$GLPREFMNU_RENDERQUALITY",			gl_render_precise,				"Precision"
 	Option "$GLPREFMNU_VRMODE",					vr_mode, 						"VRMode"
 	Option "$GLPREFMNU_VRQUADSTEREO",			vr_enable_quadbuffered,			"OnOff"
+	Option "Post-processing",					gl_postprocess,					"PostProcess"
+	Option "Smooth rendered picture",			gl_smooth_rendered,				"OnOff"
 }
 
 OptionValue "VSyncModes"
