@@ -55,6 +55,7 @@
 #include "r_utility.h"
 #include "a_hexenglobal.h"
 #include "p_local.h"
+#include "gstrings.h"
 #include "gl/gl_functions.h"
 
 #include "gl/dynlights/gl_lightbuffer.h"
@@ -1054,6 +1055,61 @@ void FGLInterface::PrecacheSprite(FTexture *tex, SpriteHits &hits)
 //
 //==========================================================================
 
+namespace
+{
+
+class PrecacheProgress
+{
+public:
+	PrecacheProgress()
+	: m_time  (I_FPSTime())
+	, m_color (CR_YELLOW)
+	, m_dimmed(false)
+	{
+	}
+
+	void Update()
+	{
+		static const unsigned int UPDATE_TIME_MS = 250;
+		const unsigned int now = I_FPSTime();
+
+		if (UPDATE_TIME_MS > now - m_time)
+		{
+			return;
+		}
+
+		const char* const loadingMessage = GStrings("TXT_PRECACHE_WAIT");
+		FFont* const font = BigFont;
+
+		const int x = (SCREENWIDTH  - font->StringWidth(loadingMessage) * CleanXfac) / 2;
+		const int y = (SCREENHEIGHT - font->GetHeight()) / 2;
+
+		screen->Lock(false);
+
+		if (!m_dimmed)
+		{
+			// Dim amount is a guess value
+			// [?] should depend on gamma/brightness/contrast [?]
+			screen->Dim(0, 0.93f, 0, 0, SCREENWIDTH, SCREENHEIGHT);
+			m_dimmed = true;
+		}
+
+		screen->DrawText(BigFont, m_color, x, y, loadingMessage, DTA_CleanNoMove, true, TAG_DONE);
+		screen->Update();
+
+		m_time  = now;
+		m_color = (CR_YELLOW == m_color) ? CR_GOLD : CR_YELLOW;
+	}
+
+private:
+	unsigned int m_time;
+	EColorRange  m_color;
+	bool         m_dimmed;
+};
+	
+} // unnamed namespace
+
+
 void FGLInterface::Precache(BYTE *texhitlist, TMap<PClassActor*, bool> &actorhitlist)
 {
 	SpriteHits *spritelist = new SpriteHits[sprites.Size()];
@@ -1170,6 +1226,14 @@ void FGLInterface::Precache(BYTE *texhitlist, TMap<PClassActor*, bool> &actorhit
 
 	if (gl_precache)
 	{
+		PrecacheProgress precacheProgress;
+
+		// Consider to comment out PrecacheProgress::Update() call below
+		// in order to get more precise timing results
+		cycle_t precacheProfiler;
+		precacheProfiler.Reset();
+		precacheProfiler.Clock();
+
 		// cache all used textures
 		for (int i = cnt - 1; i >= 0; i--)
 		{
@@ -1180,6 +1244,7 @@ void FGLInterface::Precache(BYTE *texhitlist, TMap<PClassActor*, bool> &actorhit
 				if (spritehitlist[i] != nullptr && (*spritehitlist[i]).CountUsed() > 0)
 				{
 					PrecacheSprite(tex, *spritehitlist[i]);
+					precacheProgress.Update();
 				}
 			}
 		}
@@ -1187,9 +1252,15 @@ void FGLInterface::Precache(BYTE *texhitlist, TMap<PClassActor*, bool> &actorhit
 		// cache all used models
 		for (unsigned i = 0; i < Models.Size(); i++)
 		{
-			if (modellist[i]) 
+			if (modellist[i])
+			{
 				Models[i]->BuildVertexBuffer();
+				precacheProgress.Update();
+			}
 		}
+
+		precacheProfiler.Unclock();
+		DPrintf(TEXTCOLOR_RED "Textures were precached in %.03f ms\n", precacheProfiler.TimeMS());
 	}
 
 	delete[] spritehitlist;
