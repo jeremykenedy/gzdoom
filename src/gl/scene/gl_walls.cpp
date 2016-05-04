@@ -139,6 +139,11 @@ void GLWall::PutWall(bool translucent)
 	}
 	else
 	{
+		if (gl.lightmethod == LM_SOFTWARE && !translucent)
+		{
+			// This is not yet ready.
+			//if (PutWallCompat(passflag[type])) return;
+		}
 
 		bool masked;
 
@@ -217,7 +222,7 @@ void GLWall::PutPortal(int ptype)
 		if (!portal)
 		{
 			line_t *otherside = lineportal->lines[0]->mDestination;
-			if (otherside != NULL)
+			if (otherside != NULL && otherside->portalindex < linePortals.Size())
 			{
 				gl_RenderActorsInPortal(linePortalToGL[otherside->portalindex]);
 			}
