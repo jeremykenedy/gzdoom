@@ -434,6 +434,7 @@ static const FEffectShader effectshaders[]=
 	{ "burn", "shaders/glsl/main.vp", "shaders/glsl/burn.fp", NULL, "#define SIMPLE\n#define NO_ALPHATEST\n" },
 	{ "stencil", "shaders/glsl/main.vp", "shaders/glsl/stencil.fp", NULL, "#define SIMPLE\n#define NO_ALPHATEST\n" },
 	{ "gammacorrection", "shaders/glsl/main.vp", "shaders/glsl/gammacorrection.fp", NULL, "#define SIMPLE\n" },
+	{ "fxaa", "shaders/glsl/main.vp", "shaders/glsl/fxaa.fp", NULL, "#define SIMPLE\n" },
 };
 
 

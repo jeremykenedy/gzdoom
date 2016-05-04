@@ -404,8 +404,6 @@ private:
 	GLsizei m_height;
 
 	RenderTarget*  m_renderTarget;
-	FShader*       m_shader;
-
 	const RenderTarget* m_sharedDepth;
 
 }; // class PostProcess
@@ -1307,10 +1305,8 @@ EXTERN_CVAR(Float, vid_contrast)
 
 void BoundTextureDraw2D(const GLsizei width, const GLsizei height)
 {
-	gl_RenderState.SetEffect(EFF_GAMMACORRECTION);
 	gl_RenderState.SetTextureMode(TM_OPAQUE);
 	gl_RenderState.AlphaFunc(GL_GEQUAL, 0.f);
-	gl_RenderState.SetColor(Gamma, vid_contrast, vid_brightness);
 	gl_RenderState.Apply();
 
 	static const float x  = 0.f;
@@ -1462,7 +1458,6 @@ PostProcess::PostProcess(const RenderTarget* const sharedDepth)
 : m_width       (0   )
 , m_height      (0   )
 , m_renderTarget(NULL)
-, m_shader      (NULL)
 , m_sharedDepth (sharedDepth)
 {
 
@@ -1486,27 +1481,13 @@ void PostProcess::Init(const char* const shaderName, const GLsizei width, const 
 	m_height = height;
 
 	m_renderTarget = new RenderTarget(m_width, m_height);
+	m_renderTarget->GetColorTexture().Bind(0, 0, false);
 
-	m_shader = new FShader("PostProcessing");
-	m_shader->Load("PostProcessing", "shaders/glsl/main.vp", shaderName, NULL, "");
-
-	const GLuint program = m_shader->GetHandle();
-
-	glUseProgram(program);
-	glUniform1i(glGetUniformLocation(program, "sampler0"), 0);
-	glUniform2f(glGetUniformLocation(program, "resolution"),
-		static_cast<GLfloat>(width), static_cast<GLfloat>(height));
-	glUseProgram(0);
+	BoundTextureSetFilter(GL_TEXTURE_2D, GL_NEAREST);
 }
 
 void PostProcess::Release()
 {
-	if (NULL != m_shader)
-	{
-		delete m_shader;
-		m_shader = NULL;
-	}
-
 	if (NULL != m_renderTarget)
 	{
 		delete m_renderTarget;
@@ -1535,12 +1516,12 @@ void PostProcess::Start()
 void PostProcess::Finish()
 {
 	m_renderTarget->Unbind();
-
 	m_renderTarget->GetColorTexture().Bind(0, 0, false);
 
-	m_shader->Bind();
+	gl_RenderState.SetColor(float(m_width), float(m_height), 0.0f);
+	gl_RenderState.SetEffect(EFF_FXAA);
+
 	BoundTextureDraw2D(m_width, m_height);
-	glUseProgram(0);
 }
 
 
@@ -1769,6 +1750,9 @@ void CocoaOpenGLFrameBuffer::DrawRenderTarget()
 	}
 
 	glViewport(rbOpts.shiftX, rbOpts.shiftY, rbOpts.width, rbOpts.height);
+
+	gl_RenderState.SetColor(Gamma, vid_contrast, vid_brightness);
+	gl_RenderState.SetEffect(EFF_GAMMACORRECTION);
 
 	BoundTextureDraw2D(Width, Height);
 
