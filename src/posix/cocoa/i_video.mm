@@ -1330,6 +1330,7 @@ void BoundTextureDraw2D(const GLsizei width, const GLsizei height)
 	vbo->RenderCurrent(ptr, GL_TRIANGLE_STRIP);
 
 	gl_RenderState.SetEffect(EFF_NONE);
+	gl_RenderState.SetTextureMode(TM_MODULATE);
 }
 
 bool BoundTextureSaveAsPNG(const GLenum target, const char* const path)
