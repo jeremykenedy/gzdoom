@@ -459,6 +459,7 @@ void M_SetMenu(FName menu, int param)
 		}
 	}
 	Printf("Attempting to open menu of unknown type '%s'\n", menu.GetChars());
+	M_ClearMenus();
 }
 
 //=============================================================================
