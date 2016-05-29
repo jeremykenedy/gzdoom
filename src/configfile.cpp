@@ -40,7 +40,7 @@
 #include "configfile.h"
 #include "m_random.h"
 
-#define READBUFFERSIZE	256
+#define READBUFFERSIZE	4096
 
 static FRandom pr_endtag;
 
