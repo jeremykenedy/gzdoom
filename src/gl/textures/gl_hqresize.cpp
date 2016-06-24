@@ -45,6 +45,10 @@
 #include <dispatch/dispatch.h>
 #endif // GZ_USE_LIBDISPATCH
 
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif // _MSC_VER
+
 #include "gl/system/gl_system.h"
 #include "gl/system/gl_interface.h"
 #include "gl/renderer/gl_renderer.h"
