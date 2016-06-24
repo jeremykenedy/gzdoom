@@ -470,22 +470,6 @@ else()
 	set( BACKPATCH 0 )
 endif()
 
-if( X64 )
-	set( HAVE_MMX 1 )
-else( X64 )
-	set( SAFE_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
-
-	if( ZD_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmmx")
-	endif( ZD_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
-
-	CHECK_CXX_SOURCE_COMPILES("#include <mmintrin.h>
-		int main(void) { __m64 v = _m_from_int(0); }"
-		HAVE_MMX)
-
-	set( CMAKE_CXX_FLAGS ${SAFE_CMAKE_CXX_FLAGS} )
-endif( X64 )
-
 # Set up flags for GCC
 
 if( ZD_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
@@ -718,25 +702,6 @@ else()
 	set( SYSTEM_SOURCES ${PLAT_POSIX_SOURCES} ${PLAT_SDL_SOURCES} )
 	set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_OSX_SOURCES} ${PLAT_COCOA_SOURCES} )
 endif()
-
-if( HAVE_MMX )
-	add_definitions( -DHAVE_MMX=1 )
-
-	set( SYSTEM_SOURCES ${SYSTEM_SOURCES}
-		gl/hqnx_asm/hq2x_asm.cpp
-		gl/hqnx_asm/hq3x_asm.cpp
-		gl/hqnx_asm/hq4x_asm.cpp
-		gl/hqnx_asm/hqnx_asm_Image.cpp)
-
-	if( ZD_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
-		set_source_files_properties(
-			gl/hqnx_asm/hq2x_asm.cpp
-			gl/hqnx_asm/hq3x_asm.cpp
-			gl/hqnx_asm/hq4x_asm.cpp
-			gl/textures/gl_hqresize.cpp
-			PROPERTIES COMPILE_FLAGS "-mmmx" )
-	endif( ZD_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
-endif( HAVE_MMX )
 
 if( NOT ASM_SOURCES )
 	set( ASM_SOURCES "" )
