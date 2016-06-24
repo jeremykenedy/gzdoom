@@ -97,6 +97,8 @@ FGLRenderer::FGLRenderer(OpenGLFrameBuffer *fb)
 	mShaderManager = NULL;
 	gllight = glpart2 = glpart = mirrortexture = NULL;
 	mLights = NULL;
+	beforeRenderView = nullptr;
+	afterRenderView = nullptr;
 }
 
 void gl_LoadModels();
